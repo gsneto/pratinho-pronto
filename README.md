@@ -42,7 +42,15 @@ envio do link fica bloqueado com uma mensagem explícita.
 - Configuração local: `supabase/config.toml`
 
 A migration cria todas as tabelas, índices, triggers e policies RLS. O seed
-contém 24 receitas e 33 ingredientes explicitamente demonstrativos.
+contém 72 receitas e 36 ingredientes explicitamente demonstrativos, distribuídos
+em 18 cafés da manhã, 18 almoços, 18 lanches e 18 jantares.
+
+O catálogo editorial prioriza alimentos in natura ou minimamente processados,
+preparações sem açúcar ou mel adicionados e texturas adaptáveis. Ele foi revisado
+tecnicamente contra o Guia Alimentar para Crianças Brasileiras Menores de 2 Anos,
+mas não substitui prescrição individual nem revisão de nutricionista infantil.
+Referências editoriais: [Ministério da Saúde](https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/s/saude-da-crianca/primeira-infancia/alimentacao-saudavel)
+e [OMS](https://www.who.int/publications/i/item/9789240081864).
 
 A migration e o seed já estão aplicados no projeto de produção. As URLs local e
 publicada terminadas em `/auth/callback` também estão permitidas no Supabase
