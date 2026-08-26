@@ -18,6 +18,8 @@ export interface Baby {
   known_allergens: string[]
   avoided_foods: string[]
   notes: string | null
+  photo_path: string | null
+  photo_url: string | null
   created_at: string
   updated_at: string
 }

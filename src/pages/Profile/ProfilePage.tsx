@@ -1,7 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, UserRound } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
+import { BabyAvatar } from '../../components/baby/BabyAvatar'
 import { BabyForm } from '../../components/baby/BabyForm'
+import { BabyPhotoEditor } from '../../components/baby/BabyPhotoEditor'
 import { PageState } from '../../components/ui/PageState'
 import { babyQueryKey, useBaby } from '../../hooks/useBaby'
 import type { BabyFormData } from '../../lib/schemas/baby'
@@ -43,12 +45,15 @@ export function ProfilePage() {
     setSaved(true)
   }
 
+  async function handlePhotoChanged() {
+    await queryClient.invalidateQueries({ queryKey: babyQueryKey })
+    setSaved(true)
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex items-start gap-4">
-        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-sage-100 text-sage-700">
-          <UserRound aria-hidden="true" size={22} />
-        </span>
+        <BabyAvatar name={currentBaby.name} photoUrl={currentBaby.photo_url} size="lg" />
         <div>
           <p className="text-sm font-semibold text-terracotta-500">Perfil do bebê</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900">
@@ -69,6 +74,10 @@ export function ProfilePage() {
           Informações atualizadas.
         </div>
       )}
+
+      <div className="mt-6">
+        <BabyPhotoEditor baby={currentBaby} onChanged={handlePhotoChanged} />
+      </div>
 
       <section className="mt-6 rounded-[24px] border border-cream-100 bg-white p-5 shadow-[0_12px_40px_rgba(65,65,60,0.04)] sm:p-7">
         <BabyForm

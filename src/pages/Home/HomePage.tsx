@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
 import { getWeekStart } from '../../utils/dates'
@@ -47,11 +48,16 @@ export function HomePage() {
 
   return (
     <div className="space-y-10">
-      <section className="overflow-hidden rounded-[28px] border border-cream-100 bg-white px-5 py-7 shadow-[0_18px_50px_rgba(65,65,60,0.06)] sm:px-9 sm:py-10 lg:grid lg:grid-cols-[1.25fr_0.75fr] lg:gap-12 lg:px-12 lg:py-12">
-        <div>
+      <section className="relative isolate overflow-hidden rounded-[28px] border border-cream-100 bg-white px-5 py-7 shadow-[0_18px_50px_rgba(65,65,60,0.06)] sm:px-9 sm:py-10 lg:grid lg:grid-cols-[1.25fr_0.75fr] lg:gap-12 lg:px-12 lg:py-12">
+        {baby && <BabyPhotoBackdrop name={baby.name} photoUrl={baby.photo_url} />}
+        <div className="relative z-10">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-sage-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-sage-700">
-            <Sparkles aria-hidden="true" size={15} />
-            Planejamento sem complicar
+            {baby ? (
+              <BabyAvatar className="-my-1 -ml-1" name={baby.name} photoUrl={baby.photo_url} size="sm" />
+            ) : (
+              <Sparkles aria-hidden="true" size={15} />
+            )}
+            {baby ? `Planejamento de ${baby.name}` : 'Planejamento sem complicar'}
           </div>
           <h1 className="max-w-2xl text-[36px] leading-[1.06] font-semibold tracking-[-0.045em] text-ink-900 sm:text-5xl lg:text-[56px]">
             Uma semana mais leve começa antes da próxima refeição.
@@ -72,7 +78,7 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="mt-8 rounded-[24px] bg-cream-50 p-5 lg:mt-0 lg:self-center lg:p-6">
+        <div className="relative z-10 mt-8 rounded-[24px] bg-cream-50 p-5 lg:mt-0 lg:self-center lg:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-terracotta-500">

@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, RefreshCw, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
+import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
@@ -133,22 +134,28 @@ export function MealPlanPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-terracotta-500">Cardápio de {currentBaby.name}</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
-            Montar minha semana
-          </h1>
+      <div className="relative isolate overflow-hidden rounded-[24px] border border-cream-100 bg-white p-5 sm:p-6">
+        <BabyPhotoBackdrop name={currentBaby.name} photoUrl={currentBaby.photo_url} />
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-center gap-3">
+            <BabyAvatar name={currentBaby.name} photoUrl={currentBaby.photo_url} size="lg" />
+            <div>
+              <p className="text-sm font-semibold text-terracotta-500">Cardápio de {currentBaby.name}</p>
+              <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
+                Montar minha semana
+              </h1>
+            </div>
+          </div>
+          <label className="text-xs font-semibold text-ink-500">
+            Segunda-feira da semana
+            <input
+              className="mt-1 block min-h-12 rounded-2xl border border-cream-100 bg-white px-4 text-sm text-ink-700"
+              onChange={(event) => setWeekStart(event.target.value)}
+              type="date"
+              value={weekStart}
+            />
+          </label>
         </div>
-        <label className="text-xs font-semibold text-ink-500">
-          Segunda-feira da semana
-          <input
-            className="mt-1 block min-h-12 rounded-2xl border border-cream-100 bg-white px-4 text-sm text-ink-700"
-            onChange={(event) => setWeekStart(event.target.value)}
-            type="date"
-            value={weekStart}
-          />
-        </label>
       </div>
 
       <section className="mt-6 rounded-[24px] border border-cream-100 bg-white p-5 shadow-[0_12px_40px_rgba(65,65,60,0.04)] sm:p-6">
