@@ -11,8 +11,10 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
+import { InstallAppCard } from '../../components/ui/InstallAppCard'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
+import { useState } from 'react'
 import { getWeekStart } from '../../utils/dates'
 import { mealTypeLabels } from '../../utils/labels'
 
@@ -41,6 +43,9 @@ export function HomePage() {
   const { data: baby } = useBaby()
   const currentWeekStart = getWeekStart()
   const { data: plan } = useMealPlan(baby?.id, currentWeekStart)
+  const [showInstallInvite, setShowInstallInvite] = useState(
+    () => window.localStorage.getItem('pratinho-install-invite-dismissed') !== 'true',
+  )
   const previewItems = plan?.meal_plan_items
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date) || a.meal_type.localeCompare(b.meal_type))
@@ -121,6 +126,15 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      {plan && showInstallInvite && (
+        <InstallAppCard
+          onDismiss={() => {
+            window.localStorage.setItem('pratinho-install-invite-dismissed', 'true')
+            setShowInstallInvite(false)
+          }}
+        />
+      )}
 
       <section aria-labelledby="quick-actions-title">
         <div className="mb-4 flex items-end justify-between gap-4">

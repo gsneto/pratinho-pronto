@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { BabyAvatar } from '../../components/baby/BabyAvatar'
 import { BabyForm } from '../../components/baby/BabyForm'
 import { BabyPhotoEditor } from '../../components/baby/BabyPhotoEditor'
+import { InstallAppCard } from '../../components/ui/InstallAppCard'
 import { PageState } from '../../components/ui/PageState'
 import { babyQueryKey, useBaby } from '../../hooks/useBaby'
 import type { BabyFormData } from '../../lib/schemas/baby'
@@ -74,6 +75,10 @@ export function ProfilePage() {
           Informações atualizadas.
         </div>
       )}
+
+      <div className="mt-6">
+        <InstallAppCard compact />
+      </div>
 
       <div className="mt-6">
         <BabyPhotoEditor baby={currentBaby} onChanged={handlePhotoChanged} />
