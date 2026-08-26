@@ -12,6 +12,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { getAuthErrorMessage } from '../../lib/auth-errors'
 import { BrandMark } from '../ui/BrandMark'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 const navigation = [
   { label: 'Início', icon: Home, path: '/app', enabled: true },
@@ -66,6 +67,7 @@ export function AppShell() {
             <span className="hidden max-w-56 truncate text-xs text-ink-500 lg:block">
               {user?.email}
             </span>
+            <ThemeToggle />
             <button
               aria-label="Sair da conta"
               className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-cream-100 bg-white px-3 text-sm font-semibold text-ink-700 disabled:cursor-not-allowed disabled:opacity-55 sm:px-4"
