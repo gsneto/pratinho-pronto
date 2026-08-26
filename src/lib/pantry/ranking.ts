@@ -2,7 +2,9 @@ import type { Baby, Recipe } from '../../types/domain'
 import { isRecipeCompatible } from '../meal-plan/generator'
 
 export interface RankedPantryRecipe {
+  canMakeNow: boolean
   matchedCount: number
+  missingIngredientNames: string[]
   recipe: Recipe
   score: number
   totalRequired: number
@@ -28,9 +30,15 @@ export function rankRecipesByPantry({
     .map((recipe) => {
       const required = recipe.recipe_ingredients.filter((item) => !item.is_optional)
       const matchedCount = required.filter((item) => selected.has(item.ingredient_id)).length
+      const missingIngredientNames = required
+        .filter((item) => !selected.has(item.ingredient_id))
+        .map((item) => item.ingredient.name)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'))
       const totalRequired = required.length
       return {
+        canMakeNow: totalRequired > 0 && matchedCount === totalRequired,
         matchedCount,
+        missingIngredientNames,
         recipe,
         score: totalRequired === 0 ? 0 : matchedCount / totalRequired,
         totalRequired,

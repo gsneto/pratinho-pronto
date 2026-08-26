@@ -38,5 +38,10 @@ describe('rankRecipesByPantry', () => {
       ['complete', 1],
       ['half', 0.5],
     ])
+    expect(ranked[0]).toMatchObject({ canMakeNow: true, missingIngredientNames: [] })
+    expect(ranked[1]).toMatchObject({
+      canMakeNow: false,
+      missingIngredientNames: ['aveia'],
+    })
   })
 })

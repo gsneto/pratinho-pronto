@@ -30,6 +30,15 @@ export function PantryPage() {
     [baby, hasSearched, recipes, selectedIds],
   )
 
+  const recipesReady = useMemo(
+    () => rankedRecipes.filter((item) => item.canMakeNow),
+    [rankedRecipes],
+  )
+  const recipesMissingIngredients = useMemo(
+    () => rankedRecipes.filter((item) => !item.canMakeNow).slice(0, 6),
+    [rankedRecipes],
+  )
+
   if (!baby || ingredientsLoading || recipesLoading) {
     return <PageState description="Carregando ingredientes e receitas." title="Abrindo sua cozinha…" />
   }
@@ -121,7 +130,7 @@ export function PantryPage() {
       {hasSearched && (
         <section className="mt-8" aria-labelledby="pantry-results-title">
           <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title">
-            Ideias mais próximas do que você tem
+            Resultados para sua cozinha
           </h2>
           {rankedRecipes.length === 0 ? (
             <div className="mt-4">
@@ -132,14 +141,46 @@ export function PantryPage() {
               />
             </div>
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {rankedRecipes.map(({ matchedCount, recipe, score, totalRequired }) => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  scoreLabel={`${Math.round(score * 100)}% dos ingredientes • ${matchedCount} de ${totalRequired}`}
-                />
-              ))}
+            <div>
+              <div className="mt-4">
+                <h3 className="text-lg font-semibold text-ink-900">Dá para fazer agora</h3>
+                {recipesReady.length === 0 ? (
+                  <div className="mt-3 rounded-2xl border border-cream-100 bg-cream-50 p-4">
+                    <p className="font-semibold text-ink-900">Nenhuma receita completa com essa seleção.</p>
+                    <p className="mt-1 text-sm leading-6 text-ink-500">
+                      Veja abaixo quais ingredientes faltam ou marque mais itens que você tem em casa.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {recipesReady.map(({ recipe }) => (
+                      <RecipeCard
+                        key={recipe.id}
+                        recipe={recipe}
+                        scoreLabel="Você tem todos os ingredientes"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {recipesMissingIngredients.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-ink-900">Falta pouco</h3>
+                  <p className="mt-1 text-sm leading-6 text-ink-500">
+                    Estas receitas usam parte do que você marcou, mas ainda precisam dos itens indicados.
+                  </p>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {recipesMissingIngredients.map(({ missingIngredientNames, recipe }) => (
+                      <RecipeCard
+                        key={recipe.id}
+                        recipe={recipe}
+                        scoreLabel={`Falta: ${missingIngredientNames.join(', ')}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>
