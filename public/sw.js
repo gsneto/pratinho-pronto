@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pratinho-pronto-shell-v2'
+const CACHE_NAME = 'pratinho-pronto-shell-v3'
 const APP_SHELL = ['/', '/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
