@@ -18,7 +18,7 @@
 
 :root {
   color: #292a26;
-  background: #fcfaf5;
+  background: var(--color-cream-50);
   font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -33,7 +33,35 @@
 html {
   min-width: 320px;
   min-height: 100%;
-  background: #fcfaf5;
+  background: var(--color-cream-50);
+}
+
+[data-theme='dark'] {
+  --color-cream-50: #171a18;
+  --color-cream-100: #30352f;
+  --color-sage-50: #202822;
+  --color-sage-100: #2e3b31;
+  --color-sage-500: #91aa8d;
+  --color-sage-600: #789472;
+  --color-sage-700: #bed0ba;
+  --color-terracotta-100: #4a302b;
+  --color-terracotta-500: #e39a80;
+  --color-ink-500: #a9ada7;
+  --color-ink-700: #d4d8d2;
+  --color-ink-900: #f4f5f1;
+  --color-surface: #212522;
+
+  color: var(--color-ink-900);
+  background: var(--color-cream-50);
+}
+
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .focus\:bg-white:focus {
+  background-color: var(--color-surface);
+}
+
+[data-theme='dark'] .bg-white\/90 {
+  background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
 body {
@@ -54,6 +82,6 @@ a:focus-visible {
 }
 
 ::selection {
-  color: #292a26;
-  background: #e3ebdf;
+  color: var(--color-ink-900);
+  background: var(--color-sage-100);
 }
