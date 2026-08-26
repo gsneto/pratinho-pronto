@@ -1,4 +1,5 @@
 import { Salad } from 'lucide-react'
+import { getRecipeImageUrl } from '../../lib/recipes/images'
 
 interface RecipeVisualProps {
   imageUrl: string | null
@@ -8,14 +9,16 @@ interface RecipeVisualProps {
 
 export function RecipeVisual({ imageUrl, name, size = 'card' }: RecipeVisualProps) {
   const heightClass = size === 'hero' ? 'h-56 sm:h-72' : 'h-36'
+  const resolvedImageUrl = getRecipeImageUrl(name, imageUrl)
 
-  if (imageUrl) {
+  if (resolvedImageUrl) {
     return (
       <img
         alt={`Receita ${name}`}
         className={`${heightClass} w-full object-cover`}
+        decoding="async"
         loading="lazy"
-        src={imageUrl}
+        src={resolvedImageUrl}
       />
     )
   }
