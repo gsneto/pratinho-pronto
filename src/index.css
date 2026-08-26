@@ -1,19 +1,23 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-cream-50: #fcfaf5;
-  --color-cream-100: #f6f0e5;
-  --color-sage-50: #f3f6f1;
-  --color-sage-100: #e3ebdf;
-  --color-sage-500: #72896c;
-  --color-sage-600: #5e7359;
-  --color-sage-700: #4c5f48;
-  --color-terracotta-100: #f3ddd3;
-  --color-terracotta-500: #bd735d;
-  --color-ink-500: #6b6a63;
-  --color-ink-700: #41413c;
-  --color-ink-900: #292a26;
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-cream-50: #f3f5ee;
+  --color-cream-100: #e1e4d8;
+  --color-white: #fdfcf9;
+  --color-sage-50: #e8ede3;
+  --color-sage-100: #d6dfcf;
+  --color-sage-500: #5f7052;
+  --color-sage-600: #5f7052;
+  --color-sage-700: #5f7052;
+  --color-terracotta-100: #f0e1e7;
+  --color-terracotta-500: #8c3a56;
+  --color-beet: #8c3a56;
+  --color-pumpkin: #d9822b;
+  --color-ink-500: #726f63;
+  --color-ink-700: #45443c;
+  --color-ink-900: #2a2a22;
+  --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", Georgia, serif;
 }
 
 :root {
@@ -37,22 +41,32 @@ html {
 }
 
 [data-theme='dark'] {
-  --color-cream-50: #171a18;
-  --color-cream-100: #30352f;
-  --color-sage-50: #202822;
-  --color-sage-100: #2e3b31;
-  --color-sage-500: #91aa8d;
-  --color-sage-600: #789472;
-  --color-sage-700: #bed0ba;
-  --color-terracotta-100: #4a302b;
-  --color-terracotta-500: #e39a80;
-  --color-ink-500: #a9ada7;
-  --color-ink-700: #d4d8d2;
-  --color-ink-900: #f4f5f1;
-  --color-surface: #212522;
+  --color-cream-50: #1e1b16;
+  --color-cream-100: #403b32;
+  --color-white: #29261f;
+  --color-sage-50: #30372b;
+  --color-sage-100: #3e4a36;
+  --color-sage-500: #9bb584;
+  --color-sage-600: #9bb584;
+  --color-sage-700: #9bb584;
+  --color-terracotta-100: #4b2d39;
+  --color-terracotta-500: #c97ca0;
+  --color-beet: #c97ca0;
+  --color-pumpkin: #d9822b;
+  --color-ink-500: #a39c8e;
+  --color-ink-700: #d1cbbe;
+  --color-ink-900: #f3f0e8;
+  --color-surface: #29261f;
 
   color: var(--color-ink-900);
   background: var(--color-cream-50);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-variation-settings: "SOFT" 50, "WONK" 0;
 }
 
 [data-theme='dark'] .bg-white,
@@ -77,7 +91,7 @@ a {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(114, 137, 108, 0.35);
+  outline: 3px solid color-mix(in srgb, var(--color-sage-500) 48%, transparent);
   outline-offset: 3px;
 }
 

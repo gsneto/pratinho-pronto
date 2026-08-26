@@ -96,7 +96,7 @@ export function ShoppingListPage() {
             variant="empty"
           />
         </div>
-        <Link className="mt-5 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-sage-600 px-5 font-semibold text-white sm:w-auto" to="/app/week">
+        <Link className="mt-5 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-pumpkin px-5 font-medium text-[#2A2A22] hover:bg-pumpkin/90 sm:w-auto" to="/app/week">
           Montar minha semana
         </Link>
       </div>
@@ -112,7 +112,7 @@ export function ShoppingListPage() {
           <p className="mt-2 text-sm text-ink-500">Itens da semana iniciada em {new Date(`${weekStart}T12:00:00`).toLocaleDateString('pt-BR')}.</p>
         </div>
         <button
-          className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-sage-600 px-5 text-sm font-semibold text-white disabled:opacity-55"
+          className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:opacity-55"
           disabled={isGenerating}
           onClick={handleGenerate}
           type="button"

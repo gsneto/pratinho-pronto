@@ -32,7 +32,7 @@ export function AuthCallbackPage() {
               'O link pode ter expirado ou já ter sido utilizado. Solicite um novo acesso.'}
         </p>
         <Link
-          className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-sage-600 px-5 text-sm font-semibold text-white"
+          className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90"
           to="/login"
         >
           Voltar para o login

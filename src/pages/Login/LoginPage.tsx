@@ -173,7 +173,7 @@ export function LoginPage() {
                 )}
 
                 <button
-                  className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-sage-600 px-5 text-base font-semibold text-white transition-colors enabled:hover:bg-sage-700 disabled:cursor-not-allowed disabled:opacity-55"
+                  className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] transition-colors enabled:hover:bg-pumpkin/90 disabled:cursor-not-allowed disabled:opacity-55"
                   disabled={!isConfigured || isSubmitting}
                   type="submit"
                 >

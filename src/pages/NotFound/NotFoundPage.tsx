@@ -10,7 +10,7 @@ export function NotFoundPage() {
           Esta página ainda não está no cardápio.
         </h1>
         <Link
-          className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-sage-600 px-5 font-semibold text-white"
+          className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-pumpkin px-5 font-medium text-[#2A2A22] hover:bg-pumpkin/90"
           to="/app"
         >
           <ArrowLeft aria-hidden="true" size={18} />

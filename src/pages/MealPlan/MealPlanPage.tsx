@@ -183,7 +183,7 @@ export function MealPlanPage() {
         </div>
         {generationError && <p className="mt-4 text-sm text-terracotta-500" role="alert">{generationError}</p>}
         <button
-          className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-sage-600 px-5 text-base font-semibold text-white disabled:opacity-55 sm:w-auto sm:min-w-64"
+          className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:opacity-55 sm:w-auto sm:min-w-64"
           disabled={isGenerating}
           onClick={handleGenerate}
           type="button"

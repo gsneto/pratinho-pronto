@@ -117,7 +117,7 @@ export function PantryPage() {
         </div>
 
         <button
-          className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-sage-600 px-5 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-56"
+          className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-56"
           disabled={selectedIds.length === 0}
           onClick={findIdeas}
           type="button"

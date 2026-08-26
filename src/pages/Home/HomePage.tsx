@@ -61,7 +61,7 @@ export function HomePage() {
             saber o que preparar, quando preparar e o que comprar.
           </p>
           <Link
-            className="mt-7 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-sage-600 px-5 text-base font-semibold text-white sm:w-auto sm:min-w-64"
+            className="mt-7 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] hover:bg-pumpkin/90 sm:w-auto sm:min-w-64"
             to="/app/week"
           >
             {plan ? 'Ver minha semana' : 'Montar minha semana'}
