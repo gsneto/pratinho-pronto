@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Check, Clock3, PackageCheck, Plus, Printer, Replace, Share2, UtensilsCrossed, X } from 'lucide-react'
+import { ArrowLeft, Check, Clock3, PackageCheck, Plus, Replace, Share2, UtensilsCrossed, X } from 'lucide-react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useState } from 'react'
 import { RecipeVisual } from '../../components/recipes/RecipeVisual'
@@ -131,9 +131,6 @@ export function RecipeDetailsPage() {
               Adicionar à minha semana
             </button>
             <div className="flex gap-2">
-              <button className="flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-cream-100 px-4 text-sm font-semibold text-sage-700" onClick={() => window.print()} type="button">
-                <Printer aria-hidden="true" size={17} /> Imprimir
-              </button>
               <button className="flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-cream-100 px-4 text-sm font-semibold text-sage-700" onClick={handleShare} type="button">
                 <Share2 aria-hidden="true" size={17} /> Compartilhar
               </button>
