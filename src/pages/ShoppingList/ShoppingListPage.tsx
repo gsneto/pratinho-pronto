@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ListChecks, ShoppingCart } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
@@ -19,7 +19,8 @@ import { ingredientCategoryLabels } from '../../utils/labels'
 export function ShoppingListPage() {
   const queryClient = useQueryClient()
   const { data: baby } = useBaby()
-  const weekStart = getWeekStart()
+  const [searchParams] = useSearchParams()
+  const weekStart = searchParams.get('week') ?? getWeekStart()
   const { data: plan, error: planError, isLoading: planLoading } = useMealPlan(
     baby?.id,
     weekStart,
@@ -42,7 +43,7 @@ export function ShoppingListPage() {
   }, [shoppingList])
 
   if (!baby || planLoading || (plan && listLoading)) {
-    return <PageState description="Organizando os itens da semana atual." title="Preparando sua lista…" />
+    return <PageState description={`Organizando os itens da semana iniciada em ${new Date(`${weekStart}T12:00:00`).toLocaleDateString('pt-BR')}.`} title="Preparando sua lista…" />
   }
 
   if (planError || listError) {
@@ -91,12 +92,12 @@ export function ShoppingListPage() {
         <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900">Lista de compras</h1>
         <div className="mt-6">
           <PageState
-            description="Monte um cardápio para transformá-lo automaticamente em uma lista."
-            title="Nenhum cardápio na semana atual"
+            description="Monte um cardápio para transformar as refeições desta semana em uma lista automática."
+            title="Nenhum cardápio nesta semana"
             variant="empty"
           />
         </div>
-        <Link className="mt-5 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-pumpkin px-5 font-medium text-[#2A2A22] hover:bg-pumpkin/90 sm:w-auto" to="/app/week">
+        <Link className="mt-5 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-pumpkin px-5 font-medium text-[#2A2A22] hover:bg-pumpkin/90 sm:w-auto" to={`/app/week?week=${weekStart}`}>
           Montar minha semana
         </Link>
       </div>

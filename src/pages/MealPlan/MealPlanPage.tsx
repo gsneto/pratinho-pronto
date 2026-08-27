@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
 import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
+import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
 import { mealPlanQueryKey, useMealPlan } from '../../hooks/useMealPlan'
@@ -238,7 +239,8 @@ export function MealPlanPage() {
                   </div>
                   <div className="mt-3 space-y-2">
                     {dayItems.map((item) => (
-                      <div className="flex items-center justify-between gap-3 rounded-2xl bg-cream-50 px-4 py-3" key={item.id}>
+                      <div className="flex items-center gap-3 rounded-2xl bg-cream-50 px-3 py-3" key={item.id}>
+                        <RecipeVisual imageUrl={item.recipe.image_url} name={item.recipe.name} size="thumb" />
                         <div className="min-w-0">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-terracotta-500">
                             {mealTypeLabels[item.meal_type]}
@@ -251,9 +253,11 @@ export function MealPlanPage() {
                           >
                             {item.recipe.name}
                           </Link>
+                          <span className="mt-1 block text-[11px] text-ink-500">Toque no nome para ver ingredientes e preparo</span>
                         </div>
                         <button
-                          className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-xs font-semibold text-sage-700"
+                          aria-label={`Trocar ${item.recipe.name}`}
+                          className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-xs font-semibold text-sage-700"
                           onClick={() => setReplacingItem(item)}
                           type="button"
                         >
@@ -280,6 +284,12 @@ export function MealPlanPage() {
               label="Receitas da semana"
               plan={plan}
             />
+            <Link
+              className="flex min-h-13 items-center justify-center rounded-2xl border border-sage-200 bg-white px-5 text-center text-sm font-semibold text-sage-700 transition hover:border-sage-500"
+              to={`/app/shopping-list?week=${weekStart}`}
+            >
+              Ver lista de compras desta semana
+            </Link>
           </div>
         </section>
       )}

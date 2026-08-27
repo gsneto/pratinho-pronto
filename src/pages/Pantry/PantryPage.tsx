@@ -82,7 +82,7 @@ export function PantryPage() {
           O que tem na sua cozinha hoje?
         </h1>
         <p className="mt-3 text-sm leading-6 text-ink-500">
-          Marque os ingredientes e encontre receitas demonstrativas compatíveis com {baby.name}.
+          Marque os ingredientes e encontre receitas compatíveis com {baby.name}.
         </p>
       </div>
 
@@ -139,6 +139,11 @@ export function PantryPage() {
           <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title" tabIndex={-1}>
             Resultados para sua cozinha
           </h2>
+          <p aria-live="polite" className="mt-1 text-sm text-ink-500">
+            {rankedRecipes.length === 0
+              ? 'Nenhuma receita encontrada com os filtros atuais.'
+              : `${recipesReady.length} ${recipesReady.length === 1 ? 'receita pronta' : 'receitas prontas'} e ${recipesMissingIngredients.length} ${recipesMissingIngredients.length === 1 ? 'opção quase completa' : 'opções quase completas'}.`}
+          </p>
           {rankedRecipes.length === 0 ? (
             <div className="mt-4">
               <PageState

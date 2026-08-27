@@ -40,7 +40,7 @@ export function OnboardingPage() {
             Vamos conhecer seu bebê
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-ink-500">
-            Essas informações ajudam a filtrar as receitas demonstrativas e a
+            Essas informações ajudam a filtrar as receitas compatíveis e a
             montar uma semana compatível com as escolhas da sua família.
           </p>
           <div className="mt-8">

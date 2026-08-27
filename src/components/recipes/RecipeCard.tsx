@@ -20,7 +20,7 @@ export function RecipeCard({ recipe, scoreLabel }: RecipeCardProps) {
           </span>
           {recipe.is_demo && (
             <span className="rounded-full bg-terracotta-100 px-2.5 py-1 text-[11px] font-semibold text-terracotta-500">
-              Demonstração
+              Catálogo
             </span>
           )}
         </div>

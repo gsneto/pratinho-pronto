@@ -4,20 +4,26 @@ import { getRecipeImageUrl } from '../../lib/recipes/images'
 interface RecipeVisualProps {
   imageUrl: string | null
   name: string
-  size?: 'card' | 'hero'
+  size?: 'card' | 'hero' | 'thumb'
 }
 
 export function RecipeVisual({ imageUrl, name, size = 'card' }: RecipeVisualProps) {
-  const heightClass = size === 'hero' ? 'h-56 sm:h-72' : 'h-36'
+  const sizeClass = size === 'hero'
+    ? 'h-56 sm:h-72 w-full'
+    : size === 'thumb'
+      ? 'size-16 shrink-0 rounded-xl'
+      : 'h-36 w-full'
   const resolvedImageUrl = getRecipeImageUrl(name, imageUrl)
 
   if (resolvedImageUrl) {
     return (
       <img
         alt={`Receita ${name}`}
-        className={`${heightClass} w-full object-cover`}
+        className={`${sizeClass} object-cover`}
         decoding="async"
         loading="lazy"
+        width={size === 'thumb' ? 64 : 640}
+        height={size === 'thumb' ? 64 : size === 'hero' ? 360 : 180}
         src={resolvedImageUrl}
       />
     )
@@ -26,11 +32,11 @@ export function RecipeVisual({ imageUrl, name, size = 'card' }: RecipeVisualProp
   return (
     <div
       aria-label={`Imagem ilustrativa indisponível para ${name}`}
-      className={`${heightClass} grid w-full place-items-center bg-sage-50 text-sage-700`}
+      className={`${sizeClass} grid place-items-center bg-sage-50 text-sage-700`}
       role="img"
     >
-      <span className="grid size-14 place-items-center rounded-[20px] bg-white shadow-sm">
-        <Salad aria-hidden="true" size={27} strokeWidth={1.6} />
+      <span className={`grid place-items-center rounded-[20px] bg-white shadow-sm ${size === 'thumb' ? 'size-10 rounded-xl' : 'size-14'}`}>
+        <Salad aria-hidden="true" size={size === 'thumb' ? 19 : 27} strokeWidth={1.6} />
       </span>
     </div>
   )

@@ -12,10 +12,11 @@ import {
 import { Link } from 'react-router-dom'
 import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
 import { InstallAppCard } from '../../components/ui/InstallAppCard'
+import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
 import { useState } from 'react'
-import { getWeekStart } from '../../utils/dates'
+import { getWeekStart, toIsoDate } from '../../utils/dates'
 import { mealTypeLabels } from '../../utils/labels'
 
 const actions = [
@@ -50,6 +51,11 @@ export function HomePage() {
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date) || a.meal_type.localeCompare(b.meal_type))
     .slice(0, 3)
+  const todayIso = toIsoDate(new Date())
+  const nextMeal = plan?.meal_plan_items
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date) || a.meal_type.localeCompare(b.meal_type))
+    .find((item) => item.date >= todayIso) ?? previewItems?.[0]
 
   return (
     <div className="space-y-10">
@@ -100,15 +106,21 @@ export function HomePage() {
           <div className="mt-5 space-y-3">
             {previewItems && previewItems.length > 0
               ? previewItems.map((item) => (
-                <div
-                  className="flex items-center gap-3 rounded-2xl border border-cream-100 bg-white px-4 py-3.5"
+                <Link
+                  className="flex items-center gap-3 rounded-2xl border border-cream-100 bg-white px-3 py-2.5 transition hover:border-sage-300 focus:outline-none focus:ring-2 focus:ring-pumpkin focus:ring-offset-2"
                   key={item.id}
+                  state={{ returnTo: `/app/week?week=${currentWeekStart}` }}
+                  to={`/app/recipes/${item.recipe.id}`}
                 >
-                  <span className="text-[10px] font-semibold uppercase text-terracotta-500">
+                  <RecipeVisual imageUrl={item.recipe.image_url} name={item.recipe.name} size="thumb" />
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-semibold uppercase text-terracotta-500">
                     {mealTypeLabels[item.meal_type]}
+                    </span>
+                    <span className="mt-0.5 block truncate text-sm font-medium text-ink-700">{item.recipe.name}</span>
+                    <span className="mt-0.5 block text-[11px] text-sage-700">Ver como fazer →</span>
                   </span>
-                  <span className="truncate text-sm font-medium text-ink-700">{item.recipe.name}</span>
-                </div>
+                </Link>
               ))
               : ['Escolha as refeições', 'Receba um plano variado', 'Gere sua lista'].map(
                   (item) => (
@@ -134,6 +146,24 @@ export function HomePage() {
             setShowInstallInvite(false)
           }}
         />
+      )}
+
+      {plan && nextMeal && (
+        <section className="rounded-[24px] border border-cream-100 bg-white p-4 shadow-[0_12px_40px_rgba(65,65,60,0.04)] sm:flex sm:items-center sm:gap-5 sm:p-5" aria-labelledby="next-meal-title">
+          <RecipeVisual imageUrl={nextMeal.recipe.image_url} name={nextMeal.recipe.name} size="thumb" />
+          <div className="mt-3 min-w-0 sm:mt-0 sm:flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-terracotta-500">Próxima refeição</p>
+            <h2 className="mt-1 text-lg font-semibold text-ink-900" id="next-meal-title">{nextMeal.recipe.name}</h2>
+            <p className="mt-1 text-sm text-ink-500">{mealTypeLabels[nextMeal.meal_type]} · {nextMeal.date === todayIso ? 'para hoje' : 'na sua semana'}</p>
+          </div>
+          <Link
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-sage-50 px-4 text-sm font-semibold text-sage-700 transition hover:bg-sage-100 sm:mt-0 sm:w-auto"
+            state={{ returnTo: `/app/week?week=${currentWeekStart}` }}
+            to={`/app/recipes/${nextMeal.recipe.id}`}
+          >
+            Ver preparo
+          </Link>
+        </section>
       )}
 
       <section aria-labelledby="quick-actions-title">

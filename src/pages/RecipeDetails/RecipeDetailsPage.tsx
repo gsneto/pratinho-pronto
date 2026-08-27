@@ -46,7 +46,7 @@ export function RecipeDetailsPage() {
               {mealTypeLabels[recipe.meal_type]}
             </span>
             <span className="rounded-full bg-terracotta-100 px-3 py-1.5 text-xs font-semibold text-terracotta-500">
-              Receita de demonstração
+              Do seu catálogo
             </span>
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
@@ -114,7 +114,7 @@ export function RecipeDetailsPage() {
                 <section className="flex gap-3 rounded-2xl border border-cream-100 p-5">
                   <Replace aria-hidden="true" className="mt-0.5 shrink-0 text-sage-700" size={20} />
                   <div>
-                    <h2 className="text-base font-semibold text-ink-900">Substituição demonstrativa</h2>
+                    <h2 className="text-base font-semibold text-ink-900">Trocas possíveis</h2>
                     <p className="mt-2 text-sm leading-6 text-ink-500">{recipe.substitutions}</p>
                   </div>
                 </section>

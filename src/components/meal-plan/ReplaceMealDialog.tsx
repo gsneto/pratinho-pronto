@@ -1,4 +1,5 @@
 import { Clock3, X } from 'lucide-react'
+import { RecipeVisual } from '../recipes/RecipeVisual'
 import type { MealPlanItem, Recipe } from '../../types/domain'
 
 interface ReplaceMealDialogProps {
@@ -50,12 +51,13 @@ export function ReplaceMealDialog({
           <div className="mt-5 space-y-3">
             {alternatives.map((recipe) => (
               <button
-                className="flex min-h-18 w-full items-center justify-between gap-4 rounded-2xl border border-cream-100 p-4 text-left enabled:hover:border-sage-500 disabled:opacity-55"
+                className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-cream-100 p-3 text-left enabled:hover:border-sage-500 disabled:opacity-55"
                 disabled={isSaving}
                 key={recipe.id}
                 onClick={() => onChoose(recipe)}
                 type="button"
               >
+                <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} size="thumb" />
                 <span>
                   <span className="block text-sm font-semibold text-ink-900">{recipe.name}</span>
                   <span className="mt-1 flex items-center gap-1 text-xs text-ink-500">

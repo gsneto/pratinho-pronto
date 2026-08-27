@@ -14,17 +14,17 @@ import {
 } from '../../utils/labels'
 
 const colors = {
-  cream: '#f6f0e5',
-  ink: '#292a26',
-  muted: '#6b6a63',
-  sage: '#5e7359',
-  sageLight: '#f3f6f1',
-  terracotta: '#bd735d',
+  cream: '#F3F5EE',
+  ink: '#2A2A22',
+  muted: '#726F63',
+  sage: '#5F7052',
+  sageLight: '#E8EDE3',
+  terracotta: '#8C3A56',
 }
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FDFCF9',
     color: colors.ink,
     fontFamily: 'Helvetica',
     fontSize: 9,
@@ -270,7 +270,7 @@ export function WeeklyRecipesDocument({
       <Page size="A4" style={styles.page}>
         <Text style={styles.eyebrow}>Pratinho Pronto • Receitas da semana</Text>
         <Text style={styles.title}>Receitas da semana de {baby.name}</Text>
-        <Text style={styles.subtitle}>{uniqueRecipes.length} receitas únicas do cardápio demonstrativo.</Text>
+        <Text style={styles.subtitle}>{uniqueRecipes.length} receitas únicas do seu cardápio.</Text>
         <View style={styles.divider} />
 
         {uniqueRecipes.map((recipe: Recipe) => (

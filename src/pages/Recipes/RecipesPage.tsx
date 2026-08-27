@@ -26,7 +26,7 @@ export function RecipesPage() {
   )
 
   if (isLoading) {
-    return <PageState description="Buscando as receitas demonstrativas." title="Carregando receitas…" />
+    return <PageState description="Buscando as receitas do seu catálogo." title="Carregando receitas…" />
   }
 
   if (error) {
@@ -42,12 +42,12 @@ export function RecipesPage() {
   return (
     <div>
       <div className="max-w-2xl">
-        <p className="text-sm font-semibold text-terracotta-500">Biblioteca demonstrativa</p>
+        <p className="text-sm font-semibold text-terracotta-500">Biblioteca do seu catálogo</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
           Receitas para planejar, não para acumular
         </h1>
         <p className="mt-3 text-sm leading-6 text-ink-500">
-          Explore as opções de teste. Elas não substituem orientação profissional
+          Filtre por refeição, idade e tempo para encontrar uma opção que caiba na sua rotina. Elas não substituem orientação profissional
           individual.
         </p>
       </div>
