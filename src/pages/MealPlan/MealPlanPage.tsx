@@ -9,13 +9,14 @@ import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
 import { mealPlanQueryKey, useMealPlan } from '../../hooks/useMealPlan'
+import { mealPlanHistoryQueryKey, useMealPlanHistory } from '../../hooks/useMealPlanHistory'
 import { useRecipes } from '../../hooks/useRecipes'
 import {
   generateWeeklyMealPlan,
   getCompatibleRecipes,
 } from '../../lib/meal-plan/generator'
 import { analytics } from '../../services/analytics'
-import { replaceMealPlanItem, saveMealPlan } from '../../services/mealPlans'
+import { duplicateMealPlan, replaceMealPlanItem, saveMealPlan } from '../../services/mealPlans'
 import type { MealPlanItem, MealType, Recipe } from '../../types/domain'
 import { addDays, formatShortDate, getWeekStart, parseIsoDate } from '../../utils/dates'
 import { mealTypeLabels, weekDayLabels } from '../../utils/labels'
@@ -33,10 +34,12 @@ export function MealPlanPage() {
   const [generationError, setGenerationError] = useState<string | null>(null)
   const [replacingItem, setReplacingItem] = useState<MealPlanItem | null>(null)
   const [isReplacing, setIsReplacing] = useState(false)
+  const [isDuplicating, setIsDuplicating] = useState(false)
   const { data: plan, error: planError, isLoading: planLoading } = useMealPlan(
     baby?.id,
     weekStart,
   )
+  const { data: history = [] } = useMealPlanHistory(baby?.id)
 
   const itemsByDate = useMemo(() => {
     const grouped = new Map<string, MealPlanItem[]>()
@@ -113,7 +116,7 @@ export function MealPlanPage() {
       })
     } catch {
       setGenerationError(
-        'Não há receitas compatíveis suficientes para todas as escolhas. Revise os filtros do bebê ou o seed.',
+        'Não há receitas compatíveis suficientes para todas as escolhas. Revise os filtros do bebê ou o catálogo.',
       )
     } finally {
       setIsGenerating(false)
@@ -132,6 +135,21 @@ export function MealPlanPage() {
       setReplacingItem(null)
     } finally {
       setIsReplacing(false)
+    }
+  }
+
+  async function handleRepeatNextWeek() {
+    if (!plan) return
+    const nextWeek = addDays(weekStart, 7)
+    setIsDuplicating(true)
+    try {
+      await duplicateMealPlan(currentBaby.id, weekStart, nextWeek)
+      await queryClient.invalidateQueries({ queryKey: mealPlanHistoryQueryKey(currentBaby.id) })
+      await queryClient.invalidateQueries({ queryKey: mealPlanQueryKey(currentBaby.id, nextWeek) })
+      setWeekStart(nextWeek)
+      setSearchParams({ week: nextWeek }, { replace: true })
+    } finally {
+      setIsDuplicating(false)
     }
   }
 
@@ -164,6 +182,39 @@ export function MealPlanPage() {
           </label>
         </div>
       </div>
+
+      {history.length > 0 && (
+        <section className="mt-5 rounded-[22px] border border-cream-100 bg-white p-4 sm:p-5" aria-labelledby="week-history-title">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-terracotta-500">Seu histórico</p>
+              <h2 className="mt-1 text-lg font-semibold text-ink-900" id="week-history-title">Semanas salvas</h2>
+            </div>
+            {plan && (
+              <button
+                className="min-h-11 rounded-xl bg-sage-50 px-3 text-sm font-semibold text-sage-700 disabled:opacity-55"
+                disabled={isDuplicating}
+                onClick={handleRepeatNextWeek}
+                type="button"
+              >
+                {isDuplicating ? 'Duplicando…' : 'Repetir na próxima semana'}
+              </button>
+            )}
+          </div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {history.map((savedWeek) => (
+              <Link
+                className={`min-w-36 rounded-xl border px-3 py-2.5 text-left text-sm transition ${savedWeek.week_start === weekStart ? 'border-sage-500 bg-sage-50 text-sage-700' : 'border-cream-100 text-ink-700 hover:border-sage-300'}`}
+                key={savedWeek.id}
+                to={`/app/week?week=${savedWeek.week_start}`}
+              >
+                <span className="block text-xs font-semibold uppercase tracking-[0.08em]">{savedWeek.week_start === weekStart ? 'Semana atual' : 'Semana salva'}</span>
+                <span className="mt-1 block">{new Date(`${savedWeek.week_start}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mt-6 rounded-[24px] border border-cream-100 bg-white p-5 shadow-[0_12px_40px_rgba(65,65,60,0.04)] sm:p-6">
         <div className="flex items-center gap-3">

@@ -1,29 +1,31 @@
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Heart, Search, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { RecipeCard } from '../../components/recipes/RecipeCard'
 import { PageState } from '../../components/ui/PageState'
 import { useRecipes } from '../../hooks/useRecipes'
+import { useFavorites } from '../../hooks/useFavorites'
 import { filterRecipes } from '../../services/recipes'
 import type { MealType } from '../../types/domain'
 import { mealTypeLabels } from '../../utils/labels'
 
 export function RecipesPage() {
   const { data: recipes = [], error, isLoading } = useRecipes()
+  const { data: favoriteIds = [] } = useFavorites()
   const [search, setSearch] = useState('')
   const [mealType, setMealType] = useState<MealType | ''>('')
   const [maxTime, setMaxTime] = useState('')
   const [maxAge, setMaxAge] = useState('')
+  const [showFavorites, setShowFavorites] = useState(false)
 
-  const filteredRecipes = useMemo(
-    () =>
-      filterRecipes(recipes, {
+  const filteredRecipes = useMemo(() => {
+    const filtered = filterRecipes(recipes, {
         maxMinAge: maxAge ? Number(maxAge) : undefined,
         maxTime: maxTime ? Number(maxTime) : undefined,
         mealType: mealType || undefined,
         search,
-      }),
-    [maxAge, maxTime, mealType, recipes, search],
-  )
+      })
+    return showFavorites ? filtered.filter((recipe) => favoriteIds.includes(recipe.id)) : filtered
+  }, [favoriteIds, maxAge, maxTime, mealType, recipes, search, showFavorites])
 
   if (isLoading) {
     return <PageState description="Buscando as receitas do seu catálogo." title="Carregando receitas…" />
@@ -32,7 +34,7 @@ export function RecipesPage() {
   if (error) {
     return (
       <PageState
-        description="Confira a conexão e se o seed foi aplicado no Supabase."
+        description="Confira sua conexão e tente novamente em instantes."
         title="Não foi possível carregar as receitas"
         variant="error"
       />
@@ -115,6 +117,15 @@ export function RecipesPage() {
           <SlidersHorizontal aria-hidden="true" size={15} />
           {filteredRecipes.length} de {recipes.length} receitas
         </p>
+        <button
+          aria-pressed={showFavorites}
+          className={`mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition ${showFavorites ? 'bg-terracotta-500 text-white' : 'bg-terracotta-100 text-terracotta-500 hover:bg-terracotta-100/80'}`}
+          onClick={() => setShowFavorites((current) => !current)}
+          type="button"
+        >
+          <Heart aria-hidden="true" fill={showFavorites ? 'currentColor' : 'none'} size={16} />
+          {showFavorites ? 'Mostrando favoritas' : 'Minhas favoritas'}
+        </button>
       </section>
 
       {filteredRecipes.length === 0 ? (

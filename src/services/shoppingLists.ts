@@ -73,3 +73,26 @@ export async function setShoppingItemChecked(
 
   if (error) throw error
 }
+
+export async function appendShoppingListItems(
+  mealPlanId: string,
+  items: Array<{ ingredient_id: string; quantity: number; unit: string }>,
+): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  const client = getSupabaseClient()
+  const { data: list, error: listError } = await client
+    .from('shopping_lists')
+    .upsert({ meal_plan_id: mealPlanId, user_id: userId }, { onConflict: 'meal_plan_id' })
+    .select('id')
+    .single()
+  if (listError) throw listError
+
+  const { error } = await client
+    .from('shopping_list_items')
+    .upsert(items.map((item) => ({ ...item, shopping_list_id: list.id })), {
+      onConflict: 'shopping_list_id,ingredient_id,unit',
+      ignoreDuplicates: false,
+    })
+  if (error) throw error
+  return list.id as string
+}

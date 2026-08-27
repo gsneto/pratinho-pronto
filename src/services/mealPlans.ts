@@ -1,4 +1,4 @@
-import type { GeneratedMealPlanItem, MealPlan } from '../types/domain'
+import type { GeneratedMealPlanItem, MealPlan, MealType } from '../types/domain'
 import { recipeFields } from './recipes'
 import { getAuthenticatedUserId } from './supabase/auth-user'
 import { getSupabaseClient } from './supabase/client'
@@ -77,4 +77,102 @@ export async function replaceMealPlanItem(
     .eq('id', itemId)
 
   if (error) throw error
+}
+
+export async function listMealPlanHistory(babyId: string): Promise<Array<{ id: string; week_start: string; created_at: string }>> {
+  const userId = await getAuthenticatedUserId()
+  const { data, error } = await getSupabaseClient()
+    .from('meal_plans')
+    .select('id,week_start,created_at')
+    .eq('user_id', userId)
+    .eq('baby_id', babyId)
+    .order('week_start', { ascending: false })
+    .limit(12)
+
+  if (error) throw error
+  return (data ?? []) as Array<{ id: string; week_start: string; created_at: string }>
+}
+
+export async function addRecipeToMealPlan({
+  babyId,
+  date,
+  mealType,
+  recipeId,
+  replaceExisting,
+  weekStart,
+}: {
+  babyId: string
+  date: string
+  mealType: MealType
+  recipeId: string
+  replaceExisting: boolean
+  weekStart: string
+}): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  const client = getSupabaseClient()
+  const { data: plan, error: planError } = await client
+    .from('meal_plans')
+    .upsert(
+      { baby_id: babyId, user_id: userId, week_start: weekStart },
+      { onConflict: 'user_id,baby_id,week_start' },
+    )
+    .select('id')
+    .single()
+  if (planError) throw planError
+
+  if (replaceExisting) {
+    const { error } = await client
+      .from('meal_plan_items')
+      .delete()
+      .eq('meal_plan_id', plan.id)
+      .eq('date', date)
+      .eq('meal_type', mealType)
+    if (error) throw error
+  }
+
+  let position = 0
+  if (!replaceExisting) {
+    const { data: existing, error } = await client
+      .from('meal_plan_items')
+      .select('position')
+      .eq('meal_plan_id', plan.id)
+      .eq('date', date)
+      .eq('meal_type', mealType)
+      .order('position', { ascending: false })
+      .limit(1)
+    if (error) throw error
+    position = existing?.[0] ? Number(existing[0].position) + 1 : 0
+  }
+
+  const { error: itemError } = await client.from('meal_plan_items').insert({
+    date,
+    meal_plan_id: plan.id,
+    meal_type: mealType,
+    position,
+    recipe_id: recipeId,
+  })
+  if (itemError) throw itemError
+  return plan.id as string
+}
+
+export async function duplicateMealPlan(
+  babyId: string,
+  sourceWeekStart: string,
+  targetWeekStart: string,
+): Promise<string> {
+  const source = await getMealPlan(babyId, sourceWeekStart)
+  if (!source) throw new Error('Semana de origem não encontrada')
+  const sourceDate = new Date(`${sourceWeekStart}T12:00:00`)
+  const targetDate = new Date(`${targetWeekStart}T12:00:00`)
+  const dayOffset = Math.round((targetDate.getTime() - sourceDate.getTime()) / 86_400_000)
+  const items = source.meal_plan_items.map((item) => ({
+    date: new Date(new Date(`${item.date}T12:00:00`).getTime() + dayOffset * 86_400_000)
+      .toISOString()
+      .slice(0, 10),
+    meal_type: item.meal_type,
+    position: item.position,
+    recipe_id: item.recipe_id,
+    recipe: item.recipe,
+  }))
+  return saveMealPlan(babyId, targetWeekStart, items)
 }

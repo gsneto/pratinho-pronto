@@ -1,20 +1,30 @@
 import { Check, Search, ShoppingBasket } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RecipeCard } from '../../components/recipes/RecipeCard'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
 import { useIngredients, useRecipes } from '../../hooks/useRecipes'
+import { useMealPlan } from '../../hooks/useMealPlan'
+import { shoppingListQueryKey } from '../../hooks/useShoppingList'
 import { rankRecipesByPantry } from '../../lib/pantry/ranking'
 import { analytics } from '../../services/analytics'
+import { appendShoppingListItems } from '../../services/shoppingLists'
+import { getWeekStart } from '../../utils/dates'
 
 export function PantryPage() {
+  const queryClient = useQueryClient()
   const { data: baby } = useBaby()
   const { data: ingredients = [], error: ingredientsError, isLoading: ingredientsLoading } = useIngredients()
   const { data: recipes = [], error: recipesError, isLoading: recipesLoading } = useRecipes()
   const [search, setSearch] = useState('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [addingMissingRecipeId, setAddingMissingRecipeId] = useState<string | null>(null)
+  const [addedMissingRecipeIds, setAddedMissingRecipeIds] = useState<string[]>([])
   const resultsRef = useRef<HTMLElement>(null)
+  const currentWeekStart = getWeekStart()
+  const { data: currentPlan } = useMealPlan(baby?.id, currentWeekStart)
 
   const visibleIngredients = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('pt-BR')
@@ -72,6 +82,24 @@ export function PantryPage() {
   function findIdeas() {
     setHasSearched(true)
     analytics.track('pantry_search', { selected_ingredients: selectedIds.length })
+  }
+
+  async function addMissingIngredients(recipeId: string) {
+    if (!currentPlan) return
+    const ranked = rankedRecipes.find((item) => item.recipe.id === recipeId)
+    if (!ranked) return
+    const missingItems = ranked.recipe.recipe_ingredients
+      .filter((item) => !item.is_optional && !selectedIds.includes(item.ingredient_id))
+      .map((item) => ({ ingredient_id: item.ingredient_id, quantity: item.quantity, unit: item.unit }))
+    setAddingMissingRecipeId(recipeId)
+    try {
+      await appendShoppingListItems(currentPlan.id, missingItems)
+      await queryClient.invalidateQueries({ queryKey: shoppingListQueryKey(currentPlan.id) })
+      setAddedMissingRecipeIds((current) => [...current, recipeId])
+      analytics.track('shopping_list_generated', { meal_plan_id: currentPlan.id, source: 'pantry_missing' })
+    } finally {
+      setAddingMissingRecipeId(null)
+    }
   }
 
   return (
@@ -183,11 +211,15 @@ export function PantryPage() {
                     Estas receitas usam parte do que você marcou, mas ainda precisam dos itens indicados.
                   </p>
                   <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {recipesMissingIngredients.map(({ missingIngredientNames, recipe }) => (
+                    {recipesMissingIngredients.map(({ missingIngredientNames, matchedCount, totalRequired, recipe }) => (
                       <RecipeCard
                         key={recipe.id}
                         recipe={recipe}
-                        scoreLabel={`Falta: ${missingIngredientNames.join(', ')}`}
+                        isAddingMissing={addingMissingRecipeId === recipe.id}
+                        missingActionDisabled={!currentPlan || addedMissingRecipeIds.includes(recipe.id)}
+                        missingIngredientNames={addedMissingRecipeIds.includes(recipe.id) ? ['adicionados à lista'] : missingIngredientNames}
+                        onAddMissing={() => void addMissingIngredients(recipe.id)}
+                        scoreLabel={`Você tem ${matchedCount} de ${totalRequired} ingredientes`}
                       />
                     ))}
                   </div>

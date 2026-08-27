@@ -9,3 +9,11 @@ export function normalizeTerm(value: string): string {
     .trim()
     .toLowerCase()
 }
+
+export function publicRecipeText(value: string): string {
+  return value
+    .replace(/\bdemonstrativ[oa]s?\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.!?])/g, '$1')
+    .trim()
+}
