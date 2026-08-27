@@ -1,5 +1,5 @@
 import { Check, Search, ShoppingBasket } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { RecipeCard } from '../../components/recipes/RecipeCard'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
@@ -14,6 +14,7 @@ export function PantryPage() {
   const [search, setSearch] = useState('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const resultsRef = useRef<HTMLElement>(null)
 
   const visibleIngredients = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('pt-BR')
@@ -38,6 +39,12 @@ export function PantryPage() {
     () => rankedRecipes.filter((item) => !item.canMakeNow).slice(0, 6),
     [rankedRecipes],
   )
+
+  useEffect(() => {
+    if (!hasSearched) return
+
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [hasSearched])
 
   if (!baby || ingredientsLoading || recipesLoading) {
     return <PageState description="Carregando ingredientes e receitas." title="Abrindo sua cozinha…" />
@@ -128,8 +135,8 @@ export function PantryPage() {
       </section>
 
       {hasSearched && (
-        <section className="mt-8" aria-labelledby="pantry-results-title">
-          <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title">
+        <section ref={resultsRef} className="mt-8 scroll-mt-6" aria-labelledby="pantry-results-title">
+          <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title" tabIndex={-1}>
             Resultados para sua cozinha
           </h2>
           {rankedRecipes.length === 0 ? (
