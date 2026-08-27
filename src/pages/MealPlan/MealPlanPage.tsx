@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, RefreshCw, Sparkles } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
 import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
@@ -25,7 +25,8 @@ export function MealPlanPage() {
   const queryClient = useQueryClient()
   const { data: baby } = useBaby()
   const { data: recipes = [], error: recipesError, isLoading: recipesLoading } = useRecipes()
-  const [weekStart, setWeekStart] = useState(getWeekStart())
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [weekStart, setWeekStart] = useState(() => searchParams.get('week') ?? getWeekStart())
   const [selectedMealTypes, setSelectedMealTypes] = useState<MealType[]>(allMealTypes)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState<string | null>(null)
@@ -151,7 +152,11 @@ export function MealPlanPage() {
             Segunda-feira da semana
             <input
               className="mt-1 block min-h-12 rounded-2xl border border-cream-100 bg-white px-4 text-sm text-ink-700"
-              onChange={(event) => setWeekStart(event.target.value)}
+              onChange={(event) => {
+                const nextWeekStart = event.target.value
+                setWeekStart(nextWeekStart)
+                setSearchParams(nextWeekStart ? { week: nextWeekStart } : {}, { replace: true })
+              }}
               type="date"
               value={weekStart}
             />
@@ -241,6 +246,7 @@ export function MealPlanPage() {
                           <Link
                             aria-label={`Ver como preparar ${item.recipe.name}`}
                             className="mt-1 block truncate text-sm font-medium text-sage-700 underline decoration-sage-200 underline-offset-2 transition hover:text-terracotta-500 hover:decoration-terracotta-200 focus:outline-none focus:ring-2 focus:ring-pumpkin focus:ring-offset-2"
+                            state={{ returnTo: `/app/week?week=${weekStart}` }}
                             to={`/app/recipes/${item.recipe.id}`}
                           >
                             {item.recipe.name}

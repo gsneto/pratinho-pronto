@@ -1,5 +1,5 @@
 import { ArrowLeft, Clock3, PackageCheck, Replace, UtensilsCrossed } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { PageState } from '../../components/ui/PageState'
 import { useRecipe } from '../../hooks/useRecipes'
@@ -7,7 +7,15 @@ import { mealTypeLabels } from '../../utils/labels'
 
 export function RecipeDetailsPage() {
   const { recipeId } = useParams()
+  const location = useLocation()
   const { data: recipe, error, isLoading } = useRecipe(recipeId)
+  const returnTo =
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'returnTo' in location.state &&
+    typeof location.state.returnTo === 'string'
+      ? location.state.returnTo
+      : '/app/recipes'
 
   if (isLoading) {
     return <PageState description="Buscando ingredientes e preparo." title="Carregando receita…" />
@@ -25,9 +33,9 @@ export function RecipeDetailsPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link className="inline-flex items-center gap-2 text-sm font-semibold text-sage-700" to="/app/recipes">
+      <Link className="inline-flex items-center gap-2 text-sm font-semibold text-sage-700" to={returnTo}>
         <ArrowLeft aria-hidden="true" size={18} />
-        Voltar para receitas
+        {returnTo.startsWith('/app/week') ? 'Voltar para minha semana' : 'Voltar para receitas'}
       </Link>
 
       <article className="mt-5 overflow-hidden rounded-[28px] border border-cream-100 bg-white shadow-[0_18px_50px_rgba(65,65,60,0.05)]">
