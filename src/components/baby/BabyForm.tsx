@@ -44,14 +44,16 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
     }
   }
 
+  const displayName = baby ? baby.name : 'seu bebê'
+
   return (
     <form className="space-y-5" noValidate onSubmit={handleSubmit(submit)}>
       {!baby && onPhotoSelected && (
         <div className="rounded-[22px] border border-sage-100 bg-sage-50/70 p-4 sm:flex sm:items-center sm:gap-4">
           {photoPreviewUrl ? (
-            <img alt={`Prévia da foto de ${baby?.name || 'seu bebê'}`} className="size-24 shrink-0 rounded-[26px] object-cover shadow-sm" src={photoPreviewUrl} />
+            <img alt={`Prévia da foto de ${displayName}`} className="size-24 shrink-0 rounded-[26px] object-cover shadow-sm" src={photoPreviewUrl} />
           ) : (
-            <BabyAvatar name={baby?.name || 'seu bebê'} photoUrl={null} size="xl" />
+            <BabyAvatar name={displayName} photoUrl={null} size="xl" />
           )}
           <div className="mt-3 min-w-0 sm:mt-0">
             <p className="text-sm font-semibold text-ink-900">Personalize o Pratinho Pronto</p>
