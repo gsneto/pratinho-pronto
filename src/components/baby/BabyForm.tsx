@@ -1,20 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Save } from 'lucide-react'
+import { ArrowRight, Camera, Save } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { babyFormSchema, type BabyFormData } from '../../lib/schemas/baby'
 import type { Baby } from '../../types/domain'
+import { BabyAvatar } from './BabyAvatar'
 
 interface BabyFormProps {
   baby?: Baby | null
   onSubmit: (data: BabyFormData) => Promise<void>
   submitLabel: string
+  onPhotoSelected?: (file: File | undefined) => void
+  photoPreviewUrl?: string | null
 }
 
 const fieldClassName =
   'mt-2 min-h-13 w-full rounded-2xl border border-cream-100 bg-cream-50 px-4 py-3 text-base text-ink-900 placeholder:text-ink-500/60 focus:border-sage-500 focus:bg-white focus:outline-none'
 
-export function BabyForm({ baby, onSubmit, submitLabel }: BabyFormProps) {
+export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPreviewUrl }: BabyFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const {
     formState: { errors, isSubmitting },
@@ -43,6 +46,25 @@ export function BabyForm({ baby, onSubmit, submitLabel }: BabyFormProps) {
 
   return (
     <form className="space-y-5" noValidate onSubmit={handleSubmit(submit)}>
+      {!baby && onPhotoSelected && (
+        <div className="rounded-[22px] border border-sage-100 bg-sage-50/70 p-4 sm:flex sm:items-center sm:gap-4">
+          {photoPreviewUrl ? (
+            <img alt={`Prévia da foto de ${baby?.name || 'seu bebê'}`} className="size-24 shrink-0 rounded-[26px] object-cover shadow-sm" src={photoPreviewUrl} />
+          ) : (
+            <BabyAvatar name={baby?.name || 'seu bebê'} photoUrl={null} size="xl" />
+          )}
+          <div className="mt-3 min-w-0 sm:mt-0">
+            <p className="text-sm font-semibold text-ink-900">Personalize o Pratinho Pronto</p>
+            <p className="mt-1 text-sm leading-6 text-ink-500">Adicione uma foto para ver o rostinho do seu bebê no app, na semana e no seu perfil.</p>
+            <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-sage-700 shadow-sm">
+              <Camera aria-hidden="true" size={17} />
+              {photoPreviewUrl ? 'Trocar foto' : 'Adicionar foto'}
+              <input accept="image/*" capture="environment" className="sr-only" onChange={(event) => onPhotoSelected(event.target.files?.[0])} type="file" />
+            </label>
+            <p className="mt-2 text-xs text-ink-500">Opcional · você também pode adicionar depois no Perfil.</p>
+          </div>
+        </div>
+      )}
       <div>
         <label className="text-sm font-semibold text-ink-700" htmlFor="baby-name">
           Nome do bebê

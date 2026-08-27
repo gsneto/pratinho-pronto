@@ -1,20 +1,37 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { BabyForm } from '../../components/baby/BabyForm'
 import { BrandMark } from '../../components/ui/BrandMark'
 import { babyQueryKey } from '../../hooks/useBaby'
 import type { BabyFormData } from '../../lib/schemas/baby'
 import { analytics } from '../../services/analytics'
-import { createBaby } from '../../services/babies'
+import { createBaby, uploadBabyPhoto } from '../../services/babies'
+import { prepareBabyPhoto } from '../../lib/baby-photo'
 import { splitList } from '../../utils/text'
 
 export function OnboardingPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
+
+  useEffect(() => () => {
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl)
+  }, [photoPreviewUrl])
+
+  function handlePhotoSelected(file: File | undefined) {
+    setPhotoFile(file ?? null)
+    setPhotoPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current)
+      return file ? URL.createObjectURL(file) : null
+    })
+  }
 
   async function handleCreate(data: BabyFormData) {
-    await createBaby({
+    const optimizedPhoto = photoFile ? await prepareBabyPhoto(photoFile) : null
+    const baby = await createBaby({
       avoided_foods: splitList(data.avoided_foods),
       birth_date: data.birth_date,
       known_allergens: splitList(data.known_allergens),
@@ -22,6 +39,13 @@ export function OnboardingPage() {
       notes: data.notes.trim() || null,
       restrictions: splitList(data.restrictions),
     })
+    if (optimizedPhoto) {
+      try {
+        await uploadBabyPhoto(baby, optimizedPhoto)
+      } catch {
+        // O cadastro continua disponível; a foto pode ser adicionada no Perfil.
+      }
+    }
     analytics.track('baby_created')
     await queryClient.invalidateQueries({ queryKey: babyQueryKey })
     navigate('/app', { replace: true })
@@ -44,7 +68,7 @@ export function OnboardingPage() {
             montar uma semana compatível com as escolhas da sua família.
           </p>
           <div className="mt-8">
-            <BabyForm onSubmit={handleCreate} submitLabel="Salvar e continuar" />
+            <BabyForm onPhotoSelected={handlePhotoSelected} onSubmit={handleCreate} photoPreviewUrl={photoPreviewUrl} submitLabel="Salvar e personalizar" />
           </div>
         </section>
         <p className="mt-6 text-center text-xs leading-5 text-ink-500">
