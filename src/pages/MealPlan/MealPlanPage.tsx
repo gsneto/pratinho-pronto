@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, RefreshCw, Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
 import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
@@ -237,7 +238,13 @@ export function MealPlanPage() {
                           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-terracotta-500">
                             {mealTypeLabels[item.meal_type]}
                           </p>
-                          <p className="mt-1 truncate text-sm font-medium text-ink-700">{item.recipe.name}</p>
+                          <Link
+                            aria-label={`Ver como preparar ${item.recipe.name}`}
+                            className="mt-1 block truncate text-sm font-medium text-sage-700 underline decoration-sage-200 underline-offset-2 transition hover:text-terracotta-500 hover:decoration-terracotta-200 focus:outline-none focus:ring-2 focus:ring-pumpkin focus:ring-offset-2"
+                            to={`/app/recipes/${item.recipe.id}`}
+                          >
+                            {item.recipe.name}
+                          </Link>
                         </div>
                         <button
                           className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-xs font-semibold text-sage-700"
