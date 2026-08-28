@@ -10,7 +10,9 @@ import {
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useBaby } from '../../hooks/useBaby'
 import { getAuthErrorMessage } from '../../lib/auth-errors'
+import { BabyAvatar } from '../baby/BabyAvatar'
 import { BrandMark } from '../ui/BrandMark'
 import { ThemeToggle } from '../ui/ThemeToggle'
 
@@ -24,6 +26,7 @@ const navigation = [
 
 export function AppShell() {
   const { logout, user } = useAuth()
+  const { data: baby } = useBaby()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
 
@@ -126,7 +129,16 @@ export function AppShell() {
                     end={path === '/app'}
                     to={path}
                   >
-                    <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
+                    {label === 'Perfil' && baby?.photo_url ? (
+                      <BabyAvatar
+                        className="!rounded-full"
+                        name={baby.name}
+                        photoUrl={baby.photo_url}
+                        size="sm"
+                      />
+                    ) : (
+                      <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
+                    )}
                     <span>{label}</span>
                   </NavLink>
                 ) : (
