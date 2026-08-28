@@ -49,21 +49,21 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
   return (
     <form className="space-y-5" noValidate onSubmit={handleSubmit(submit)}>
       {!baby && onPhotoSelected && (
-        <div className="rounded-[22px] border border-sage-100 bg-sage-50/70 p-4 sm:flex sm:items-center sm:gap-4">
+        <div className="rounded-[22px] border border-sage-100 bg-sage-50/70 p-3 sm:flex sm:items-center sm:gap-3">
           {photoPreviewUrl ? (
-            <img alt={`Prévia da foto de ${displayName}`} className="size-24 shrink-0 rounded-[26px] object-cover shadow-sm" src={photoPreviewUrl} />
+            <img alt={`Prévia da foto de ${displayName}`} className="size-16 shrink-0 rounded-[22px] object-cover shadow-sm" src={photoPreviewUrl} />
           ) : (
-            <BabyAvatar name={displayName} photoUrl={null} size="xl" />
+            <BabyAvatar name={displayName} photoUrl={null} size="lg" />
           )}
-          <div className="mt-3 min-w-0 sm:mt-0">
+          <div className="mt-2 min-w-0 sm:mt-0">
             <p className="text-sm font-semibold text-ink-900">Personalize o Pratinho Pronto</p>
-            <p className="mt-1 text-sm leading-6 text-ink-500">Adicione uma foto para ver o rostinho do seu bebê no app, na semana e no seu perfil.</p>
-            <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-sage-700 shadow-sm">
+            <p className="mt-1 text-xs leading-5 text-ink-500">A foto personaliza o app e aparece no perfil.</p>
+            <label className="mt-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-sage-700 shadow-sm">
               <Camera aria-hidden="true" size={17} />
               {photoPreviewUrl ? 'Trocar foto' : 'Adicionar foto'}
               <input accept="image/*" capture="environment" className="sr-only" onChange={(event) => onPhotoSelected(event.target.files?.[0])} type="file" />
             </label>
-            <p className="mt-2 text-xs text-ink-500">Opcional · você também pode adicionar depois no Perfil.</p>
+            <p className="mt-1 text-[11px] text-ink-500">Opcional · disponível também no Perfil.</p>
           </div>
         </div>
       )}
