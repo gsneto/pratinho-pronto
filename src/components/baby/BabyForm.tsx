@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { babyFormSchema, type BabyFormData } from '../../lib/schemas/baby'
 import type { Baby } from '../../types/domain'
-import { BabyAvatar } from './BabyAvatar'
 
 interface BabyFormProps {
   baby?: Baby | null
@@ -50,12 +49,8 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
     <form className="space-y-5" noValidate onSubmit={handleSubmit(submit)}>
       {!baby && onPhotoSelected && (
         <div className="rounded-[22px] border border-sage-100 bg-sage-50/70 p-3 sm:flex sm:items-center sm:gap-3">
-          {photoPreviewUrl ? (
-            <img alt={`Prévia da foto de ${displayName}`} className="size-16 shrink-0 rounded-[22px] object-cover shadow-sm" src={photoPreviewUrl} />
-          ) : (
-            <BabyAvatar name={displayName} photoUrl={null} size="lg" />
-          )}
-          <div className="mt-2 min-w-0 sm:mt-0">
+          {photoPreviewUrl && <img alt={`Prévia da foto de ${displayName}`} className="size-16 shrink-0 rounded-[22px] object-cover shadow-sm" src={photoPreviewUrl} />}
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-900">Personalize o Pratinho Pronto</p>
             <p className="mt-1 text-xs leading-5 text-ink-500">A foto personaliza o app e aparece no perfil.</p>
             <label className="mt-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-sage-700 shadow-sm">
