@@ -12,14 +12,16 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
           <UtensilsCrossed aria-hidden="true" className="text-sage-500" size={21} strokeWidth={2.1} />
         </span>
       ) : (
-        <img
-          alt="Pratinho Pronto"
-          className="h-12 w-auto max-w-[220px] object-contain object-left"
-          decoding="async"
-          height={724}
-          src="/brand/pratinho-pronto-logo.png"
-          width={2172}
-        />
+        <span className="flex h-[72px] w-[180px] shrink-0 items-center overflow-hidden sm:w-[200px]">
+          <img
+            alt="Pratinho Pronto"
+            className="h-auto w-full max-w-none object-contain"
+            decoding="async"
+            height={941}
+            src="/brand/pratinho-pronto-logo.png"
+            width={1672}
+          />
+        </span>
       )}
     </div>
   )
