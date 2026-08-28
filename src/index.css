@@ -78,6 +78,18 @@ h3 {
   background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
+.brand-logo-dark {
+  display: none;
+}
+
+[data-theme='dark'] .brand-logo-light {
+  display: none;
+}
+
+[data-theme='dark'] .brand-logo-dark {
+  display: block;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
