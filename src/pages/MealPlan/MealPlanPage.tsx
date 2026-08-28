@@ -326,7 +326,7 @@ export function MealPlanPage() {
             <PdfExportButton
               baby={currentBaby}
               kind="week"
-              label="Imprimir minha semana"
+              label="Cardápio da semana"
               plan={plan}
             />
             <PdfExportButton
