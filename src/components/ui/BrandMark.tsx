@@ -27,7 +27,7 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
             className="brand-logo-dark h-auto w-full max-w-none object-contain"
             decoding="async"
             height={941}
-            src="/brand/pratinho-pronto-logo-dark.png"
+            src="/brand/pratinho-pronto-logo-dark-v2.png"
             width={1672}
           />
         </span>
