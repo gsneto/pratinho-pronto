@@ -117,7 +117,7 @@ export function AppShell() {
                 {enabled ? (
                   <NavLink
                     className={({ isActive }) =>
-                      `relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[10px] font-semibold transition-colors ${
+                      `flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[10px] font-semibold transition-colors ${
                         isActive
                           ? 'bg-sage-100 text-sage-700'
                           : 'text-ink-500 hover:bg-cream-50 hover:text-ink-900'
@@ -126,16 +126,8 @@ export function AppShell() {
                     end={path === '/app'}
                     to={path}
                   >
-                    {({ isActive }) => (
-                      <>
-                        <span
-                          aria-hidden="true"
-                          className={`absolute top-1 size-1.5 rounded-full ${isActive ? 'bg-pumpkin' : 'bg-transparent'}`}
-                        />
-                        <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
-                        <span>{label}</span>
-                      </>
-                    )}
+                    <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
+                    <span>{label}</span>
                   </NavLink>
                 ) : (
                   <span
