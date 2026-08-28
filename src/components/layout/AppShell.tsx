@@ -108,36 +108,48 @@ export function AppShell() {
 
       <nav
         aria-label="Navegação principal"
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-cream-100 bg-white px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(41,42,38,0.05)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden"
       >
-        <ul className="mx-auto grid max-w-lg grid-cols-5">
-          {navigation.map(({ label, icon: Icon, path, enabled }) => (
-            <li key={label}>
-              {enabled ? (
-                <NavLink
-                  className={({ isActive }) =>
-                    `flex min-h-13 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-medium ${
-                      isActive ? 'text-sage-700' : 'text-ink-500'
-                    }`
-                  }
-                  end={path === '/app'}
-                  to={path}
-                >
-                  <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
-                  {label}
-                </NavLink>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  className="flex min-h-13 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-medium text-ink-500/60"
-                >
-                  <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
-                  {label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="mx-auto max-w-lg rounded-full border border-cream-100 bg-white/95 p-1.5 shadow-[0_8px_30px_rgba(41,42,38,0.14)] backdrop-blur">
+          <ul className="grid grid-cols-5 gap-1">
+            {navigation.map(({ label, icon: Icon, path, enabled }) => (
+              <li key={label}>
+                {enabled ? (
+                  <NavLink
+                    className={({ isActive }) =>
+                      `relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[10px] font-semibold transition-colors ${
+                        isActive
+                          ? 'bg-sage-100 text-sage-700'
+                          : 'text-ink-500 hover:bg-cream-50 hover:text-ink-900'
+                      }`
+                    }
+                    end={path === '/app'}
+                    to={path}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          className={`absolute top-1 size-1.5 rounded-full ${isActive ? 'bg-pumpkin' : 'bg-transparent'}`}
+                        />
+                        <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
+                        <span>{label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                ) : (
+                  <span
+                    aria-disabled="true"
+                    className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[10px] font-semibold text-ink-500/60"
+                  >
+                    <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
+                    <span>{label}</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
     </div>
   )
