@@ -22,18 +22,20 @@ export function subscribeToAuthChanges(
   return data.subscription
 }
 
-export async function requestMagicLink(email: string): Promise<void> {
-  const { error } = await getSupabaseClient().auth.signInWithOtp({
+export async function signInWithPassword(email: string, password: string): Promise<void> {
+  const { error } = await getSupabaseClient().auth.signInWithPassword({ email, password })
+
+  if (error) throw error
+}
+
+export async function createPasswordAccess(email: string, password: string): Promise<void> {
+  const { error } = await getSupabaseClient().auth.signUp({
     email,
-    options: {
-      emailRedirectTo: buildAuthCallbackUrl(window.location.origin),
-      shouldCreateUser: true,
-    },
+    password,
+    options: { data: { access_created_via: 'purchase' } },
   })
 
-  if (error) {
-    throw error
-  }
+  if (error) throw error
 }
 
 export async function signOut(): Promise<void> {

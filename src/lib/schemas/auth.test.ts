@@ -3,8 +3,9 @@ import { loginSchema } from './auth'
 
 describe('loginSchema', () => {
   it('accepts and normalizes a valid email', () => {
-    expect(loginSchema.parse({ email: ' mae@example.com ' })).toEqual({
+    expect(loginSchema.parse({ email: ' mae@example.com ', password: 'segredo123' })).toEqual({
       email: 'mae@example.com',
+      password: 'segredo123',
     })
   })
 
