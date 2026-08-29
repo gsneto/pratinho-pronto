@@ -307,36 +307,21 @@ function formatOfferDate(date: Date) {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(date)
 }
 
-function formatCountdown(remaining: number) {
-  const totalSeconds = Math.max(0, Math.floor(remaining / 1000))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-}
-
 function TopOfferBar() {
   const [deadline, setDeadline] = useState(getEndOfToday)
-  const [remaining, setRemaining] = useState(() => Math.max(0, getEndOfToday().getTime() - Date.now()))
 
   useEffect(() => {
     const update = () => {
-      const nextDeadline = getEndOfToday()
-      setDeadline(nextDeadline)
-      setRemaining(Math.max(0, nextDeadline.getTime() - Date.now()))
+      setDeadline(getEndOfToday())
     }
     update()
-    const id = window.setInterval(update, 1000)
+    const id = window.setInterval(update, 60_000)
     return () => window.clearInterval(id)
   }, [])
 
   return (
     <div className="lp-top-offer-bar" role="region" aria-label="Oferta de acesso vitalício">
       <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ {formatOfferDate(deadline)}</strong></span>
-      <span className="lp-top-offer-timer" role="timer" aria-label={`Oferta termina em ${formatCountdown(remaining)}`}>
-        <Clock3 aria-hidden="true" size={14} />
-        <b>{formatCountdown(remaining)}</b>
-      </span>
     </div>
   )
 }

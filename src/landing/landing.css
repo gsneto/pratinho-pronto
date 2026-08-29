@@ -315,3 +315,6 @@ main>#testimonials{order:8}
 .lp-top-offer-timer{align-items:center;background:rgba(42,42,34,.2);border:1px solid rgba(255,255,255,.42);border-radius:999px;display:inline-flex;flex:none;gap:5px;padding:5px 9px;white-space:nowrap}
 .lp-top-offer-timer b{font-variant-numeric:tabular-nums;letter-spacing:.06em}
 @media (max-width:700px){.lp-top-offer-bar{gap:7px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}.lp-top-offer-timer{gap:4px;padding:4px 7px}.lp-top-offer-timer b{font-size:.68rem;letter-spacing:.04em}.lp-top-offer-copy{font-size:.68rem}}
+
+/* A barra usa apenas a ampulheta e a data, centralizada em qualquer largura. */
+.lp-top-offer-bar{justify-content:center;gap:0}
