@@ -321,7 +321,7 @@ function TopOfferBar() {
 
   return (
     <div className="lp-top-offer-bar" role="region" aria-label="Oferta de acesso vitalício">
-      <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ {formatOfferDate(deadline)}</strong></span>
+      <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ {formatOfferDate(deadline)}</strong> ⏳</span>
     </div>
   )
 }
