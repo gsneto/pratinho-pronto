@@ -1,24 +1,18 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RouterProvider } from 'react-router-dom'
-import { AuthProvider } from './components/auth/AuthProvider'
-import { router } from './routes/router'
+import { lazy, Suspense } from 'react'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 30_000,
-    },
-  },
-})
+const AppWithAuth = lazy(() =>
+  import('./AppWithAuth').then(({ AppWithAuth: AuthenticatedApp }) => ({ default: AuthenticatedApp })),
+)
+const LandingPage = lazy(() =>
+  import('./landing/LandingPage').then(({ LandingPage: PublicLandingPage }) => ({ default: PublicLandingPage })),
+)
 
 export function App() {
+  const isPublicLanding = window.location.pathname === '/'
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </QueryClientProvider>
+    <Suspense fallback={<div aria-busy="true" aria-label="Carregando Pratinho Pronto" className="min-h-screen bg-cream-50" />}>
+      {isPublicLanding ? <LandingPage /> : <AppWithAuth />}
+    </Suspense>
   )
 }
