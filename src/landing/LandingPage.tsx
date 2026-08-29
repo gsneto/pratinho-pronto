@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowDown, ArrowRight, CalendarDays, Check, ChevronDown, Clock3, FileDown, Heart,
-  Gift, Infinity, ListChecks, Refrigerator, Search, ShieldCheck, ShoppingBasket, Sparkles, Star,
-  WandSparkles,
+  Gift, ListChecks, Refrigerator, Search, ShieldCheck, ShoppingBasket, Sparkles, Star,
+  WandSparkles, Play,
 } from 'lucide-react'
 import { bonuses } from './config/bonuses'
 import { offerConfig } from './config/offer'
@@ -18,6 +18,12 @@ const weeklyMeals = [
   { day: 'QUA', name: 'Abacate com manga', image: '/images/recipes/abacate-com-manga.webp' },
   { day: 'QUI', name: 'Peixe com abóbora e quinoa', image: '/images/recipes/peixe-com-abobora-e-quinoa.webp' },
   { day: 'SEX', name: 'Creme de abóbora com aveia', image: '/images/recipes/creme-de-abobora-com-aveia.webp' },
+]
+
+const videoBonusImages = [
+  '/assets/video-bonus/recipe-03.webp?v=1',
+  '/assets/video-bonus/recipe-01.webp?v=1',
+  '/assets/video-bonus/recipe-02.webp?v=1',
 ]
 
 // v=3 forces browsers/PWA caches to load the refreshed Step 1 artwork.
@@ -54,7 +60,9 @@ export function LandingPage() {
   const [stickyVisible, setStickyVisible] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [howSlide, setHowSlide] = useState(0)
+  const [howImagesReady, setHowImagesReady] = useState(false)
   const howCarouselRef = useRef<HTMLDivElement>(null)
+  const videoBonusCarouselRef = useRef<HTMLDivElement>(null)
   const videoMilestones = useRef(new Set<Parameters<typeof track>[0]>())
 
   useEffect(() => {
@@ -152,6 +160,55 @@ export function LandingPage() {
     }
   }, [])
 
+  // The five tutorial artworks are important for the story, but none belongs
+  // to the first viewport. Load them shortly before the section enters view so
+  // mobile users get the hero and CTA without paying for below-the-fold bytes.
+  useEffect(() => {
+    const carousel = howCarouselRef.current
+    if (!carousel || typeof IntersectionObserver === 'undefined') {
+      setHowImagesReady(true)
+      return
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return
+      setHowImagesReady(true)
+      observer.disconnect()
+    }, { rootMargin: '600px 0px' })
+    observer.observe(carousel)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const carousel = videoBonusCarouselRef.current
+    if (!carousel) return
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('.lp-video-bonus-slide'))
+    if (slides.length < 2) return
+    let index = 0
+    let scrollEndTimer = 0
+    const updateActive = () => {
+      window.clearTimeout(scrollEndTimer)
+      scrollEndTimer = window.setTimeout(() => {
+        const firstOffset = slides[0].offsetLeft
+        index = slides.reduce((nearest, slide, slideIndex) => (
+          Math.abs(slide.offsetLeft - firstOffset - carousel.scrollLeft) < Math.abs(slides[nearest].offsetLeft - firstOffset - carousel.scrollLeft)
+            ? slideIndex
+            : nearest
+        ), 0)
+      }, 100)
+    }
+    const advance = () => {
+      index = (index + 1) % slides.length
+      carousel.scrollTo({ left: slides[index].offsetLeft - slides[0].offsetLeft, behavior: 'smooth' })
+    }
+    carousel.addEventListener('scroll', updateActive, { passive: true })
+    const timer = window.setInterval(advance, 5000)
+    return () => {
+      carousel.removeEventListener('scroll', updateActive)
+      window.clearTimeout(scrollEndTimer)
+      window.clearInterval(timer)
+    }
+  }, [])
+
   const enabledBonuses = bonuses.filter((bonus) => bonus.enabled)
   const guideBonuses = enabledBonuses.filter((bonus) => bonus.id !== 'videos-receitas' && bonus.id !== 'app-pratinho')
   const videoBonuses = enabledBonuses.filter((bonus) => bonus.id === 'videos-receitas')
@@ -167,8 +224,8 @@ export function LandingPage() {
 
   return <div className={automaticDarkMode ? 'landing-page lp-dark-mode' : 'landing-page'}>
     <div className="lp-top-offer-bar" role="status">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ 28/08</strong></div>
-    <header className="lp-header">
-      <a className="lp-brand" href="#hero" aria-label="Pratinho Pronto, início"><img className="lp-logo-image" src="/assets/pratinho-pronto-logo-cropped.png" alt="Pratinho Pronto" width="190" height="72" /></a>
+      <header className="lp-header">
+      <a className="lp-brand" href="#hero" aria-label="Pratinho Pronto, início"><img className="lp-logo-image" src={automaticDarkMode ? '/assets/pratinho-pronto-logo-light.webp' : '/assets/pratinho-pronto-logo-cropped.webp'} alt="Pratinho Pronto" width="190" height="72" fetchPriority="high" /></a>
     </header>
 
     <main>
@@ -180,7 +237,7 @@ export function LandingPage() {
             <p className="lp-lead">O Pratinho Pronto organiza o cardápio da semana, reúne receitas e encontra opções para hoje com os ingredientes que você já tem em casa.</p>
             <PrimaryButton source="hero">Quero organizar minha semana</PrimaryButton>
             <div className="lp-price-note"><strong>R$67</strong><span>pagamento único · acesso imediato</span></div>
-            <div className="lp-trust-row"><span><ShieldCheck aria-hidden="true" size={18} /> Garantia de 7 dias</span><span><Clock3 aria-hidden="true" size={18} /> Acesso imediato após o pagamento</span><span><Infinity aria-hidden="true" size={18} /> Acesso vitalício</span></div>
+            <div className="lp-trust-row"><span><ShieldCheck aria-hidden="true" size={18} /> Garantia de 7 dias</span><span><Clock3 aria-hidden="true" size={18} /> Acesso imediato após o pagamento</span></div>
           </div>
           <div className="lp-video-wrap">
             <div className="lp-video-label"><span className="lp-live-dot" /> Veja como funciona por dentro</div>
@@ -204,7 +261,7 @@ export function LandingPage() {
           <div className="lp-section-intro"><p className="lp-kicker">Como funciona</p><h2>Do “o que eu faço hoje?” para a <em>semana organizada.</em></h2><p>Em poucos passos, sem aprender uma ferramenta nova.</p></div>
           <div className="lp-how-swipe-cue"><span>Arraste para o lado</span><strong>Veja os 5 passos</strong><ArrowRight aria-hidden="true" size={18} /></div>
           <div className="lp-how-carousel" ref={howCarouselRef} aria-label="Como funciona em cinco passos">
-            {howImages.map((src, index) => <figure className="lp-how-slide" key={src}><img src={src} alt={howImageDescriptions[index]} width="900" height="1124" loading={index === 0 ? 'eager' : 'lazy'} /></figure>)}
+            {howImages.map((src, index) => <figure className="lp-how-slide" key={src}><img src={howImagesReady ? src : undefined} alt={howImageDescriptions[index]} width="900" height="1124" loading="lazy" /></figure>)}
           </div>
           <div className="lp-how-dots" aria-label={`Passo ${howSlide + 1} de 5`}>
             {howImages.map((_, index) => <button className={index === howSlide ? 'is-active' : ''} key={index} type="button" aria-label={`Ver passo ${index + 1}`} aria-current={index === howSlide ? 'true' : undefined} onClick={() => { const carousel = howCarouselRef.current; const slides = carousel?.querySelectorAll<HTMLElement>('.lp-how-slide'); const slide = slides?.[index]; if (slide && slides && carousel) carousel.scrollTo({ left: slide.offsetLeft - slides[0].offsetLeft, behavior: 'smooth' }); setHowSlide(index) }} />)}
@@ -225,15 +282,15 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="lp-section lp-bonuses" id="bonuses" data-track="bonus_view"><div className="lp-container"><div className="lp-section-intro"><p className="lp-kicker">Para deixar a fase mais leve</p><h2>E seu acesso ainda acompanha <em>{enabledBonuses.length} materiais de apoio.</em></h2><p>Para facilitar outras partes dessa fase sem transformar tudo em mais uma pesquisa na internet.</p></div><div className="lp-bonus-grid">{enabledBonuses.map((bonus) => <article className={`lp-bonus lp-bonus-${bonus.id}`} key={bonus.id}><img className="lp-bonus-cover" src={bonus.cover} alt={`Capa: ${bonus.title}`} width="180" height="230" loading="lazy" /><div><span className="lp-badge">{bonus.id === 'videos-receitas' ? 'Bônus premium' : 'Complemento incluído'}</span><h3>{bonus.title}</h3>{bonus.subtitle && <p className="lp-bonus-subtitle">{bonus.subtitle}</p>}<p>{bonus.description}</p>{bonus.valueLabel && <div className="lp-bonus-value"><span>Valor individual</span><s>{bonus.valueLabel}</s><strong>INCLUÍDO</strong></div>}</div></article>)}</div><p className="lp-bonus-total">Valor dos materiais: <s>R${offerConfig.totalValue}</s> <strong>já incluídos no seu acesso</strong></p></div></section>
+      <section className="lp-section lp-bonuses" id="bonuses" data-track="bonus_view"><div className="lp-container"><div className="lp-section-intro"><p className="lp-kicker">Para deixar a fase mais leve</p><h2>E seu acesso ainda acompanha <em>{enabledBonuses.length} materiais de apoio.</em></h2><p>Para facilitar outras partes dessa fase sem transformar tudo em mais uma pesquisa na internet.</p></div><div className="lp-bonus-grid">{enabledBonuses.map((bonus) => <article className={`lp-bonus lp-bonus-${bonus.id}`} key={bonus.id}>{bonus.id === 'videos-receitas' ? <div className="lp-video-bonus-media"><div className="lp-video-bonus-carousel" ref={videoBonusCarouselRef} aria-label="Prévia dos vídeos de receitas">{videoBonusImages.map((src, index) => <button className="lp-video-bonus-slide" key={src} type="button" aria-label={`Reproduzir prévia ${index + 1}. Avança para a próxima receita`} onClick={() => { const carousel = videoBonusCarouselRef.current; const slides = carousel?.querySelectorAll<HTMLElement>('.lp-video-bonus-slide'); const next = (index + 1) % videoBonusImages.length; if (carousel && slides) carousel.scrollTo({ left: slides[next].offsetLeft - slides[0].offsetLeft, behavior: 'smooth' }) }}><img src={src} alt="" width="180" height="230" loading="lazy" /><span className="lp-video-play" aria-hidden="true"><Play size={25} fill="currentColor" /></span></button>)}</div></div> : <img className="lp-bonus-cover" src={bonus.cover} alt={`Capa: ${bonus.title}`} width="180" height="230" loading="lazy" />}<div><span className="lp-badge">{bonus.id === 'videos-receitas' ? 'Bônus premium' : 'Complemento incluído'}</span><h3>{bonus.title}</h3>{bonus.subtitle && <p className="lp-bonus-subtitle">{bonus.subtitle}</p>}<p>{bonus.description}</p>{bonus.valueLabel && <div className="lp-bonus-value"><span>Valor individual</span><s>{bonus.valueLabel}</s><strong>INCLUÍDO</strong></div>}</div></article>)}</div><p className="lp-bonus-total">Valor dos materiais: <s>R${offerConfig.totalValue}</s> <strong>já incluídos no seu acesso</strong></p></div></section>
 
       <section className="lp-section lp-objection" id="objection" data-track="objection_view"><div className="lp-container lp-objection-grid"><div><p className="lp-kicker">Uma dúvida justa</p><h2>“Mas receita tem de graça na internet.”</h2><p className="lp-objection-answer">Tem mesmo.</p><p className="lp-lead">E é justamente por isso que o Pratinho Pronto não foi criado para ser só mais uma pasta de receitas.</p><p className="lp-lead">O valor está no que acontece depois: organizar a semana, trocar opções, aproveitar ingredientes e montar sua lista de compras em poucos passos.</p><div className="lp-contrast"><strong>Menos procura.</strong><strong>Mais organização.</strong></div></div><div className="lp-proof"><div className="lp-proof-head"><ShieldCheck aria-hidden="true" size={23} /><h3>Veja exatamente o que você está comprando.</h3></div>{['Aplicativo real','Vídeo real do funcionamento','PDFs reais','Preço transparente','Sem mensalidade escondida'].map((item) => <div className="lp-proof-line" key={item}><Check aria-hidden="true" size={15} />{item}</div>)}<p>Você já viu o produto funcionando antes de chegar ao checkout.</p></div>{testimonials.length > 0 && <div className="lp-testimonials">{testimonials.slice(0,3).map((item) => <blockquote key={item.id}><Star aria-hidden="true" size={16} fill="currentColor" />“{item.quote}”<cite>— {item.name}{item.detail ? `, ${item.detail}` : ''}</cite></blockquote>)}</div>}</div></section>
 
-      <section className="lp-section lp-offer" id="offer" data-track="offer_view" ref={offerRef}><div className="lp-container"><div className="lp-offer-card"><div className="lp-offer-main"><p className="lp-kicker">Um único passo para uma semana mais leve</p><h2>Comece a organizar a semana do seu bebê <em>hoje.</em></h2><div className="lp-offer-columns"><div className="lp-offer-primary"><h3>PRATINHO PRONTO — ACESSO VITALÍCIO</h3><ul>{['Cardápio semanal em poucos minutos','Troque qualquer refeição facilmente','Receitas organizadas','Receitas com ingredientes que você já tem','Lista de compras automática'].map((item) => <CheckLine key={item}>{item}</CheckLine>)}</ul></div><div className="lp-offer-bonus-groups"><h3>+ 3 GUIAS PRÁTICOS INCLUSOS</h3><ul>{guideBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{guideDisplayNames[bonus.id] ?? bonus.title}</span></span></CheckLine>)}</ul><h3>+ BÔNUS PREMIUM</h3><ul>{videoBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{bonus.title}</span></span></CheckLine>)}</ul></div></div></div><div className="lp-offer-price"><p className="lp-offer-price-kicker">Oferta especial</p><span className="lp-access-label"><img src="/assets/pratinho-pronto-logo-cropped.png" alt="Pratinho Pronto" /><b>— acesso vitalício</b></span><span className="lp-value-anchor">Valor total dos itens separadamente: <s>R${offerConfig.totalValue}</s></span><span className="lp-today-label">HOJE POR</span><strong>R$67</strong><span className="lp-one-time">pagamento único</span><span className="lp-installment">ou 12x de R$6,93 no cartão</span><span className="lp-savings">Você economiza R${offerConfig.savings}</span>{offerConfig.urgency.enabled && offerConfig.urgency.endsAt && <Countdown endsAt={offerConfig.urgency.endsAt} message={offerConfig.urgency.message} />}<PrimaryButton source="offer">QUERO MEU ACESSO VITALÍCIO</PrimaryButton><small className="lp-guarantee-note">Garantia de 7 dias conforme o art. 49 do Código de Defesa do Consumidor.</small></div></div></div></section>
+      <section className="lp-section lp-offer" id="offer" data-track="offer_view" ref={offerRef}><div className="lp-container"><div className="lp-offer-card"><div className="lp-offer-main"><p className="lp-kicker">Um único passo para uma semana mais leve</p><h2>Comece a organizar a semana do seu bebê <em>hoje.</em></h2><div className="lp-offer-columns"><div className="lp-offer-primary"><h3>PRATINHO PRONTO — ACESSO VITALÍCIO</h3><ul>{['Cardápio semanal em poucos minutos','Troque qualquer refeição facilmente','Receitas organizadas','Receitas com ingredientes que você já tem','Lista de compras automática'].map((item) => <CheckLine key={item}>{item}</CheckLine>)}</ul></div><div className="lp-offer-bonus-groups"><h3>+ 3 GUIAS PRÁTICOS INCLUSOS</h3><ul>{guideBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{guideDisplayNames[bonus.id] ?? bonus.title}</span></span></CheckLine>)}</ul><h3>+ BÔNUS PREMIUM</h3><ul>{videoBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{bonus.title}</span></span></CheckLine>)}</ul></div></div></div><div className="lp-offer-price"><span className="lp-offer-price-kicker">OFERTA DE LANÇAMENTO</span><span className="lp-access-label"><b>— acesso vitalício</b></span><span className="lp-value-anchor">Valor total dos itens separadamente: <s>R${offerConfig.totalValue}</s></span><span className="lp-today-label">HOJE POR</span><strong>R$67</strong><span className="lp-one-time">pagamento único</span><span className="lp-installment">ou 12x de R$6,93 no cartão</span><span className="lp-savings">Você economiza R${offerConfig.savings}</span>{offerConfig.urgency.enabled && offerConfig.urgency.endsAt && <Countdown endsAt={offerConfig.urgency.endsAt} message={offerConfig.urgency.message} />}<PrimaryButton source="offer">QUERO MEU ACESSO VITALÍCIO</PrimaryButton><small className="lp-guarantee-note">Garantia de 7 dias conforme o art. 49 do Código de Defesa do Consumidor.</small></div></div></div></section>
 
       <section className="lp-section lp-guarantee" id="guarantee" data-track="guarantee_view"><div className="lp-container lp-guarantee-grid"><div className="lp-guarantee-card"><span className="lp-shield"><ShieldCheck aria-hidden="true" size={27} /></span><div><h2>Você tem 7 dias para decidir com calma.</h2><p>Se dentro do prazo aplicável à compra online o Pratinho Pronto não fizer sentido para sua rotina, você poderá solicitar o cancelamento conforme as condições informadas.</p><a href="#footer">Ver política de cancelamento <ArrowRight aria-hidden="true" size={15} /></a></div></div><div className="lp-faq"><p className="lp-kicker">Perguntas frequentes</p>{faqItems.map(([question,answer], index) => <div className="lp-faq-item" key={question}><button aria-controls={`faq-answer-${index}`} aria-expanded={openFaq === index} onClick={() => { setOpenFaq(openFaq === index ? null : index); if (openFaq !== index) track('faq_open', { question }) }} type="button"><span>{question}</span><ChevronDown aria-hidden="true" size={19} /></button><div className={`lp-faq-answer ${openFaq === index ? 'is-open' : ''}`} id={`faq-answer-${index}`} role="region"><p>{answer}</p></div></div>)}</div></div></section>
 
-      <section className="lp-section lp-final" id="final"><div className="lp-container lp-final-inner"><p className="lp-kicker">A próxima semana começa com uma decisão</p><h2>Amanhã você pode começar tudo do zero outra vez.</h2><div className="lp-final-pause" /><h3>Ou deixar a semana organizada hoje.</h3><p>Monte. Ajuste. Gere a lista. Imprima.</p><div className="lp-final-price"><strong>R$67</strong><span>pagamento único</span></div><PrimaryButton source="final">Quero organizar minha semana</PrimaryButton><div className="lp-final-trust"><span>✓ acesso imediato</span><span>✓ funciona no celular</span><span>✓ sem mensalidade</span></div></div><footer className="lp-footer" id="footer"><div className="lp-footer-brand"><img className="lp-logo-image lp-logo-footer" src="/assets/pratinho-pronto-logo-cropped.png" alt="Pratinho Pronto" width="190" height="72" /></div><p>Pratinho Pronto é uma ferramenta educativa e de organização. Não substitui avaliação ou orientação individual de pediatra ou nutricionista.</p><div className="lp-footer-details"><span>Pratinho Pronto · [Razão social]</span><span>CPF/CNPJ: [informar]</span><a href="mailto:contato@pratinhopronto.com">contato@pratinhopronto.com</a><a href="#footer">Termos</a><a href="#footer">Política de privacidade</a><a href="#footer">Política de cancelamento</a></div></footer></section>
+      <section className="lp-section lp-final" id="final"><div className="lp-container lp-final-inner"><p className="lp-kicker">A próxima semana começa com uma decisão</p><h2>Amanhã você pode começar tudo do zero outra vez.</h2><div className="lp-final-pause" /><h3>Ou deixar a semana organizada hoje.</h3><p>Monte. Ajuste. Gere a lista. Imprima.</p><div className="lp-final-price"><strong>R$67</strong><span>pagamento único</span></div><PrimaryButton source="final">Quero organizar minha semana</PrimaryButton><div className="lp-final-trust"><span>✓ acesso imediato</span><span>✓ funciona no celular</span><span>✓ sem mensalidade</span></div></div><footer className="lp-footer" id="footer"><div className="lp-footer-brand"><img className="lp-logo-image lp-logo-footer" src="/assets/pratinho-pronto-logo-cropped.webp" alt="Pratinho Pronto" width="190" height="72" loading="lazy" /></div><p>Pratinho Pronto é uma ferramenta educativa e de organização. Não substitui avaliação ou orientação individual de pediatra ou nutricionista.</p><div className="lp-footer-details"><span>Pratinho Pronto · [Razão social]</span><span>CPF/CNPJ: [informar]</span><a href="mailto:contato@pratinhopronto.com">contato@pratinhopronto.com</a><a href="#footer">Termos</a><a href="#footer">Política de privacidade</a><a href="#footer">Política de cancelamento</a></div></footer></section>
       <section className="lp-section lp-testimonials-section" id="testimonials" data-track="testimonials_view"><div className="lp-container"><div className="lp-section-intro"><p className="lp-kicker">Quem já está usando</p><h2>Depoimentos de mães que organizaram a semana.</h2><p>Este espaço será preenchido com conversas reais do WhatsApp, autorizadas por cada cliente.</p></div><div className="lp-whatsapp-grid">{[1,2,3].map((slot) => <article className="lp-whatsapp-card" key={slot}><div className="lp-whatsapp-placeholder"><span className="lp-whatsapp-label">WhatsApp</span><strong>Espaço reservado para print real</strong><small>Insira aqui o depoimento autorizado</small></div></article>)}</div></div></section>
 
     </main>

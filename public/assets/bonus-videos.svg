@@ -1,0 +1,12 @@
+<svg width="360" height="460" viewBox="0 0 360 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="460" rx="22" fill="#24465B"/>
+  <circle cx="180" cy="178" r="102" fill="#F1E6D8"/>
+  <rect x="87" y="102" width="186" height="142" rx="14" fill="#17344A"/>
+  <rect x="99" y="114" width="162" height="106" rx="9" fill="#FBF8F2"/>
+  <circle cx="180" cy="167" r="27" fill="#C77752"/>
+  <path d="M174 151L197 167L174 183V151Z" fill="white"/>
+  <path d="M73 310H287" stroke="#E9A27F" stroke-width="4" stroke-linecap="round"/>
+  <path d="M102 337H258" stroke="#F1E6D8" stroke-width="10" stroke-linecap="round"/>
+  <path d="M123 365H237" stroke="#F1E6D8" stroke-width="10" stroke-linecap="round"/>
+  <text x="180" y="70" text-anchor="middle" fill="#F1E6D8" font-family="Arial, sans-serif" font-size="18" font-weight="700">RECEITAS EM VÍDEO</text>
+</svg>

@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import { GuestRoute } from '../components/auth/GuestRoute'
 import { ProtectedRoute } from '../components/auth/ProtectedRoute'
 import { AppShell } from '../components/layout/AppShell'
@@ -8,6 +8,7 @@ import {
   LazyBabyRequiredRoute,
   LazyHomePage,
   LazyLoginPage,
+  LazyLandingPage,
   LazyMealPlanPage,
   LazyNotFoundPage,
   LazyOnboardingPage,
@@ -21,7 +22,7 @@ import {
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate replace to="/app" />,
+    element: <LazyLandingPage />,
   },
   {
     element: <GuestRoute />,

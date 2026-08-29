@@ -1,6 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { AuthStateScreen } from '../components/auth/AuthStateScreen'
 
+const LandingPage = lazy(() =>
+  import('../landing/LandingPage').then(({ LandingPage }) => ({ default: LandingPage })),
+)
+
 const BabyMissingRoute = lazy(() =>
   import('../components/auth/BabyMissingRoute').then(({ BabyMissingRoute }) => ({
     default: BabyMissingRoute,
@@ -68,6 +72,14 @@ export function LazyAuthCallbackPage() {
   return (
     <Suspense fallback={<AuthStateScreen />}>
       <AuthCallbackPage />
+    </Suspense>
+  )
+}
+
+export function LazyLandingPage() {
+  return (
+    <Suspense fallback={<AuthStateScreen />}>
+      <LandingPage />
     </Suspense>
   )
 }
