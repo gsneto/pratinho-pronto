@@ -223,7 +223,7 @@ export function LandingPage() {
   const howImages = automaticDarkMode ? howDarkImages : howLightImages
 
   return <div className={automaticDarkMode ? 'landing-page lp-dark-mode' : 'landing-page'}>
-    <div className="lp-top-offer-bar" role="status">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ 28/08</strong></div>
+    <TopOfferBar />
       <header className="lp-header">
       <a className="lp-brand" href="#hero" aria-label="Pratinho Pronto, início"><img className="lp-logo-image" src={automaticDarkMode ? '/assets/pratinho-pronto-logo-light-small.webp' : '/assets/pratinho-pronto-logo-cropped-small.webp'} srcSet={automaticDarkMode ? '/assets/pratinho-pronto-logo-light-small.webp 1x, /assets/pratinho-pronto-logo-light-mobile.webp 2x' : '/assets/pratinho-pronto-logo-cropped-small.webp 1x, /assets/pratinho-pronto-logo-cropped-mobile.webp 2x'} sizes="190px" alt="Pratinho Pronto" width="190" height="72" fetchPriority="high" /></a>
     </header>
@@ -242,7 +242,6 @@ export function LandingPage() {
           <div className="lp-video-wrap">
             <div className="lp-video-label"><span className="lp-live-dot" /> Veja como funciona por dentro</div>
             {mainVideo.enabled ? <video className="lp-video" controls playsInline preload="metadata" poster={mainVideo.poster} onPlay={() => track('hero_video_play')} onEnded={() => track('hero_video_complete')} onTimeUpdate={(event) => handleVideoProgress(event.currentTarget.currentTime, event.currentTarget.duration)}><source src={mainVideo.src} type="video/mp4" />Seu navegador não suporta vídeo. Veja o produto no checkout.</video> : <img className="lp-video lp-poster" src={mainVideo.poster} alt="Prévia do Pratinho Pronto" width="900" height="620" />}
-            <p className="lp-video-caption"><Clock3 aria-hidden="true" size={15} /> Demonstração real · 30–45 segundos</p>
           </div>
           <p className="lp-vsl-bridge">Veja o que preparar hoje — e deixe o restante da semana organizado.</p>
         </div>
@@ -296,6 +295,50 @@ export function LandingPage() {
     </main>
     {stickyVisible && <div className="lp-sticky"><div><strong>R$67</strong><span>pagamento único</span></div><button onClick={() => { track('hero_cta_click', { source: 'sticky' }); goToCheckout('sticky') }} type="button">Quero começar <ArrowRight aria-hidden="true" size={17} /></button></div>}
   </div>
+}
+
+function getEndOfToday() {
+  const deadline = new Date()
+  deadline.setHours(23, 59, 59, 999)
+  return deadline
+}
+
+function formatOfferDate(date: Date) {
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(date)
+}
+
+function formatCountdown(remaining: number) {
+  const totalSeconds = Math.max(0, Math.floor(remaining / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
+
+function TopOfferBar() {
+  const [deadline, setDeadline] = useState(getEndOfToday)
+  const [remaining, setRemaining] = useState(() => Math.max(0, getEndOfToday().getTime() - Date.now()))
+
+  useEffect(() => {
+    const update = () => {
+      const nextDeadline = getEndOfToday()
+      setDeadline(nextDeadline)
+      setRemaining(Math.max(0, nextDeadline.getTime() - Date.now()))
+    }
+    update()
+    const id = window.setInterval(update, 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  return (
+    <div className="lp-top-offer-bar" role="region" aria-label="Oferta de acesso vitalício">
+      <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ {formatOfferDate(deadline)}</strong></span>
+      <span className="lp-top-offer-timer" role="timer" aria-label={`Oferta termina em ${formatCountdown(remaining)}`}>
+        <Clock3 aria-hidden="true" size={14} />
+        <b>{formatCountdown(remaining)}</b>
+      </span>
+    </div>
+  )
 }
 
 function Countdown({ endsAt, message }: { endsAt: string; message: string }) {
