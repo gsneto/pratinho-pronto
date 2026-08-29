@@ -78,7 +78,7 @@ export function LazyAuthCallbackPage() {
 
 export function LazyLandingPage() {
   return (
-    <Suspense fallback={<AuthStateScreen />}>
+    <Suspense fallback={<div aria-busy="true" aria-label="Carregando Pratinho Pronto" className="min-h-screen bg-cream-50" />}>
       <LandingPage />
     </Suspense>
   )
