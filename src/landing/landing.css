@@ -290,6 +290,9 @@ main>#testimonials{order:8}
 .lp-video-play{align-items:center;background:var(--lp-terra);border:3px solid rgba(255,255,255,.9);border-radius:50%;box-shadow:0 8px 22px rgba(23,52,74,.35);color:#fff;display:flex;height:51px;justify-content:center;left:50%;position:absolute;top:50%;transform:translate(-50%,-50%);transition:transform .2s,box-shadow .2s;width:51px}
 .lp-video-bonus-slide:hover .lp-video-play{box-shadow:0 10px 28px rgba(23,52,74,.5);transform:translate(-50%,-50%) scale(1.08)}
 @media (max-width:700px){.lp-video-bonus-media{width:132px}.lp-video-bonus-slide img{height:187px;width:132px}}
+
+/* Reserva o espaço do player antes da mídia carregar, evitando saltos no celular. */
+.lp-video{aspect-ratio:900/620;min-height:0}
 /* O selo de lançamento precisa permanecer acima de toda a composição do preço. */
 .landing-page #offer .lp-offer-price.lp-offer-price.lp-offer-price.lp-offer-price>span.lp-offer-price-kicker{order:-1!important}
 /* Ordem visual definitiva da oferta: selo, mensagem, ancoragem e preço. */
