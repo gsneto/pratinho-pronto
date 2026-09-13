@@ -1,6 +1,9 @@
 import { Clock3, X } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { RecipeVisual } from '../recipes/RecipeVisual'
 import type { MealPlanItem, Recipe } from '../../types/domain'
+import { formatShortDate } from '../../utils/dates'
+import { mealTypeLabels } from '../../utils/labels'
 
 interface ReplaceMealDialogProps {
   alternatives: Recipe[]
@@ -17,8 +20,28 @@ export function ReplaceMealDialog({
   onChoose,
   onClose,
 }: ReplaceMealDialogProps) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    closeRef.current?.focus()
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      onClose()
+      previouslyFocused?.focus()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   return (
-    <div className="fixed inset-0 z-40 flex items-end bg-ink-900/35 p-3 sm:items-center sm:justify-center" role="presentation">
+    <div
+      className="fixed inset-0 z-40 flex items-end bg-ink-900/35 p-3 sm:items-center sm:justify-center"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+      role="presentation"
+    >
       <section
         aria-labelledby="replace-meal-title"
         aria-modal="true"
@@ -31,12 +54,15 @@ export function ReplaceMealDialog({
             <h2 className="mt-1 text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="replace-meal-title">
               Outras ideias compatíveis
             </h2>
-            <p className="mt-2 text-sm text-ink-500">Atual: {item.recipe.name}</p>
+            <p className="mt-2 text-sm text-ink-500">
+              {mealTypeLabels[item.meal_type]} de {formatShortDate(item.date)} · agora é {item.recipe.name}
+            </p>
           </div>
           <button
             aria-label="Fechar alternativas"
             className="grid size-11 shrink-0 place-items-center rounded-2xl bg-cream-50 text-ink-700"
             onClick={onClose}
+            ref={closeRef}
             type="button"
           >
             <X aria-hidden="true" size={20} />
@@ -44,28 +70,34 @@ export function ReplaceMealDialog({
         </div>
 
         {alternatives.length === 0 ? (
-          <p className="mt-6 rounded-2xl bg-cream-50 p-5 text-sm leading-6 text-ink-500">
-            Não encontramos outra receita do mesmo tipo compatível com o cadastro.
-          </p>
+          <div className="mt-6 rounded-2xl bg-cream-50 p-5">
+            <p className="text-sm font-semibold text-ink-900">Nenhuma outra opção compatível por aqui.</p>
+            <p className="mt-1 text-sm leading-6 text-ink-500">
+              Todas as receitas deste tipo já estão fora das escolhas cadastradas ou da idade atual. Você pode
+              revisar essas informações no perfil do bebê.
+            </p>
+          </div>
         ) : (
           <div className="mt-5 space-y-3">
             {alternatives.map((recipe) => (
               <button
-                className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-cream-100 p-3 text-left enabled:hover:border-sage-500 disabled:opacity-55"
+                className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-cream-100 p-3 text-left transition enabled:hover:border-sage-500 disabled:opacity-55"
                 disabled={isSaving}
                 key={recipe.id}
                 onClick={() => onChoose(recipe)}
                 type="button"
               >
                 <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} size="thumb" />
-                <span>
+                <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-ink-900">{recipe.name}</span>
                   <span className="mt-1 flex items-center gap-1 text-xs text-ink-500">
                     <Clock3 aria-hidden="true" size={14} />
-                    {recipe.prep_time_minutes} min
+                    {recipe.prep_time_minutes} min · a partir de {recipe.min_age_months} meses
                   </span>
                 </span>
-                <span className="text-xs font-semibold text-sage-700">Escolher</span>
+                <span className="shrink-0 text-xs font-semibold text-sage-700">
+                  {isSaving ? 'Trocando…' : 'Escolher'}
+                </span>
               </button>
             ))}
           </div>

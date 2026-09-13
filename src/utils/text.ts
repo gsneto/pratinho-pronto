@@ -10,7 +10,9 @@ export function normalizeTerm(value: string): string {
     .toLowerCase()
 }
 
-export function publicRecipeText(value: string): string {
+export function publicRecipeText(value: string | null | undefined): string {
+  if (typeof value !== 'string') return ''
+
   return value
     .replace(/\bdemonstrativ[oa]s?\b/gi, '')
     .replace(/\s{2,}/g, ' ')

@@ -6,4 +6,9 @@ describe('publicRecipeText', () => {
     expect(publicRecipeText('Lanche demonstrativo macio e simples.')).toBe('Lanche macio e simples.')
     expect(publicRecipeText('Combinação demonstrativa rápida')).toBe('Combinação rápida')
   })
+
+  it('devolve texto vazio quando a descrição não veio do banco', () => {
+    expect(publicRecipeText(null)).toBe('')
+    expect(publicRecipeText(undefined)).toBe('')
+  })
 })

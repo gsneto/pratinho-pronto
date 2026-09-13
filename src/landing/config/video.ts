@@ -1,5 +1,5 @@
 export const mainVideo = {
   enabled: true,
-  src: '/assets/pratinho-pronto-demo.mp4',
-  poster: '/assets/pratinho-pronto-poster.svg',
+  src: '/assets/vsl-mobile-v2.mp4',
+  poster: '/assets/vsl-poster-v2.webp',
 }

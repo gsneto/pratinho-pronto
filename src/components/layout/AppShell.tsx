@@ -7,14 +7,15 @@ import {
   Salad,
   UserRound,
 } from 'lucide-react'
-import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useBaby } from '../../hooks/useBaby'
 import { getAuthErrorMessage } from '../../lib/auth-errors'
 import { BabyAvatar } from '../baby/BabyAvatar'
 import { BrandMark } from '../ui/BrandMark'
 import { ThemeToggle } from '../ui/ThemeToggle'
+import { analytics } from '../../services/analytics'
 
 const navigation = [
   { label: 'Início', icon: Home, path: '/app', enabled: true },
@@ -27,8 +28,13 @@ const navigation = [
 export function AppShell() {
   const { logout, user } = useAuth()
   const { data: baby } = useBaby()
+  const location = useLocation()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
+
+  useEffect(() => {
+    analytics.track('app_view', { path: location.pathname })
+  }, [location.pathname])
 
   async function handleLogout() {
     setIsLoggingOut(true)

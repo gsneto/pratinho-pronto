@@ -45,7 +45,7 @@ export function OnboardingPage() {
         // O cadastro continua disponível; a foto pode ser adicionada no Perfil.
       }
     }
-    analytics.track('baby_created')
+    analytics.track('onboarding_completed', { has_photo: Boolean(optimizedPhoto) })
     await queryClient.invalidateQueries({ queryKey: babyQueryKey })
     navigate('/app', { replace: true })
   }

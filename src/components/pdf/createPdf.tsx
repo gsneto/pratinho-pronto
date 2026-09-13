@@ -13,6 +13,7 @@ export interface CreatePdfInput {
   kind: PdfKind
   plan?: MealPlan
   shoppingList?: ShoppingList
+  weekStart?: string
 }
 
 export async function createPdfBlob({
@@ -20,10 +21,11 @@ export async function createPdfBlob({
   kind,
   plan,
   shoppingList,
+  weekStart,
 }: CreatePdfInput): Promise<Blob> {
   if (kind === 'shopping' && shoppingList) {
     return pdf(
-      <ShoppingListDocument baby={baby} shoppingList={shoppingList} />,
+      <ShoppingListDocument baby={baby} shoppingList={shoppingList} weekStart={weekStart} />,
     ).toBlob()
   }
 

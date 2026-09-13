@@ -1,4 +1,4 @@
-import { Check, Search, ShoppingBasket } from 'lucide-react'
+import { Check, Search, ShoppingBasket, X } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RecipeCard } from '../../components/recipes/RecipeCard'
@@ -20,9 +20,12 @@ export function PantryPage() {
   const [search, setSearch] = useState('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [searchCount, setSearchCount] = useState(0)
   const [addingMissingRecipeId, setAddingMissingRecipeId] = useState<string | null>(null)
   const [addedMissingRecipeIds, setAddedMissingRecipeIds] = useState<string[]>([])
+  const [listError, setListError] = useState<string | null>(null)
   const resultsRef = useRef<HTMLElement>(null)
+  const resultsTitleRef = useRef<HTMLHeadingElement>(null)
   const currentWeekStart = getWeekStart()
   const { data: currentPlan } = useMealPlan(baby?.id, currentWeekStart)
 
@@ -51,10 +54,11 @@ export function PantryPage() {
   )
 
   useEffect(() => {
-    if (!hasSearched) return
+    if (searchCount === 0) return
 
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [hasSearched])
+    resultsTitleRef.current?.focus()
+  }, [searchCount])
 
   if (!baby || ingredientsLoading || recipesLoading) {
     return <PageState description="Carregando ingredientes e receitas." title="Abrindo sua cozinha…" />
@@ -81,6 +85,7 @@ export function PantryPage() {
 
   function findIdeas() {
     setHasSearched(true)
+    setSearchCount((current) => current + 1)
     analytics.track('pantry_search', { selected_ingredients: selectedIds.length })
   }
 
@@ -92,15 +97,20 @@ export function PantryPage() {
       .filter((item) => !item.is_optional && !selectedIds.includes(item.ingredient_id))
       .map((item) => ({ ingredient_id: item.ingredient_id, quantity: item.quantity, unit: item.unit }))
     setAddingMissingRecipeId(recipeId)
+    setListError(null)
     try {
       await appendShoppingListItems(currentPlan.id, missingItems)
       await queryClient.invalidateQueries({ queryKey: shoppingListQueryKey(currentPlan.id) })
       setAddedMissingRecipeIds((current) => [...current, recipeId])
       analytics.track('shopping_list_generated', { meal_plan_id: currentPlan.id, source: 'pantry_missing' })
+    } catch {
+      setListError('Não conseguimos adicionar esses itens à lista agora. Tente novamente em instantes.')
     } finally {
       setAddingMissingRecipeId(null)
     }
   }
+
+  const selectedIngredients = ingredients.filter((ingredient) => selectedIds.includes(ingredient.id))
 
   return (
     <div>
@@ -127,16 +137,56 @@ export function PantryPage() {
           />
         </div>
 
+        {selectedIngredients.length > 0 && (
+          <div className="mt-4 rounded-2xl bg-cream-50 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-ink-700">
+                {selectedIngredients.length}{' '}
+                {selectedIngredients.length === 1 ? 'ingrediente marcado' : 'ingredientes marcados'}
+              </p>
+              <button
+                className="min-h-9 rounded-lg px-2 text-xs font-semibold text-sage-700 underline decoration-sage-200 underline-offset-2"
+                onClick={() => {
+                  setSelectedIds([])
+                  setHasSearched(false)
+                }}
+                type="button"
+              >
+                Limpar tudo
+              </button>
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {selectedIngredients.map((ingredient) => (
+                <li key={ingredient.id}>
+                  <button
+                    aria-label={`Remover ${ingredient.name}`}
+                    className="flex min-h-9 items-center gap-1.5 rounded-full bg-sage-50 px-3 text-xs font-semibold text-sage-700 transition hover:bg-sage-100"
+                    onClick={() => toggleIngredient(ingredient.id)}
+                    type="button"
+                  >
+                    {ingredient.name}
+                    <X aria-hidden="true" size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="mt-4 grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
-          {visibleIngredients.map((ingredient) => {
+          {visibleIngredients.length === 0 ? (
+            <p className="col-span-full py-6 text-center text-sm text-ink-500">
+              Nenhum ingrediente com esse nome. Tente escrever de outra forma.
+            </p>
+          ) : visibleIngredients.map((ingredient) => {
             const selected = selectedIds.includes(ingredient.id)
             return (
               <button
                 aria-pressed={selected}
-                className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm ${
+                className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm transition ${
                   selected
                     ? 'border-sage-500 bg-sage-50 font-semibold text-sage-700'
-                    : 'border-cream-100 text-ink-700'
+                    : 'border-cream-100 text-ink-700 hover:border-sage-300'
                 }`}
                 key={ingredient.id}
                 onClick={() => toggleIngredient(ingredient.id)}
@@ -160,11 +210,20 @@ export function PantryPage() {
           <ShoppingBasket aria-hidden="true" size={19} />
           Encontrar ideias
         </button>
+        {selectedIds.length === 0 && (
+          <p className="mt-2 text-xs text-ink-500">Marque pelo menos um ingrediente para buscar.</p>
+        )}
       </section>
+
+      {listError && (
+        <p className="mt-4 rounded-2xl bg-terracotta-100/60 px-4 py-3 text-sm text-ink-700" role="alert">
+          {listError}
+        </p>
+      )}
 
       {hasSearched && (
         <section ref={resultsRef} className="mt-8 scroll-mt-6" aria-labelledby="pantry-results-title">
-          <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title" tabIndex={-1}>
+          <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title" ref={resultsTitleRef} tabIndex={-1}>
             Resultados para sua cozinha
           </h2>
           <p aria-live="polite" className="mt-1 text-sm text-ink-500">
@@ -197,6 +256,7 @@ export function PantryPage() {
                       <RecipeCard
                         key={recipe.id}
                         recipe={recipe}
+                        returnTo="/app/pantry"
                         scoreLabel="Você tem todos os ingredientes"
                       />
                     ))}
@@ -211,17 +271,27 @@ export function PantryPage() {
                     Estas receitas usam parte do que você marcou, mas ainda precisam dos itens indicados.
                   </p>
                   <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {recipesMissingIngredients.map(({ missingIngredientNames, matchedCount, totalRequired, recipe }) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        recipe={recipe}
-                        isAddingMissing={addingMissingRecipeId === recipe.id}
-                        missingActionDisabled={!currentPlan || addedMissingRecipeIds.includes(recipe.id)}
-                        missingIngredientNames={addedMissingRecipeIds.includes(recipe.id) ? ['adicionados à lista'] : missingIngredientNames}
-                        onAddMissing={() => void addMissingIngredients(recipe.id)}
-                        scoreLabel={`Você tem ${matchedCount} de ${totalRequired} ingredientes`}
-                      />
-                    ))}
+                    {recipesMissingIngredients.map(({ missingIngredientNames, matchedCount, totalRequired, recipe }) => {
+                      const alreadyAdded = addedMissingRecipeIds.includes(recipe.id)
+                      return (
+                        <RecipeCard
+                          key={recipe.id}
+                          recipe={recipe}
+                          isAddingMissing={addingMissingRecipeId === recipe.id}
+                          missingActionDisabled={!currentPlan || alreadyAdded}
+                          missingActionHint={
+                            currentPlan
+                              ? undefined
+                              : 'Monte o cardápio desta semana para usar a lista de compras.'
+                          }
+                          missingAdded={alreadyAdded}
+                          missingIngredientNames={missingIngredientNames}
+                          onAddMissing={() => void addMissingIngredients(recipe.id)}
+                          returnTo="/app/pantry"
+                          scoreLabel={`Você tem ${matchedCount} de ${totalRequired} ingredientes`}
+                        />
+                      )
+                    })}
                   </div>
                 </div>
               )}

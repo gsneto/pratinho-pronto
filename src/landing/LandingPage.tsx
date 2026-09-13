@@ -8,7 +8,7 @@ import { bonuses } from './config/bonuses'
 import { offerConfig } from './config/offer'
 import { mainVideo } from './config/video'
 import { testimonials } from './config/testimonials'
-import { initializeAnalytics, track } from './analytics'
+import { initializeAnalytics, track, trackOnce } from './analytics'
 import { goToCheckout } from './utils/checkout'
 import './landing.css'
 
@@ -24,6 +24,29 @@ const videoBonusImages = [
   '/assets/video-bonus/recipe-03.webp?v=1',
   '/assets/video-bonus/recipe-01.webp?v=1',
   '/assets/video-bonus/recipe-02.webp?v=1',
+]
+
+const customerProofImages = [
+  {
+    src: '/assets/testimonials/cliente-guia.jpeg',
+    alt: 'Conversa no WhatsApp em que uma cliente relata que está usando os guias e que a filha adorou as receitinhas.',
+  },
+  {
+    src: '/assets/testimonials/mensagens-01.jpeg',
+    alt: 'Lista de conversas no WhatsApp com mensagens de agradecimento após o acesso.',
+  },
+  {
+    src: '/assets/testimonials/mensagens-02.jpeg',
+    alt: 'Lista de conversas no WhatsApp com mensagens de agradecimento após o acesso.',
+  },
+  {
+    src: '/assets/testimonials/mensagens-03.jpeg',
+    alt: 'Lista de conversas no WhatsApp com mensagens de agradecimento após o acesso.',
+  },
+  {
+    src: '/assets/testimonials/mensagens-04.jpeg',
+    alt: 'Lista de conversas no WhatsApp com mensagens de agradecimento após o acesso.',
+  },
 ]
 
 // v=3 forces browsers/PWA caches to load the refreshed Step 1 artwork.
@@ -42,12 +65,12 @@ const faqItems = [
   ['Funciona no celular?', 'Sim. A experiência é pensada principalmente para celular, para acompanhar sua rotina onde ela acontece.'],
   ['Posso trocar uma refeição?', 'Sim. Você pode substituir uma refeição individual sem refazer toda a semana.'],
   ['Consigo imprimir?', 'Sim. O sistema permite gerar o cardápio e a lista de compras em PDF.'],
-  ['É uma assinatura?', 'Não. Nesta oferta, o pagamento é único: R$67.'],
+  ['É uma assinatura?', 'Não. Nesta oferta, o pagamento é único: R$47.'],
   ['Isso substitui pediatra ou nutricionista?', 'Não. O Pratinho Pronto é uma ferramenta educativa e de organização, não substitui orientação individual.'],
 ] as const
 
 function PrimaryButton({ children, source, kind = 'primary' }: { children: React.ReactNode; source: string; kind?: 'primary' | 'light' }) {
-  return <button className={`lp-button lp-button-${kind}`} onClick={() => { track(source === 'hero' ? 'hero_cta_click' : source === 'offer' ? 'offer_cta_click' : 'final_cta_click'); if (source === 'hero') (document.querySelector('.lp-offer-card') ?? document.getElementById('offer'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }); else goToCheckout(source) }} type="button">{children}<ArrowRight aria-hidden="true" size={18} /></button>
+  return <button className={`lp-button lp-button-${kind}`} onClick={() => { track(source === 'hero' ? 'hero_cta_click' : source === 'offer' ? 'offer_cta_click' : 'final_cta_click'); if (source === 'hero') { const target = document.getElementById('offer-price') ?? document.querySelector('.lp-offer-price') ?? document.getElementById('offer'); if (target) window.scrollTo({ top: Math.max(0, Math.round(window.scrollY + target.getBoundingClientRect().top - 76)), behavior: 'auto' }) } else goToCheckout(source) }} type="button">{children}<ArrowRight aria-hidden="true" size={18} /></button>
 }
 
 function CheckLine({ children }: { children: React.ReactNode }) {
@@ -63,11 +86,13 @@ export function LandingPage() {
   const [howImagesReady, setHowImagesReady] = useState(false)
   const howCarouselRef = useRef<HTMLDivElement>(null)
   const videoBonusCarouselRef = useRef<HTMLDivElement>(null)
+  const heroVideoRef = useRef<HTMLVideoElement>(null)
   const videoMilestones = useRef(new Set<Parameters<typeof track>[0]>())
+  const [heroVideoStarted, setHeroVideoStarted] = useState(false)
 
   useEffect(() => {
     initializeAnalytics()
-    track('landing_view')
+    trackOnce('landing_view', 'landing_view')
     const hero = heroRef.current
     const offer = offerRef.current
     if (!hero || !offer) return
@@ -120,6 +145,16 @@ export function LandingPage() {
     if (!duration) return
     const milestones: [number, Parameters<typeof track>[0]][] = [[.25, 'hero_video_25'], [.5, 'hero_video_50'], [.75, 'hero_video_75']]
     milestones.forEach(([point, event]) => { if (current / duration >= point && !videoMilestones.current.has(event)) { videoMilestones.current.add(event); track(event) } })
+  }
+
+  const playHeroVideo = () => {
+    const video = heroVideoRef.current
+    if (!video) return
+    if (!video.src) {
+      video.src = mainVideo.src
+      video.load()
+    }
+    video.play().catch(() => undefined)
   }
 
   useEffect(() => {
@@ -217,9 +252,7 @@ export function LandingPage() {
     sono: 'Rotina do Sono — 0 a 24 meses',
     organizar: 'Cortes & Texturas',
   }
-  const localHour = new Date().getHours()
-  const previewDarkMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get('darkmode') === '1'
-  const automaticDarkMode = previewDarkMode || localHour >= 23 || localHour < 5
+  const automaticDarkMode = true
   const howImages = automaticDarkMode ? howDarkImages : howLightImages
 
   return <div className={automaticDarkMode ? 'landing-page lp-dark-mode' : 'landing-page'}>
@@ -236,12 +269,12 @@ export function LandingPage() {
             <h1>Chega de decidir <em>o que preparar</em> para o seu bebê <em>todos os dias.</em></h1>
             <p className="lp-lead">O Pratinho Pronto organiza o cardápio da semana, reúne receitas e encontra opções para hoje com os ingredientes que você já tem em casa.</p>
             <PrimaryButton source="hero">Quero organizar minha semana</PrimaryButton>
-            <div className="lp-price-note"><strong>R$67</strong><span>pagamento único · acesso imediato</span></div>
+            <div className="lp-price-note"><strong>R$47</strong><span>pagamento único · acesso imediato</span></div>
             <div className="lp-trust-row"><span><ShieldCheck aria-hidden="true" size={18} /> Garantia de 7 dias</span><span><Clock3 aria-hidden="true" size={18} /> Acesso imediato após o pagamento</span></div>
           </div>
           <div className="lp-video-wrap">
             <div className="lp-video-label"><span className="lp-live-dot" /> Veja como funciona por dentro</div>
-            {mainVideo.enabled ? <video className="lp-video" controls playsInline preload="metadata" poster={mainVideo.poster} onPlay={() => track('hero_video_play')} onEnded={() => track('hero_video_complete')} onTimeUpdate={(event) => handleVideoProgress(event.currentTarget.currentTime, event.currentTarget.duration)}><source src={mainVideo.src} type="video/mp4" />Seu navegador não suporta vídeo. Veja o produto no checkout.</video> : <img className="lp-video lp-poster" src={mainVideo.poster} alt="Prévia do Pratinho Pronto" width="900" height="620" />}
+            {mainVideo.enabled ? <div className="lp-video-player"><video ref={heroVideoRef} className="lp-video" poster={mainVideo.poster} controls={heroVideoStarted} playsInline preload="none" onPlay={() => { setHeroVideoStarted(true); track('hero_video_play') }} onEnded={() => track('hero_video_complete')} onTimeUpdate={(event) => handleVideoProgress(event.currentTarget.currentTime, event.currentTarget.duration)}>Seu navegador não suporta vídeo. Veja o produto no checkout.</video>{!heroVideoStarted && <button className="lp-video-play-overlay" type="button" aria-label="Reproduzir vídeo" onClick={playHeroVideo}><Play aria-hidden="true" size={30} fill="currentColor" /></button>}</div> : <img className="lp-video lp-poster" src={mainVideo.poster} alt="Prévia do Pratinho Pronto" width="900" height="620" />}
           </div>
           <p className="lp-vsl-bridge">Veja o que preparar hoje — e deixe o restante da semana organizado.</p>
         </div>
@@ -285,15 +318,39 @@ export function LandingPage() {
 
       <section className="lp-section lp-objection" id="objection" data-track="objection_view"><div className="lp-container lp-objection-grid"><div><p className="lp-kicker">Uma dúvida justa</p><h2>“Mas receita tem de graça na internet.”</h2><p className="lp-objection-answer">Tem mesmo.</p><p className="lp-lead">E é justamente por isso que o Pratinho Pronto não foi criado para ser só mais uma pasta de receitas.</p><p className="lp-lead">O valor está no que acontece depois: organizar a semana, trocar opções, aproveitar ingredientes e montar sua lista de compras em poucos passos.</p><div className="lp-contrast"><strong>Menos procura.</strong><strong>Mais organização.</strong></div></div><div className="lp-proof"><div className="lp-proof-head"><ShieldCheck aria-hidden="true" size={23} /><h3>Veja exatamente o que você está comprando.</h3></div>{['Aplicativo real','Vídeo real do funcionamento','PDFs reais','Preço transparente','Sem mensalidade escondida'].map((item) => <div className="lp-proof-line" key={item}><Check aria-hidden="true" size={15} />{item}</div>)}<p>Você já viu o produto funcionando antes de chegar ao checkout.</p></div>{testimonials.length > 0 && <div className="lp-testimonials">{testimonials.slice(0,3).map((item) => <blockquote key={item.id}><Star aria-hidden="true" size={16} fill="currentColor" />“{item.quote}”<cite>— {item.name}{item.detail ? `, ${item.detail}` : ''}</cite></blockquote>)}</div>}</div></section>
 
-      <section className="lp-section lp-offer" id="offer" data-track="offer_view" ref={offerRef}><div className="lp-container"><div className="lp-offer-card"><div className="lp-offer-main"><p className="lp-kicker">Um único passo para uma semana mais leve</p><h2>Comece a organizar a semana do seu bebê <em>hoje.</em></h2><div className="lp-offer-columns"><div className="lp-offer-primary"><h3>PRATINHO PRONTO — ACESSO VITALÍCIO</h3><ul>{['Cardápio semanal em poucos minutos','Troque qualquer refeição facilmente','Receitas organizadas','Receitas com ingredientes que você já tem','Lista de compras automática'].map((item) => <CheckLine key={item}>{item}</CheckLine>)}</ul></div><div className="lp-offer-bonus-groups"><h3>+ 3 GUIAS PRÁTICOS INCLUSOS</h3><ul>{guideBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{guideDisplayNames[bonus.id] ?? bonus.title}</span></span></CheckLine>)}</ul><h3>+ BÔNUS PREMIUM</h3><ul>{videoBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{bonus.title}</span></span></CheckLine>)}</ul></div></div></div><div className="lp-offer-price"><span className="lp-offer-price-kicker">OFERTA DE LANÇAMENTO</span><span className="lp-access-label"><b>— acesso vitalício</b></span><span className="lp-value-anchor">Valor total dos itens separadamente: <s>R${offerConfig.totalValue}</s></span><span className="lp-today-label">HOJE POR</span><strong>R$67</strong><span className="lp-one-time">pagamento único</span><span className="lp-installment">ou 12x de R$6,93 no cartão</span><span className="lp-savings">Você economiza R${offerConfig.savings}</span>{offerConfig.urgency.enabled && offerConfig.urgency.endsAt && <Countdown endsAt={offerConfig.urgency.endsAt} message={offerConfig.urgency.message} />}<PrimaryButton source="offer">QUERO MEU ACESSO VITALÍCIO</PrimaryButton><small className="lp-guarantee-note">Garantia de 7 dias conforme o art. 49 do Código de Defesa do Consumidor.</small></div></div></div></section>
+      <section className="lp-section lp-offer" id="offer" data-track="offer_view" ref={offerRef}><div className="lp-container"><div className="lp-offer-card"><div className="lp-offer-main"><p className="lp-kicker">Um único passo para uma semana mais leve</p><h2>Comece a organizar a semana do seu bebê <em>hoje.</em></h2><div className="lp-offer-columns"><div className="lp-offer-primary"><h3>PRATINHO PRONTO — ACESSO VITALÍCIO</h3><ul>{['Cardápio semanal em poucos minutos','Troque qualquer refeição facilmente','Receitas organizadas','Receitas com ingredientes que você já tem','Lista de compras automática'].map((item) => <CheckLine key={item}>{item}</CheckLine>)}</ul></div><div className="lp-offer-bonus-groups"><h3>+ 3 GUIAS PRÁTICOS INCLUSOS</h3><ul>{guideBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{guideDisplayNames[bonus.id] ?? bonus.title}</span></span></CheckLine>)}</ul><h3>+ BÔNUS PREMIUM</h3><ul>{videoBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{bonus.title}</span></span></CheckLine>)}</ul></div></div></div><div className="lp-offer-price" id="offer-price"><span className="lp-offer-price-kicker">🚀 OFERTA DE LANÇAMENTO</span><span className="lp-access-label"><b>— acesso vitalício</b></span><span className="lp-value-anchor">Valor total dos itens separadamente: <s>R${offerConfig.totalValue}</s></span><span className="lp-today-label">HOJE POR</span><strong>R$47</strong><span className="lp-one-time">pagamento único</span><span className="lp-installment">ou 11x de R$5,24 no cartão</span><span className="lp-savings">Você economiza R${offerConfig.savings}</span>{offerConfig.urgency.enabled && offerConfig.urgency.endsAt && <Countdown endsAt={offerConfig.urgency.endsAt} message={offerConfig.urgency.message} />}<PrimaryButton source="offer">QUERO MEU ACESSO VITALÍCIO</PrimaryButton><small className="lp-guarantee-note">Garantia de 7 dias conforme o art. 49 do Código de Defesa do Consumidor.</small></div></div></div></section>
 
       <section className="lp-section lp-guarantee" id="guarantee" data-track="guarantee_view"><div className="lp-container lp-guarantee-grid"><div className="lp-guarantee-card"><span className="lp-shield"><ShieldCheck aria-hidden="true" size={27} /></span><div><h2>Você tem 7 dias para decidir com calma.</h2><p>Se dentro do prazo aplicável à compra online o Pratinho Pronto não fizer sentido para sua rotina, você poderá solicitar o cancelamento conforme as condições informadas.</p><a href="#footer">Ver política de cancelamento <ArrowRight aria-hidden="true" size={15} /></a></div></div><div className="lp-faq"><p className="lp-kicker">Perguntas frequentes</p>{faqItems.map(([question,answer], index) => <div className="lp-faq-item" key={question}><button aria-controls={`faq-answer-${index}`} aria-expanded={openFaq === index} onClick={() => { setOpenFaq(openFaq === index ? null : index); if (openFaq !== index) track('faq_open', { question }) }} type="button"><span>{question}</span><ChevronDown aria-hidden="true" size={19} /></button><div className={`lp-faq-answer ${openFaq === index ? 'is-open' : ''}`} id={`faq-answer-${index}`} role="region"><p>{answer}</p></div></div>)}</div></div></section>
 
-      <section className="lp-section lp-final" id="final"><div className="lp-container lp-final-inner"><p className="lp-kicker">A próxima semana começa com uma decisão</p><h2>Amanhã você pode começar tudo do zero outra vez.</h2><div className="lp-final-pause" /><h3>Ou deixar a semana organizada hoje.</h3><p>Monte. Ajuste. Gere a lista. Imprima.</p><div className="lp-final-price"><strong>R$67</strong><span>pagamento único</span></div><PrimaryButton source="final">Quero organizar minha semana</PrimaryButton><div className="lp-final-trust"><span>✓ acesso imediato</span><span>✓ funciona no celular</span><span>✓ sem mensalidade</span></div></div><footer className="lp-footer" id="footer"><div className="lp-footer-brand"><img className="lp-logo-image lp-logo-footer" src="/assets/pratinho-pronto-logo-cropped-small.webp" srcSet="/assets/pratinho-pronto-logo-cropped-small.webp 1x, /assets/pratinho-pronto-logo-cropped-mobile.webp 2x" sizes="190px" alt="Pratinho Pronto" width="190" height="72" loading="lazy" /></div><p>Pratinho Pronto é uma ferramenta educativa e de organização. Não substitui avaliação ou orientação individual de pediatra ou nutricionista.</p><div className="lp-footer-details"><span>Pratinho Pronto · [Razão social]</span><span>CPF/CNPJ: [informar]</span><a href="mailto:contato@pratinhopronto.com">contato@pratinhopronto.com</a><a href="#footer">Termos</a><a href="#footer">Política de privacidade</a><a href="#footer">Política de cancelamento</a></div></footer></section>
-      <section className="lp-section lp-testimonials-section" id="testimonials" data-track="testimonials_view"><div className="lp-container"><div className="lp-section-intro"><p className="lp-kicker">Quem já está usando</p><h2>Depoimentos de mães que organizaram a semana.</h2><p>Este espaço será preenchido com conversas reais do WhatsApp, autorizadas por cada cliente.</p></div><div className="lp-whatsapp-grid">{[1,2,3].map((slot) => <article className="lp-whatsapp-card" key={slot}><div className="lp-whatsapp-placeholder"><span className="lp-whatsapp-label">WhatsApp</span><strong>Espaço reservado para print real</strong><small>Insira aqui o depoimento autorizado</small></div></article>)}</div></div></section>
+      <section className="lp-section lp-final" id="final"><div className="lp-container lp-final-inner"><p className="lp-kicker">A próxima semana começa com uma decisão</p><h2>Amanhã você pode começar tudo do zero outra vez.</h2><div className="lp-final-pause" /><h3>Ou deixar a semana organizada hoje.</h3><p>Monte. Ajuste. Gere a lista. Imprima.</p><div className="lp-final-price"><strong>R$47</strong><span>pagamento único</span></div><PrimaryButton source="final">Quero organizar minha semana</PrimaryButton><div className="lp-final-trust"><span>✓ acesso imediato</span><span>✓ funciona no celular</span><span>✓ sem mensalidade</span></div></div><footer className="lp-footer" id="footer"><div className="lp-footer-brand"><img className="lp-logo-image lp-logo-footer" src="/assets/pratinho-pronto-logo-cropped-small.webp" srcSet="/assets/pratinho-pronto-logo-cropped-small.webp 1x, /assets/pratinho-pronto-logo-cropped-mobile.webp 2x" sizes="190px" alt="Pratinho Pronto" width="190" height="72" loading="lazy" /></div><p>Pratinho Pronto é uma ferramenta educativa e de organização. Não substitui avaliação ou orientação individual de pediatra ou nutricionista.</p><div className="lp-footer-details"><span>Pratinho Pronto · [Razão social]</span><span>CPF/CNPJ: [informar]</span><a href="mailto:contato@pratinhopronto.com">contato@pratinhopronto.com</a><a href="#footer">Termos</a><a href="#footer">Política de privacidade</a><a href="#footer">Política de cancelamento</a></div></footer></section>
+      <section className="lp-section lp-testimonials-section" id="testimonials" data-track="testimonials_view">
+        <div className="lp-container">
+          <div className="lp-section-intro">
+            <p className="lp-kicker">O que chega no WhatsApp</p>
+            <h2>Quando a semana fica mais fácil, a mãe percebe.</h2>
+            <p>Você não precisa acreditar em uma promessa bonita. Veja uma experiência real e outros registros compartilhados por clientes depois de receberem o acesso.</p>
+          </div>
+
+          <div className="lp-testimonial-feature">
+            <div className="lp-testimonial-feature-copy">
+              <div className="lp-testimonial-label"><Star aria-hidden="true" size={16} fill="currentColor" /> Experiência compartilhada por cliente</div>
+              <blockquote>“Já estou usando faz umas duas semanas e gostei bastante. Minha filha adorou as receitinhas do guia.”</blockquote>
+              <p>É esse o objetivo do Pratinho Pronto: tirar a decisão do improviso e deixar as opções da semana mais claras para você.</p>
+              <div className="lp-testimonial-results"><span>✓ Receitas reunidas</span><span>✓ Semana mais organizada</span><span>✓ Menos pesquisa na hora da refeição</span></div>
+            </div>
+            <figure className="lp-whatsapp-card lp-whatsapp-card-feature"><img src={customerProofImages[0].src} alt={customerProofImages[0].alt} width="740" height="1600" loading="lazy" /></figure>
+          </div>
+
+          <div className="lp-testimonial-proof-heading"><strong>Mais mensagens reais de quem recebeu o acesso.</strong><span>Pequenos “obrigada” que mostram uma coisa importante: organização faz diferença na rotina.</span></div>
+          <div className="lp-whatsapp-grid" aria-label="Registros reais compartilhados por clientes">
+            {customerProofImages.slice(1).map((image) => <figure className="lp-whatsapp-card" key={image.src}><img src={image.src} alt={image.alt} width="740" height="1600" loading="lazy" /></figure>)}
+          </div>
+          <p className="lp-testimonial-disclaimer">Números de telefone foram ocultados para preservar a privacidade.</p>
+        </div>
+      </section>
 
     </main>
-    {stickyVisible && <div className="lp-sticky"><div><strong>R$67</strong><span>pagamento único</span></div><button onClick={() => { track('hero_cta_click', { source: 'sticky' }); goToCheckout('sticky') }} type="button">Quero começar <ArrowRight aria-hidden="true" size={17} /></button></div>}
+    {stickyVisible && <div className="lp-sticky"><div><strong>R$47</strong><span>pagamento único</span></div><button onClick={() => { track('hero_cta_click', { source: 'sticky' }); goToCheckout('sticky') }} type="button">Quero começar <ArrowRight aria-hidden="true" size={17} /></button></div>}
   </div>
 }
 
@@ -321,7 +378,7 @@ function TopOfferBar() {
 
   return (
     <div className="lp-top-offer-bar" role="region" aria-label="Oferta de acesso vitalício">
-      <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$67 ATÉ {formatOfferDate(deadline)}</strong> ⏳</span>
+      <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$47 ATÉ {formatOfferDate(deadline)}</strong> ⏳</span>
     </div>
   )
 }

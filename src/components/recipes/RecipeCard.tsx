@@ -13,9 +13,22 @@ interface RecipeCardProps {
   onAddMissing?: () => void
   isAddingMissing?: boolean
   missingActionDisabled?: boolean
+  missingAdded?: boolean
+  missingActionHint?: string
+  returnTo?: string
 }
 
-export function RecipeCard({ recipe, scoreLabel, missingIngredientNames, onAddMissing, isAddingMissing, missingActionDisabled }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  scoreLabel,
+  missingIngredientNames,
+  onAddMissing,
+  isAddingMissing,
+  missingActionDisabled,
+  missingAdded,
+  missingActionHint,
+  returnTo,
+}: RecipeCardProps) {
   const { isFavorite, isSaving, toggle } = useFavoriteRecipe(recipe.id)
 
   return (
@@ -64,24 +77,37 @@ export function RecipeCard({ recipe, scoreLabel, missingIngredientNames, onAddMi
         )}
         {missingIngredientNames && missingIngredientNames.length > 0 && (
           <>
-            <p className="mt-2 text-xs text-ink-500">Falta: {missingIngredientNames.join(', ')}</p>
+            <p className="mt-2 text-xs leading-5 text-ink-500">
+              <span className="font-semibold text-ink-700">Falta comprar:</span>{' '}
+              {missingIngredientNames.join(', ')}
+            </p>
             {onAddMissing && (
-              <button
-                className="mt-3 min-h-11 w-full rounded-xl bg-sage-50 px-3 text-xs font-semibold text-sage-700 transition hover:bg-sage-100 disabled:cursor-not-allowed disabled:opacity-55"
-                disabled={missingActionDisabled || isAddingMissing}
-                onClick={onAddMissing}
-                type="button"
-              >
-                {isAddingMissing ? 'Adicionando…' : missingActionDisabled ? 'Faltantes já estão na lista' : 'Adicionar faltantes à lista'}
-              </button>
+              <>
+                <button
+                  className="mt-3 min-h-11 w-full rounded-xl bg-sage-50 px-3 text-xs font-semibold text-sage-700 transition hover:bg-sage-100 disabled:cursor-not-allowed disabled:opacity-55"
+                  disabled={missingActionDisabled || isAddingMissing}
+                  onClick={onAddMissing}
+                  type="button"
+                >
+                  {isAddingMissing
+                    ? 'Adicionando…'
+                    : missingAdded
+                      ? 'Já está na sua lista'
+                      : 'Adicionar faltantes à lista'}
+                </button>
+                {missingActionHint && (
+                  <p className="mt-1.5 text-[11px] leading-4 text-ink-500">{missingActionHint}</p>
+                )}
+              </>
             )}
           </>
         )}
         <Link
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-cream-100 text-sm font-semibold text-sage-700"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-cream-100 text-sm font-semibold text-sage-700 transition hover:border-sage-500"
+          state={returnTo ? { returnTo } : undefined}
           to={`/app/recipes/${recipe.id}`}
         >
-          Ver receita
+          Ver como preparar
         </Link>
       </div>
     </article>

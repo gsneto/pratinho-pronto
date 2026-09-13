@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { getAuthErrorMessage } from '../../lib/auth-errors'
 import { loginSchema, type LoginFormData } from '../../lib/schemas/auth'
 import { createPasswordAccess, signInWithPassword } from '../../services/auth'
+import { analytics } from '../../services/analytics'
 
 const accessBenefits = [
   'Acesso liberado após a confirmação do pagamento',
@@ -52,11 +53,15 @@ export function LoginPage() {
       return
     }
 
+    analytics.track(isFirstAccess ? 'signup_started' : 'login_started')
+
     try {
       if (isFirstAccess) {
         await createPasswordAccess(email, password)
+        analytics.track('signup_completed')
       } else {
         await signInWithPassword(email, password)
+        analytics.track('login_completed')
       }
     } catch (error) {
       setServerError(getAuthErrorMessage(error))

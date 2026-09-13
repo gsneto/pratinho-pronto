@@ -47,6 +47,21 @@ export function getWeekStart(referenceDate = new Date()): string {
   return toIsoDate(date)
 }
 
+export function isIsoDate(value: string | null | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const parsed = parseIsoDate(value)
+  return !Number.isNaN(parsed.getTime()) && toIsoDate(parsed) === value
+}
+
+/**
+ * Garante que uma semana vinda da URL seja sempre uma segunda-feira válida.
+ * Valores inválidos caem na semana atual, evitando cardápio vazio inexplicável.
+ */
+export function normalizeWeekStart(value: string | null | undefined): string {
+  if (!isIsoDate(value)) return getWeekStart()
+  return getWeekStart(parseIsoDate(value))
+}
+
 export function formatShortDate(isoDate: string): string {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',

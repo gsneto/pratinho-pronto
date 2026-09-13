@@ -5,11 +5,14 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer'
-import type { Baby, MealPlan, Recipe, ShoppingList } from '../../types/domain'
+import type { Baby, IngredientCategory, MealPlan, Recipe, ShoppingList } from '../../types/domain'
 import { addDays, calculateAgeMonths, formatShortDate, parseIsoDate } from '../../utils/dates'
+import { splitInstructions } from '../../utils/instructions'
 import {
+  compareIngredientCategories,
   ingredientCategoryLabels,
   mealTypeLabels,
+  mealTypeOrder,
   weekDayLabels,
 } from '../../utils/labels'
 
@@ -150,6 +153,7 @@ const styles = StyleSheet.create({
   },
   ingredientLine: { fontSize: 8, marginBottom: 3 },
   bodyText: { color: colors.muted, fontSize: 8.5, lineHeight: 1.45 },
+  stepLine: { color: colors.muted, fontSize: 8.5, lineHeight: 1.45, marginBottom: 3 },
   note: {
     backgroundColor: colors.sageLight,
     borderRadius: 6,
@@ -190,12 +194,12 @@ export function WeekPlanDocument({ baby, plan }: { baby: Baby; plan: MealPlan })
                 <Text style={styles.dayDate}>{formatShortDate(date)}</Text>
               </View>
               <View style={styles.mealsGrid}>
-                {(['breakfast', 'lunch', 'snack', 'dinner'] as const).map((mealType) => {
+                {mealTypeOrder.map((mealType) => {
                   const item = items.find((candidate) => candidate.meal_type === mealType)
                   return (
                     <View key={mealType} style={styles.mealCell}>
                       <Text style={styles.mealLabel}>{mealTypeLabels[mealType]}</Text>
-                      <Text style={styles.mealName}>{item?.recipe.name ?? '—'}</Text>
+                      <Text style={styles.mealName}>{item?.recipe.name ?? 'A combinar'}</Text>
                     </View>
                   )
                 })}
@@ -212,31 +216,40 @@ export function WeekPlanDocument({ baby, plan }: { baby: Baby; plan: MealPlan })
 export function ShoppingListDocument({
   baby,
   shoppingList,
+  weekStart,
 }: {
   baby: Baby
   shoppingList: ShoppingList
+  weekStart?: string
 }) {
   const groups = shoppingList.shopping_list_items.reduce((result, item) => {
     const category = item.ingredient.category
     result.set(category, [...(result.get(category) ?? []), item])
     return result
-  }, new Map<string, typeof shoppingList.shopping_list_items>())
+  }, new Map<IngredientCategory, typeof shoppingList.shopping_list_items>())
+  const orderedGroups = [...groups.entries()].sort(([a], [b]) =>
+    compareIngredientCategories(a, b),
+  )
 
   return (
     <Document title={`Lista de compras de ${baby.name}`}>
       <Page size="A4" style={styles.page}>
         <Text style={styles.eyebrow}>Pratinho Pronto • Lista de compras</Text>
         <Text style={styles.title}>Compras da semana de {baby.name}</Text>
-        <Text style={styles.subtitle}>Marque os itens à mão enquanto percorre o mercado.</Text>
+        <Text style={styles.subtitle}>
+          {weekStart
+            ? `Semana de ${formatShortDate(weekStart)} a ${formatShortDate(addDays(weekStart, 6))} • marque os itens no mercado.`
+            : 'Marque os itens à mão enquanto percorre o mercado.'}
+        </Text>
         <View style={styles.divider} />
 
-        {[...groups.entries()].map(([category, items]) => (
-          <View key={category} style={styles.category} wrap={false}>
+        {orderedGroups.map(([category, items]) => (
+          <View key={category} minPresenceAhead={60} style={styles.category}>
             <Text style={styles.categoryTitle}>
-              {ingredientCategoryLabels[category as keyof typeof ingredientCategoryLabels]}
+              {ingredientCategoryLabels[category]}
             </Text>
             {items.map((item) => (
-              <View key={item.id} style={styles.shoppingRow}>
+              <View key={item.id} style={styles.shoppingRow} wrap={false}>
                 <View style={styles.checkbox} />
                 <Text style={styles.shoppingName}>{item.ingredient.name}</Text>
                 <Text style={styles.quantity}>
@@ -274,7 +287,7 @@ export function WeeklyRecipesDocument({
         <View style={styles.divider} />
 
         {uniqueRecipes.map((recipe: Recipe) => (
-          <View key={recipe.id} style={styles.recipeBlock} wrap={false}>
+          <View key={recipe.id} minPresenceAhead={140} style={styles.recipeBlock}>
             <Text style={styles.recipeTitle}>{recipe.name}</Text>
             <Text style={styles.recipeMeta}>
               {mealTypeLabels[recipe.meal_type]} • {recipe.prep_time_minutes} min • A partir de {recipe.min_age_months} meses
@@ -290,8 +303,16 @@ export function WeeklyRecipesDocument({
               </View>
               <View style={styles.instructionsColumn}>
                 <Text style={styles.sectionLabel}>Preparo</Text>
-                <Text style={styles.bodyText}>{recipe.instructions}</Text>
-                {recipe.serving_notes && <Text style={styles.note}>Como servir: {recipe.serving_notes}</Text>}
+                {splitInstructions(recipe.instructions).map((step, index) => (
+                  <Text key={`${recipe.id}-step-${index}`} style={styles.stepLine} wrap={false}>
+                    {index + 1}. {step}
+                  </Text>
+                ))}
+                {recipe.serving_notes && (
+                  <Text style={styles.note} wrap={false}>
+                    Como servir: {recipe.serving_notes}
+                  </Text>
+                )}
               </View>
             </View>
           </View>

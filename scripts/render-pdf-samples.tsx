@@ -123,15 +123,20 @@ await mkdir(outputDirectory, { recursive: true })
 const outputs = [
   {
     filename: 'cardapio-semana-exemplo.pdf',
-    blob: await createPdfBlob({ baby, kind: 'week', plan }),
+    blob: await createPdfBlob({ baby, kind: 'week', plan, weekStart: plan.week_start }),
   },
   {
     filename: 'lista-compras-exemplo.pdf',
-    blob: await createPdfBlob({ baby, kind: 'shopping', shoppingList }),
+    blob: await createPdfBlob({
+      baby,
+      kind: 'shopping',
+      shoppingList,
+      weekStart: plan.week_start,
+    }),
   },
   {
     filename: 'receitas-semana-exemplo.pdf',
-    blob: await createPdfBlob({ baby, kind: 'recipes', plan }),
+    blob: await createPdfBlob({ baby, kind: 'recipes', plan, weekStart: plan.week_start }),
   },
 ]
 

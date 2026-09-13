@@ -5,11 +5,11 @@
 .lp-logo-image{display:block;height:auto;object-fit:contain;width:190px}.lp-logo-footer{background:#fff;border-radius:10px;margin-bottom:12px;padding:6px;width:170px}@media (max-width:700px){.lp-logo-image{width:150px}.lp-logo-footer{width:165px}}
 .lp-bonus-total{color:var(--lp-muted);font-size:.95rem;margin:26px auto 0;text-align:center}.lp-bonus-total s{color:#7f8781;font-size:1.15rem;font-weight:700;margin:0 5px}.lp-bonus-total strong{color:#527050;font-size:.85rem}
 /* Condição de parcelamento definida para a prévia atual */
-.lp-price-note::after{color:var(--lp-terra);content:'ou 12x de R$ 6,93 no cartão';font-size:.84rem;font-weight:700;margin-left:4px}
+.lp-price-note::after{color:var(--lp-terra);content:'ou 11x de R$ 5,24 no cartão';font-size:.84rem;font-weight:700;margin-left:4px}
 .lp-vsl-bridge{color:var(--lp-navy);font-size:1rem;font-weight:700;line-height:1.35;margin:14px 0 0;max-width:350px}
-.lp-offer-price strong::after{color:#f3c4ad;content:'ou 12x de R$ 6,93 no cartão';display:block;font-family:Karla,ui-sans-serif,system-ui,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0;margin-top:10px}
-.lp-final-price::after{color:#e9a27f;content:'ou 12x de R$ 6,93 no cartão';font-size:.84rem;font-weight:700}
-.lp-sticky>div::after{color:var(--lp-terra);content:'ou 12x de R$ 6,93';font-size:.68rem;font-weight:700}
+.lp-offer-price strong::after{color:#f3c4ad;content:'ou 11x de R$ 5,24 no cartão';display:block;font-family:Karla,ui-sans-serif,system-ui,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0;margin-top:10px}
+.lp-final-price::after{color:#e9a27f;content:'ou 11x de R$ 5,24 no cartão';font-size:.84rem;font-weight:700}
+.lp-sticky>div::after{color:var(--lp-terra);content:'ou 11x de R$ 5,24';font-size:.68rem;font-weight:700}
 /* Na oferta, o preço aparece antes da lista de benefícios */
 .lp-offer-card{grid-template-columns:1fr}
 .lp-offer-price{grid-column:1;grid-row:1}
@@ -23,15 +23,16 @@
 .lp-offer-price .lp-one-time::after{color:#f3c4ad;content:' Pratinho Pronto';font-size:1.35rem;font-weight:700}
 /* Formato final do bloco de preço */
 .lp-offer-price strong{font-size:0;order:1}
-.lp-offer-price strong::before{color:#fff;content:'R$67,00';display:block;font-family:Fraunces,Georgia,serif;font-size:4.7rem;letter-spacing:-.07em;line-height:1}
+.lp-offer-price strong::before{color:#fff;content:'R$47,00';display:block;font-family:Fraunces,Georgia,serif;font-size:4.7rem;letter-spacing:-.07em;line-height:1}
 .lp-offer-price strong::after{content:none}
 .lp-offer-price .lp-one-time{font-size:0;order:2;margin:0 0 6px}
 .lp-offer-price .lp-one-time::before{color:#dce5df;content:'pagamento único';font-size:1rem;font-weight:400}
 .lp-offer-price .lp-one-time::after{content:none}
 .lp-offer-price>span:not(.lp-one-time):not(.lp-offer-price-kicker){font-size:0;order:3}
-.lp-offer-price>span:not(.lp-one-time):not(.lp-offer-price-kicker)::before{color:#f3c4ad;content:'ou 12x de R$6,93';font-size:1.05rem;font-weight:700}
+.lp-offer-price>span:not(.lp-one-time):not(.lp-offer-price-kicker)::before{color:#f3c4ad;content:'ou 11x de R$5,24';font-size:1.05rem;font-weight:700}
 .lp-offer-price .lp-button{order:4}
 .lp-offer-price small{order:5}
+.lp-offer-price{scroll-margin-top:76px}
 @media (max-width:700px){.lp-offer-price strong::before{font-size:3.8rem}}
 /* Identificação da oferta acima do preço */
 .lp-offer-price .lp-access-label{color:#fff;display:block;font-size:1.35rem;font-weight:700;letter-spacing:0;margin:0 0 18px;order:0;text-transform:none}
@@ -77,7 +78,7 @@
 .lp-offer-price .lp-guarantee-note{color:#c7d5ce;font-size:.68rem;line-height:1.35;margin-top:5px;max-width:290px}
 @media (prefers-reduced-motion:reduce){.lp-offer-price .lp-button{animation:none}}
 .lp-offer-price .lp-value-anchor{color:#f1e6d8!important;font-size:.9rem!important;font-weight:700;order:1!important}.lp-offer-price .lp-value-anchor s{color:#f3c4ad;font-size:1.1rem}.lp-offer-price .lp-product-value{color:#c7d5ce!important;font-size:.75rem!important;font-weight:600;order:2!important}.lp-offer-price .lp-product-value s{color:#aebeb6}.lp-offer-price strong{order:3!important}.lp-offer-price .lp-one-time{order:4!important}.lp-offer-price>span:not(.lp-one-time):not(.lp-access-label):not(.lp-value-anchor):not(.lp-product-value):not(.lp-savings){order:5!important}.lp-offer-price .lp-savings{color:#f3c4ad!important;font-size:.88rem!important;font-weight:700;order:6!important}.lp-offer-price .lp-button{order:7!important}.lp-offer-price small{order:8!important}
-.lp-offer-price .lp-value-anchor{font-size:.82rem!important;line-height:1.35}.lp-offer-price .lp-today-label{color:#f3c4ad!important;font-size:.8rem!important;font-weight:800;letter-spacing:.14em;order:2!important}.lp-offer-price .lp-installment{color:#f3c4ad!important;font-size:1.05rem!important;font-weight:700;order:5!important}.lp-offer-price .lp-savings{color:#f1e6d8!important;font-size:.9rem!important}.lp-offer-price .lp-button{text-transform:uppercase}
+.lp-offer-price .lp-value-anchor{font-size:.82rem!important;line-height:1.35}.lp-offer-price .lp-today-label{color:#f3c4ad!important;font-size:.8rem!important;font-weight:800;letter-spacing:.14em;order:2!important}.lp-offer-price .lp-installment{color:#f3c4ad!important;font-size:1.05rem!important;font-weight:700;order:5!important}.lp-offer-price .lp-savings{color:#9ed89f!important;font-size:.9rem!important}.lp-offer-price .lp-button{text-transform:uppercase}
 .lp-offer-price>span:not(.lp-one-time):not(.lp-access-label):not(.lp-value-anchor):not(.lp-product-value):not(.lp-savings).lp-today-label{order:2!important}
 /* O hero fica focado na promessa, VSL e ação; preço permanece na oferta */
 .lp-hero .lp-price-note{display:none}
@@ -100,7 +101,7 @@
 .lp-offer-price .lp-access-label b{font-size:0;letter-spacing:.14em;text-transform:uppercase}
 .lp-offer-price .lp-access-label b::after{content:'ACESSO VITALÍCIO';font-size:.86rem}
 .lp-offer-price .lp-access-label b{display:none}
-.lp-offer-price .lp-access-label::after{color:#f1e6d8;content:'Tenha o Pratinho Pronto para organizar as refeições com mais praticidade.';font-size:.92rem;font-weight:500;letter-spacing:0;line-height:1.35;margin-top:6px;max-width:310px;text-align:center;text-transform:none}
+.lp-offer-price .lp-access-label::after{color:#f1e6d8;content:'Tenha o Pratinho Pronto e liberte sua cabeça da pergunta de sempre: “o que eu faço hoje?”';font-size:.92rem;font-weight:500;letter-spacing:0;line-height:1.35;margin-top:6px;max-width:340px;text-align:center;text-transform:none}
 .lp-offer-price .lp-value-anchor{font-size:0!important}
 .lp-offer-price .lp-value-anchor::before{content:'Valor dos itens separadamente: ' !important;font-size:.9rem!important}
 .lp-offer-price .lp-savings::before{color:#f1e6d8!important;content:'Acesso vitalício • ' !important;font-size:.9rem!important;line-height:inherit!important}
@@ -141,8 +142,21 @@
 @media (max-width:700px){.lp-whatsapp-grid{grid-template-columns:1fr}.lp-whatsapp-placeholder{aspect-ratio:4/3}}
 .lp-whatsapp-grid{display:flex;gap:16px;overflow-x:auto;padding:0 4px 12px;scroll-snap-type:x mandatory;scrollbar-width:none}
 .lp-whatsapp-grid::-webkit-scrollbar{display:none}
-.lp-whatsapp-card{flex:0 0 calc((100% - 32px)/3);scroll-snap-align:start}
-@media (max-width:700px){.lp-whatsapp-grid{margin-left:-2px;margin-right:-2px}.lp-whatsapp-card{flex-basis:88vw}}
+.lp-testimonial-feature{align-items:center;background:var(--lp-navy);border-radius:24px;color:#fff;display:grid;gap:42px;grid-template-columns:minmax(0,1fr) minmax(230px,.72fr);margin-top:38px;overflow:hidden;padding:34px}
+.lp-testimonial-feature-copy blockquote{color:#fff;font-family:Fraunces,Georgia,serif;font-size:clamp(1.45rem,3vw,2.25rem);line-height:1.18;margin:20px 0}
+.lp-testimonial-feature-copy>p{color:#d3dcd7;font-size:1rem;max-width:520px}
+.lp-testimonial-label{align-items:center;color:#f3c4ad;display:flex;font-size:.72rem;font-weight:700;gap:7px;letter-spacing:.08em;text-transform:uppercase}
+.lp-testimonial-results{border-left:3px solid var(--lp-terra);display:flex;flex-wrap:wrap;gap:8px 17px;margin-top:24px;padding:7px 0 7px 14px}
+.lp-testimonial-results span{color:#f1e6d8;font-size:.82rem}
+.lp-testimonial-feature .lp-whatsapp-card{margin:0;max-width:310px;justify-self:end;transform:rotate(2deg)}
+.lp-testimonial-proof-heading{align-items:baseline;display:flex;gap:15px;justify-content:space-between;margin:42px 0 17px}
+.lp-testimonial-proof-heading strong{color:var(--lp-navy);font-family:Fraunces,Georgia,serif;font-size:1.35rem}
+.lp-testimonial-proof-heading span{color:var(--lp-muted);font-size:.86rem;max-width:430px;text-align:right}
+.lp-whatsapp-card{background:#fff;border:1px solid #e3ddd3;border-radius:18px;margin:0;padding:12px;scroll-snap-align:start}
+.lp-whatsapp-card img{border-radius:13px;display:block;height:auto;width:100%}
+.lp-whatsapp-grid .lp-whatsapp-card{flex:0 0 calc((100% - 32px)/3)}
+.lp-testimonial-disclaimer{color:var(--lp-muted);font-size:.72rem;margin:10px 4px 0}
+@media (max-width:700px){.lp-testimonial-feature{gap:22px;grid-template-columns:1fr;padding:22px}.lp-testimonial-feature .lp-whatsapp-card{justify-self:center;max-width:240px;transform:rotate(1deg)}.lp-testimonial-proof-heading{align-items:flex-start;flex-direction:column;gap:6px}.lp-testimonial-proof-heading span{text-align:left}.lp-whatsapp-grid{margin-left:-2px;margin-right:-2px}.lp-whatsapp-card{flex-basis:88vw}}
 main{display:flex;flex-direction:column}
 main>#hero{order:1}
 main>#pain{order:2}
@@ -199,11 +213,12 @@ main>#testimonials{order:8}
 #offer .lp-offer-primary h3,#offer .lp-offer-bonus-groups h3{text-align:center}
 @media (max-width:700px){#offer .lp-offer-bonus-groups{border-top:0}}
 .landing-page{padding-top:42px}
-.lp-top-offer-bar{align-items:center;background:#b45d38;box-shadow:0 5px 18px rgba(23,52,74,.22);color:#fff;display:flex;font:700 .78rem/1.25 Karla,ui-sans-serif,system-ui,sans-serif;justify-content:center;left:0;letter-spacing:.07em;min-height:42px;padding:8px 16px;position:fixed;right:0;text-align:center;top:0;z-index:30}
+.lp-top-offer-bar{align-items:center;background:linear-gradient(90deg,#1e2134 0%,#5e2c25 30%,#a13811 60%,#d15209 88%,#e35b05 100%);box-shadow:0 5px 18px rgba(23,52,74,.22);color:#fff;display:flex;font:700 .78rem/1.25 Arial,Helvetica,sans-serif;justify-content:center;left:0;letter-spacing:.12em;min-height:42px;padding:8px 16px;position:fixed;right:0;text-align:center;top:0;z-index:30}
 @media (max-width:700px){.landing-page{padding-top:44px}.lp-top-offer-bar{font-size:.7rem;letter-spacing:.045em;min-height:44px;padding:8px 10px}}
 @media (max-width:700px){#bonuses .lp-section-intro h2::after{display:block;margin-left:0}}
-.lp-offer-price-kicker{align-items:center;align-self:center;background:transparent;border:1px solid currentColor;border-radius:999px;box-shadow:inset 0 0 0 1px #ffffff12,0 5px 16px #091e2a26;color:#f3c4ad;display:inline-flex;font-size:.72rem;font-weight:700;gap:8px;letter-spacing:.16em;margin:0 0 18px;order:-1;padding:8px 15px;text-transform:uppercase}
-.lp-offer-price-kicker::before{background:currentColor;border-radius:50%;box-shadow:0 0 0 3px #f3c4ad1f;content:'';display:inline-block;height:6px;flex:none;width:6px}
+.lp-offer-price-kicker{align-items:center;align-self:center;backdrop-filter:blur(10px);background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(243,196,173,.025));border:1px solid rgba(243,196,173,.72);border-radius:999px;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 4px rgba(243,196,173,.05),0 10px 30px rgba(8,25,35,.28);color:#fff7f0;display:inline-flex;font-size:.74rem;font-weight:700;gap:9px;isolation:isolate;letter-spacing:.12em;margin:0 0 20px;order:-1;padding:10px 18px;position:relative;text-transform:uppercase}
+.lp-offer-price-kicker::before{content:none;display:none}
+.lp-offer-price-kicker::after{border:1px solid rgba(255,255,255,.05);border-radius:inherit;content:'';inset:1px;pointer-events:none;position:absolute}
 @media (max-width:700px){#offer{padding-top:28px}}
 .landing-page.lp-dark-mode{--lp-bg:#0f1b24;--lp-surface:#162833;--lp-navy:#102e40;--lp-terra:#ef956d;--lp-sage:#9bcaa5;--lp-beige:#263b45;--lp-text:#edf3ef;--lp-muted:#b8c7c1;background:var(--lp-bg);color:var(--lp-text);color-scheme:dark}
 .lp-dark-mode h1,.lp-dark-mode h2,.lp-dark-mode h3{color:#f5f1e9}
@@ -236,7 +251,8 @@ main>#testimonials{order:8}
 .lp-dark-mode .lp-offer-bonus-groups{border-color:#46616a}
 .lp-dark-mode .lp-offer-columns li{color:#d7e3de}
 .lp-dark-mode .lp-offer-price{background:#102e40}
-.lp-dark-mode .lp-offer-price-kicker,.lp-dark-mode .lp-offer-price .lp-today-label,.lp-dark-mode .lp-offer-price .lp-installment{color:#f2ad8c!important}
+.lp-dark-mode .lp-offer-price-kicker{color:#fff7f0!important}.lp-dark-mode .lp-offer-price .lp-today-label,.lp-dark-mode .lp-offer-price .lp-installment{color:#f2ad8c!important}
+.landing-page .lp-bonus-total s,.landing-page .lp-offer-price .lp-value-anchor s{color:#df4d48!important}
 .lp-dark-mode .lp-offer-price .lp-access-label::after{color:#f1e6d8}
 .lp-dark-mode .lp-countdown{background:#0d202c;border-color:#45636c}
 .lp-dark-mode .lp-vsl-bridge{color:#edf3ef}
@@ -312,9 +328,14 @@ main>#testimonials{order:8}
 .lp-top-offer-bar{gap:12px;justify-content:space-between;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .lp-top-offer-copy{align-items:center;display:flex;min-width:0;overflow:hidden}
 .lp-top-offer-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lp-top-offer-timer{align-items:center;background:rgba(42,42,34,.2);border:1px solid rgba(255,255,255,.42);border-radius:999px;display:inline-flex;flex:none;gap:5px;padding:5px 9px;white-space:nowrap}
-.lp-top-offer-timer b{font-variant-numeric:tabular-nums;letter-spacing:.06em}
-@media (max-width:700px){.lp-top-offer-bar{gap:7px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}.lp-top-offer-timer{gap:4px;padding:4px 7px}.lp-top-offer-timer b{font-size:.68rem;letter-spacing:.04em}.lp-top-offer-copy{font-size:.68rem}}
+@media (max-width:700px){.lp-top-offer-bar{gap:7px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}.lp-top-offer-copy{font-size:.68rem}}
 
-/* A barra usa apenas a ampulheta e a data, centralizada em qualquer largura. */
-.lp-top-offer-bar{justify-content:center;gap:0}
+/* A barra mantém a mensagem original com a tipografia compacta da referência. */
+.lp-top-offer-bar{justify-content:center;gap:12px}
+
+/* Player VSL vertical: preserva a proporção original e usa um play laranja próprio. */
+.lp-video-player{aspect-ratio:9/16;background:#112b3c;border-radius:16px;overflow:hidden;position:relative;width:100%}
+.lp-video-player .lp-video{border-radius:0;height:100%;min-height:0;object-fit:contain;width:100%}
+.lp-video-play-overlay{align-items:center;background:var(--lp-terra);border:3px solid rgba(255,255,255,.94);border-radius:50%;box-shadow:0 12px 28px rgba(0,0,0,.3);color:#fff;cursor:pointer;display:flex;height:72px;justify-content:center;left:50%;padding:0;position:absolute;top:50%;transform:translate(-50%,-50%);transition:transform .2s,box-shadow .2s;width:72px;z-index:2}
+.lp-video-play-overlay:hover{box-shadow:0 16px 34px rgba(0,0,0,.38);transform:translate(-50%,-50%) scale(1.07)}
+.lp-video-play-overlay:focus-visible{outline:3px solid #fff;outline-offset:4px}
