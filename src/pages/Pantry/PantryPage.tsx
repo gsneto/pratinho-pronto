@@ -1,4 +1,4 @@
-import { Check, Search, ShoppingBasket, X } from 'lucide-react'
+import { Check, Search, ShoppingBasket, Sparkles, X } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RecipeCard } from '../../components/recipes/RecipeCard'
@@ -113,23 +113,27 @@ export function PantryPage() {
   const selectedIngredients = ingredients.filter((ingredient) => selectedIds.includes(ingredient.id))
 
   return (
-    <div>
-      <div className="max-w-2xl">
-        <p className="text-sm font-semibold text-terracotta-500">Aproveite o que já tem</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
+    <div className="mx-auto max-w-4xl">
+      <header className="max-w-2xl">
+        <p className="pp-eyebrow">Aproveite o que já tem</p>
+        <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
           O que tem na sua cozinha hoje?
         </h1>
-        <p className="mt-3 text-sm leading-6 text-ink-500">
+        <p className="mt-3 text-base leading-7 text-ink-500">
           Marque os ingredientes e encontre receitas compatíveis com {baby.name}.
         </p>
-      </div>
+      </header>
 
-      <section className="mt-7 rounded-[24px] border border-cream-100 bg-white p-5 sm:p-6">
+      <section aria-label="Selecionar ingredientes" className="pp-panel mt-6 p-5 sm:p-6">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-1/2 left-4 -translate-y-1/2 text-ink-500" size={18} />
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-500"
+            size={18}
+          />
           <input
             aria-label="Buscar ingredientes"
-            className="min-h-13 w-full rounded-2xl bg-cream-50 pr-4 pl-11 text-base text-ink-900 focus:outline-2 focus:outline-sage-500"
+            className="pp-field pl-11"
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar banana, ovo, aveia…"
             type="search"
@@ -138,14 +142,14 @@ export function PantryPage() {
         </div>
 
         {selectedIngredients.length > 0 && (
-          <div className="mt-4 rounded-2xl bg-cream-50 p-3">
+          <div className="pp-sunken mt-4 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold text-ink-700">
                 {selectedIngredients.length}{' '}
                 {selectedIngredients.length === 1 ? 'ingrediente marcado' : 'ingredientes marcados'}
               </p>
               <button
-                className="min-h-9 rounded-lg px-2 text-xs font-semibold text-sage-700 underline decoration-sage-200 underline-offset-2"
+                className="pp-link min-h-9 px-1 text-xs"
                 onClick={() => {
                   setSelectedIds([])
                   setHasSearched(false)
@@ -160,7 +164,7 @@ export function PantryPage() {
                 <li key={ingredient.id}>
                   <button
                     aria-label={`Remover ${ingredient.name}`}
-                    className="flex min-h-9 items-center gap-1.5 rounded-full bg-sage-50 px-3 text-xs font-semibold text-sage-700 transition hover:bg-sage-100"
+                    className="pp-badge pp-badge-sage min-h-9 transition-colors hover:bg-sage-100"
                     onClick={() => toggleIngredient(ingredient.id)}
                     type="button"
                   >
@@ -183,26 +187,29 @@ export function PantryPage() {
             return (
               <button
                 aria-pressed={selected}
-                className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm transition ${
-                  selected
-                    ? 'border-sage-500 bg-sage-50 font-semibold text-sage-700'
-                    : 'border-cream-100 text-ink-700 hover:border-sage-300'
-                }`}
+                className="pp-selectable text-sm"
                 key={ingredient.id}
                 onClick={() => toggleIngredient(ingredient.id)}
                 type="button"
               >
-                <span className={`grid size-5 shrink-0 place-items-center rounded-md ${selected ? 'bg-sage-600 text-white' : 'bg-cream-100'}`}>
-                  {selected && <Check aria-hidden="true" size={13} />}
+                <span
+                  aria-hidden="true"
+                  className={`grid size-5 shrink-0 place-items-center rounded-md border ${
+                    selected
+                      ? 'border-sage-600 bg-sage-600 text-white'
+                      : 'border-cream-200 bg-white'
+                  }`}
+                >
+                  {selected && <Check size={13} strokeWidth={2.6} />}
                 </span>
-                {ingredient.name}
+                <span className="min-w-0 break-words">{ingredient.name}</span>
               </button>
             )
           })}
         </div>
 
         <button
-          className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-56"
+          className="pp-btn pp-btn-primary pp-btn-lg mt-5 w-full sm:w-auto sm:min-w-56"
           disabled={selectedIds.length === 0}
           onClick={findIdeas}
           type="button"
@@ -216,17 +223,25 @@ export function PantryPage() {
       </section>
 
       {listError && (
-        <p className="mt-4 rounded-2xl bg-terracotta-100/60 px-4 py-3 text-sm text-ink-700" role="alert">
+        <p
+          className="mt-4 rounded-[14px] bg-terracotta-100 px-4 py-3 text-sm leading-6 text-terracotta-500"
+          role="alert"
+        >
           {listError}
         </p>
       )}
 
       {hasSearched && (
-        <section ref={resultsRef} className="mt-8 scroll-mt-6" aria-labelledby="pantry-results-title">
-          <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="pantry-results-title" ref={resultsTitleRef} tabIndex={-1}>
+        <section aria-labelledby="pantry-results-title" className="mt-8 scroll-mt-6" ref={resultsRef}>
+          <h2
+            className="text-2xl text-ink-900"
+            id="pantry-results-title"
+            ref={resultsTitleRef}
+            tabIndex={-1}
+          >
             Resultados para sua cozinha
           </h2>
-          <p aria-live="polite" className="mt-1 text-sm text-ink-500">
+          <p aria-live="polite" className="mt-1.5 text-sm leading-6 text-ink-500">
             {rankedRecipes.length === 0
               ? 'Nenhuma receita encontrada com os filtros atuais.'
               : `${recipesReady.length} ${recipesReady.length === 1 ? 'receita pronta' : 'receitas prontas'} e ${recipesMissingIngredients.length} ${recipesMissingIngredients.length === 1 ? 'opção quase completa' : 'opções quase completas'}.`}
@@ -235,17 +250,20 @@ export function PantryPage() {
             <div className="mt-4">
               <PageState
                 description="Selecione mais ingredientes ou revise as restrições cadastradas."
+                icon={Sparkles}
                 title="Nenhuma combinação encontrada"
                 variant="empty"
               />
             </div>
           ) : (
             <div>
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold text-ink-900">Dá para fazer agora</h3>
+              <div className="mt-6">
+                <h3 className="text-lg text-ink-900">Dá para fazer agora</h3>
                 {recipesReady.length === 0 ? (
-                  <div className="mt-3 rounded-2xl border border-cream-100 bg-cream-50 p-4">
-                    <p className="font-semibold text-ink-900">Nenhuma receita completa com essa seleção.</p>
+                  <div className="pp-panel-quiet mt-3 p-4">
+                    <p className="font-semibold text-ink-900">
+                      Nenhuma receita completa com essa seleção.
+                    </p>
                     <p className="mt-1 text-sm leading-6 text-ink-500">
                       Veja abaixo quais ingredientes faltam ou marque mais itens que você tem em casa.
                     </p>
@@ -266,8 +284,8 @@ export function PantryPage() {
 
               {recipesMissingIngredients.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-ink-900">Falta pouco</h3>
-                  <p className="mt-1 text-sm leading-6 text-ink-500">
+                  <h3 className="text-lg text-ink-900">Falta pouco</h3>
+                  <p className="mt-1.5 text-sm leading-6 text-ink-500">
                     Estas receitas usam parte do que você marcou, mas ainda precisam dos itens indicados.
                   </p>
                   <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

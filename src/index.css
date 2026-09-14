@@ -1,74 +1,522 @@
 @import 'tailwindcss';
 
+/* ==========================================================================
+   Pratinho Pronto — sistema visual
+   "Cozinha acolhedora, organizada e contemporânea".
+   Tokens únicos para claro e escuro: componentes equivalentes usam as mesmas
+   classes (.pp-*) para não divergirem entre telas.
+   ========================================================================== */
+
 @theme {
-  --color-cream-50: #f3f5ee;
-  --color-cream-100: #e1e4d8;
+  /* Base e superfícies */
+  --color-cream-50: #f2f4ec;
+  --color-cream-100: #e2e6d9;
+  --color-cream-200: #cfd5c3;
   --color-white: #fdfcf9;
-  --color-sage-50: #e8ede3;
-  --color-sage-100: #d6dfcf;
-  --color-sage-500: #5f7052;
-  --color-sage-600: #5f7052;
-  --color-sage-700: #5f7052;
-  --color-terracotta-100: #f0e1e7;
+
+  /* Sálvia: organização, seleção e apoio */
+  --color-sage-50: #e9eee4;
+  --color-sage-100: #d8e0cf;
+  --color-sage-200: #bccbb0;
+  --color-sage-300: #9cb08d;
+  --color-sage-500: #5c6e4f;
+  --color-sage-600: #4d5e42;
+  --color-sage-700: #3f4e36;
+
+  /* Vinho/terracota: marcações editoriais e favoritos */
+  --color-terracotta-100: #f2e3e8;
+  --color-terracotta-200: #e2c5d0;
   --color-terracotta-500: #8c3a56;
+  --color-terracotta-600: #742f47;
   --color-beet: #8c3a56;
+
+  /* Abóbora: ação principal única por tela */
   --color-pumpkin: #d9822b;
-  --color-ink-500: #726f63;
+  --color-pumpkin-deep: #a75c12;
+
+  /* Texto */
+  --color-ink-500: #6d6b5f;
   --color-ink-700: #45443c;
   --color-ink-900: #2a2a22;
+
   --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", Georgia, serif;
+
+  /* Raios: cartões 16–20px, painéis 24px, campos 14px */
+  --radius-field: 14px;
+  --radius-card: 18px;
+  --radius-panel: 24px;
+  --radius-pill: 999px;
 }
 
 :root {
-  color: #292a26;
+  --pp-surface: #fdfcf9;
+  --pp-surface-sunken: #f2f4ec;
+  --pp-border: #e2e6d9;
+  --pp-border-strong: #cfd5c3;
+
+  --pp-shadow-soft: 0 1px 2px rgba(42, 42, 34, 0.04), 0 8px 24px -14px rgba(42, 42, 34, 0.14);
+  --pp-shadow-lifted: 0 2px 4px rgba(42, 42, 34, 0.05), 0 20px 44px -22px rgba(42, 42, 34, 0.2);
+  --pp-shadow-modal: 0 26px 64px -22px rgba(42, 42, 34, 0.38);
+  --pp-focus-ring: color-mix(in srgb, var(--color-sage-500) 55%, transparent);
+  --pp-skeleton: color-mix(in srgb, var(--color-cream-100) 70%, var(--color-white));
+
+  color: var(--color-ink-900);
   background: var(--color-cream-50);
   font-family: var(--font-sans);
+  font-size: 16px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  min-width: 320px;
-  min-height: 100%;
-  background: var(--color-cream-50);
-}
-
 [data-theme='dark'] {
-  --color-cream-50: #1e1b16;
-  --color-cream-100: #403b32;
-  --color-white: #29261f;
-  --color-sage-50: #30372b;
-  --color-sage-100: #3e4a36;
-  --color-sage-500: #9bb584;
-  --color-sage-600: #9bb584;
-  --color-sage-700: #9bb584;
-  --color-terracotta-100: #4b2d39;
-  --color-terracotta-500: #c97ca0;
-  --color-beet: #c97ca0;
-  --color-pumpkin: #d9822b;
-  --color-ink-500: #a39c8e;
-  --color-ink-700: #d1cbbe;
-  --color-ink-900: #f3f0e8;
-  --color-surface: #29261f;
+  --color-cream-50: #1c1a15;
+  --color-cream-100: #3b3730;
+  --color-cream-200: #4c473d;
+  --color-white: #26241d;
+
+  --color-sage-50: #2e352a;
+  --color-sage-100: #3b4635;
+  --color-sage-200: #4d5b44;
+  --color-sage-300: #6c7f5f;
+  --color-sage-500: #a6c08d;
+  --color-sage-600: #a6c08d;
+  --color-sage-700: #b3ca9c;
+
+  --color-terracotta-100: #472935;
+  --color-terracotta-200: #5d3a48;
+  --color-terracotta-500: #e39dbd;
+  --color-terracotta-600: #e39dbd;
+  --color-beet: #e39dbd;
+
+  --color-pumpkin: #e0a15f;
+  --color-pumpkin-deep: #e8b374;
+
+  --color-ink-500: #a8a294;
+  --color-ink-700: #d4cec1;
+  --color-ink-900: #f4f1e9;
+
+  --color-surface: #26241d;
+  --pp-surface: #26241d;
+  --pp-surface-sunken: #1c1a15;
+  --pp-border: #3b3730;
+  --pp-border-strong: #4c473d;
+
+  --pp-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 26px -16px rgba(0, 0, 0, 0.55);
+  --pp-shadow-lifted: 0 2px 6px rgba(0, 0, 0, 0.36), 0 22px 46px -24px rgba(0, 0, 0, 0.65);
+  --pp-shadow-modal: 0 28px 70px -24px rgba(0, 0, 0, 0.72);
+  --pp-focus-ring: color-mix(in srgb, var(--color-sage-500) 62%, transparent);
+  --pp-skeleton: color-mix(in srgb, var(--color-cream-100) 70%, var(--color-white));
 
   color: var(--color-ink-900);
   background: var(--color-cream-50);
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-serif);
-  font-variation-settings: "SOFT" 50, "WONK" 0;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 320px;
+    min-height: 100%;
+    background: var(--color-cream-50);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    /* Evita rolagem horizontal acidental em carrosséis e nomes longos. */
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+    /* Fraunces carregada apenas no peso 600: não pedir 700 (não há síntese). */
+    font-weight: 600;
+    text-wrap: pretty;
+  }
+
+  h1 {
+    letter-spacing: -0.035em;
+  }
+
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--pp-focus-ring);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    color: var(--color-ink-900);
+    background: var(--color-sage-100);
+  }
+
+  /* Movimento apenas para confirmar ação; nunca obrigatório. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
+@layer components {
+  /* -- Superfícies ------------------------------------------------------- */
+  .pp-card {
+    background: var(--pp-surface);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--pp-shadow-soft);
+  }
+
+  .pp-panel {
+    background: var(--pp-surface);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--pp-shadow-soft);
+  }
+
+  .pp-panel-quiet {
+    background: var(--pp-surface-sunken);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-panel);
+  }
+
+  .pp-sunken {
+    background: var(--pp-surface-sunken);
+    border-radius: var(--radius-card);
+  }
+
+  .pp-lifted {
+    box-shadow: var(--pp-shadow-lifted);
+  }
+
+  .pp-modal {
+    background: var(--pp-surface);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--pp-shadow-modal);
+  }
+
+  .pp-interactive {
+    transition: border-color 160ms ease-out, background-color 160ms ease-out,
+      box-shadow 160ms ease-out, transform 160ms ease-out;
+  }
+
+  .pp-interactive:hover {
+    border-color: var(--color-sage-300);
+  }
+
+  /* -- Fotos ------------------------------------------------------------- */
+  /* Todas as fotos do catálogo são quadradas; o enquadramento é definido pelo
+     contexto, sempre com recorte (object-cover), nunca com distorção. */
+  .pp-photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    background: var(--color-sage-50);
+  }
+
+  .pp-photo-frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-sage-50);
+  }
+
+  .pp-photo-thumb {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-field);
+  }
+
+  .pp-photo-card {
+    aspect-ratio: 4 / 3;
+  }
+
+  .pp-photo-feature {
+    aspect-ratio: 1 / 1;
+  }
+
+  .pp-photo-hero {
+    aspect-ratio: 4 / 3;
+  }
+
+  @media (min-width: 640px) {
+    .pp-photo-hero {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* -- Botões ------------------------------------------------------------ */
+  .pp-btn {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-field);
+    display: inline-flex;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    gap: 8px;
+    justify-content: center;
+    line-height: 1.2;
+    min-height: 48px;
+    padding-inline: 20px;
+    text-align: center;
+    transition: background-color 160ms ease-out, border-color 160ms ease-out,
+      color 160ms ease-out, box-shadow 160ms ease-out;
+  }
+
+  .pp-btn:disabled,
+  .pp-btn[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .pp-btn-lg {
+    font-size: 16px;
+    min-height: 52px;
+  }
+
+  .pp-btn-sm {
+    font-size: 13px;
+    min-height: 44px;
+    padding-inline: 14px;
+  }
+
+  /* Ação principal: uma por tela. */
+  .pp-btn-primary {
+    background: var(--color-pumpkin);
+    color: #2a2a22;
+    box-shadow: var(--pp-shadow-soft);
+  }
+
+  .pp-btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-pumpkin) 88%, #2a2a22);
+  }
+
+  /* Ação secundária: continuar o fluxo sem competir com a principal. */
+  .pp-btn-secondary {
+    background: var(--pp-surface);
+    border-color: var(--color-sage-200);
+    color: var(--color-sage-700);
+  }
+
+  .pp-btn-secondary:hover:not(:disabled) {
+    background: var(--color-sage-50);
+    border-color: var(--color-sage-500);
+  }
+
+  /* Ação terciária: ações locais dentro de um cartão. */
+  .pp-btn-quiet {
+    background: var(--color-sage-50);
+    color: var(--color-sage-700);
+  }
+
+  .pp-btn-quiet:hover:not(:disabled) {
+    background: var(--color-sage-100);
+  }
+
+  .pp-btn-outline {
+    background: transparent;
+    border-color: var(--pp-border-strong);
+    color: var(--color-ink-700);
+  }
+
+  .pp-btn-outline:hover:not(:disabled) {
+    border-color: var(--color-sage-500);
+    color: var(--color-sage-700);
+  }
+
+  .pp-icon-btn {
+    align-items: center;
+    background: var(--pp-surface);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-field);
+    color: var(--color-ink-700);
+    display: inline-flex;
+    flex: none;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    transition: border-color 160ms ease-out, background-color 160ms ease-out;
+  }
+
+  .pp-icon-btn:hover:not(:disabled) {
+    border-color: var(--color-sage-500);
+    color: var(--color-sage-700);
+  }
+
+  .pp-link {
+    color: var(--color-sage-700);
+    font-weight: 600;
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-sage-300);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .pp-link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  /* -- Campos ------------------------------------------------------------ */
+  .pp-field {
+    background: var(--pp-surface-sunken);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-field);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    min-height: 48px;
+    padding-inline: 14px;
+    width: 100%;
+  }
+
+  .pp-field::placeholder {
+    color: color-mix(in srgb, var(--color-ink-500) 78%, transparent);
+  }
+
+  .pp-field-label {
+    color: var(--color-ink-500);
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* -- Rótulos e estados ------------------------------------------------- */
+  .pp-eyebrow {
+    color: var(--color-terracotta-500);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .pp-badge {
+    align-items: center;
+    border-radius: var(--radius-pill);
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+    line-height: 1;
+    padding: 7px 12px;
+  }
+
+  .pp-badge-sage {
+    background: var(--color-sage-50);
+    color: var(--color-sage-700);
+  }
+
+  .pp-badge-terracotta {
+    background: var(--color-terracotta-100);
+    color: var(--color-terracotta-500);
+  }
+
+  .pp-badge-today {
+    background: var(--color-sage-700);
+    color: var(--color-cream-50);
+  }
+
+  /* Seleção nunca depende só de cor: borda + fundo + ícone/negrito. */
+  .pp-selectable {
+    align-items: center;
+    background: var(--pp-surface);
+    border: 1px solid var(--pp-border);
+    border-radius: var(--radius-field);
+    color: var(--color-ink-700);
+    display: flex;
+    gap: 10px;
+    min-height: 48px;
+    padding-inline: 12px;
+    text-align: left;
+    transition: border-color 160ms ease-out, background-color 160ms ease-out;
+  }
+
+  .pp-selectable:hover {
+    border-color: var(--color-sage-300);
+  }
+
+  .pp-selectable[aria-pressed='true'],
+  .pp-selectable[data-selected='true'],
+  .pp-selectable[aria-current='true'] {
+    background: var(--color-sage-50);
+    border-color: var(--color-sage-500);
+    box-shadow: inset 0 0 0 1px var(--color-sage-500);
+    color: var(--color-sage-700);
+    font-weight: 600;
+  }
+
+  .pp-divider {
+    background: var(--pp-border);
+    border: 0;
+    height: 1px;
+  }
+
+  .pp-skeleton {
+    animation: pp-pulse 1.6s ease-in-out infinite;
+    background: var(--pp-skeleton);
+    border-radius: var(--radius-card);
+  }
+
+  /* Faixa rolável horizontal sem barra visível e com toque confortável. */
+  .pp-scroller {
+    -ms-overflow-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pp-scroller::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes pp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Fundos brancos herdam a superfície do tema também em navegadores sem
+   color-mix, evitando cartões claros no tema escuro. */
 [data-theme='dark'] .bg-white,
 [data-theme='dark'] .focus\:bg-white:focus {
   background-color: var(--color-surface);
@@ -76,6 +524,10 @@ h3 {
 
 [data-theme='dark'] .bg-white\/90 {
   background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+[data-theme='dark'] .bg-white\/95 {
+  background-color: color-mix(in srgb, var(--color-surface) 95%, transparent);
 }
 
 .brand-logo-dark {
@@ -88,26 +540,4 @@ h3 {
 
 [data-theme='dark'] .brand-logo-dark {
   display: block;
-}
-
-body {
-  min-width: 320px;
-  min-height: 100vh;
-  margin: 0;
-}
-
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:focus-visible,
-a:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-sage-500) 48%, transparent);
-  outline-offset: 3px;
-}
-
-::selection {
-  color: var(--color-ink-900);
-  background: var(--color-sage-100);
 }

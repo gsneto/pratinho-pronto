@@ -1,4 +1,5 @@
 import type { GeneratedMealPlanItem, MealPlan, MealType } from '../types/domain'
+import { shiftIsoDate } from '../utils/dates'
 import { recipeFields } from './recipes'
 import { getAuthenticatedUserId } from './supabase/auth-user'
 import { getSupabaseClient } from './supabase/client'
@@ -162,13 +163,8 @@ export async function duplicateMealPlan(
 ): Promise<string> {
   const source = await getMealPlan(babyId, sourceWeekStart)
   if (!source) throw new Error('Semana de origem não encontrada')
-  const sourceDate = new Date(`${sourceWeekStart}T12:00:00`)
-  const targetDate = new Date(`${targetWeekStart}T12:00:00`)
-  const dayOffset = Math.round((targetDate.getTime() - sourceDate.getTime()) / 86_400_000)
   const items = source.meal_plan_items.map((item) => ({
-    date: new Date(new Date(`${item.date}T12:00:00`).getTime() + dayOffset * 86_400_000)
-      .toISOString()
-      .slice(0, 10),
+    date: shiftIsoDate(item.date, sourceWeekStart, targetWeekStart),
     meal_type: item.meal_type,
     position: item.position,
     recipe_id: item.recipe_id,

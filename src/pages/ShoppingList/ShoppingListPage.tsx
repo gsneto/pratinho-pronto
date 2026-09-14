@@ -63,11 +63,7 @@ export function ShoppingListPage() {
     return (
       <PageState
         action={
-          <button
-            className="min-h-13 rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90"
-            onClick={() => window.location.reload()}
-            type="button"
-          >
+          <button className="pp-btn pp-btn-primary" onClick={() => window.location.reload()} type="button">
             Tentar de novo
           </button>
         }
@@ -112,28 +108,28 @@ export function ShoppingListPage() {
 
   if (!plan) {
     return (
-      <div>
-        <p className="text-sm font-semibold text-terracotta-500">Compras da semana</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900">Lista de compras</h1>
+      <div className="mx-auto max-w-3xl">
+        <p className="pp-eyebrow">Compras da semana</p>
+        <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
+          Lista de compras
+        </h1>
         <p className="mt-2 text-sm text-ink-500">Semana de {weekRangeLabel}</p>
         <div className="mt-6">
           <PageState
             action={
-              <Link
-                className="inline-flex min-h-13 items-center rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90"
-                to={`/app/week?week=${weekStart}`}
-              >
+              <Link className="pp-btn pp-btn-primary" to={`/app/week?week=${weekStart}`}>
                 Montar minha semana
               </Link>
             }
             description="A lista nasce do cardápio. Monte as refeições desta semana e os ingredientes aparecem aqui agrupados."
+            icon={ListChecks}
             title="Nenhum cardápio nesta semana"
             variant="empty"
           />
         </div>
         {!isThisWeek && (
           <Link
-            className="mt-4 inline-flex text-sm font-semibold text-sage-700 underline decoration-sage-200 underline-offset-2"
+            className="pp-link mt-4 inline-flex text-sm"
             to={`/app/shopping-list?week=${getWeekStart()}`}
           >
             Voltar para esta semana
@@ -143,19 +139,23 @@ export function ShoppingListPage() {
     )
   }
 
+  const progressPercent = totals.total === 0 ? 0 : Math.round((totals.checked / totals.total) * 100)
+
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-terracotta-500">Compras de {baby.name}</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">Lista de compras</h1>
+    <div className="mx-auto max-w-3xl">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="pp-eyebrow">Compras de {baby.name}</p>
+          <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
+            Lista de compras
+          </h1>
           <p className="mt-2 text-sm text-ink-500">
             Semana de {weekRangeLabel}
             {isThisWeek ? ' · semana de hoje' : ''}
           </p>
           {!isThisWeek && (
             <Link
-              className="mt-1 inline-flex text-sm font-semibold text-sage-700 underline decoration-sage-200 underline-offset-2"
+              className="pp-link mt-1 inline-flex text-sm"
               to={`/app/shopping-list?week=${getWeekStart()}`}
             >
               Voltar para esta semana
@@ -163,7 +163,7 @@ export function ShoppingListPage() {
           )}
         </div>
         <button
-          className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:opacity-55"
+          className={`pp-btn w-full sm:w-auto ${shoppingList ? 'pp-btn-secondary' : 'pp-btn-primary'}`}
           disabled={isGenerating}
           onClick={handleGenerate}
           type="button"
@@ -171,10 +171,13 @@ export function ShoppingListPage() {
           <ShoppingCart aria-hidden="true" size={18} />
           {isGenerating ? 'Gerando…' : shoppingList ? 'Atualizar com o cardápio' : 'Gerar lista de compras'}
         </button>
-      </div>
+      </header>
 
       {generationError && (
-        <p className="mt-4 rounded-2xl bg-terracotta-100/60 px-4 py-3 text-sm text-ink-700" role="alert">
+        <p
+          className="mt-4 rounded-[14px] bg-terracotta-100 px-4 py-3 text-sm leading-6 text-terracotta-500"
+          role="alert"
+        >
           {generationError}
         </p>
       )}
@@ -184,7 +187,7 @@ export function ShoppingListPage() {
           <PageState
             action={
               <button
-                className="min-h-13 rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:opacity-55"
+                className="pp-btn pp-btn-primary"
                 disabled={isGenerating}
                 onClick={handleGenerate}
                 type="button"
@@ -193,37 +196,65 @@ export function ShoppingListPage() {
               </button>
             }
             description="Agrupamos os ingredientes do seu cardápio por seção do mercado, somando as quantidades repetidas."
+            icon={ShoppingCart}
             title="Sua lista está a um toque"
             variant="empty"
           />
         </div>
       ) : (
-        <div className="mt-7 space-y-5">
-          <p aria-live="polite" className="text-sm text-ink-500">
-            {totals.checked} de {totals.total} itens marcados.
-          </p>
+        <div className="mt-6 space-y-4">
+          {/* Progresso da compra: barra + texto, nunca só cor. */}
+          <div className="pp-card p-4">
+            <p aria-live="polite" className="text-sm font-semibold text-ink-700">
+              {totals.checked} de {totals.total} itens marcados
+            </p>
+            <div
+              aria-hidden="true"
+              className="mt-2 h-2 w-full overflow-hidden rounded-full bg-cream-100"
+            >
+              <div
+                className="h-full rounded-full bg-sage-500 transition-[width] duration-300 ease-out motion-reduce:transition-none"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
           {groupedItems.map(([category, items]) => (
-            <section className="overflow-hidden rounded-[22px] border border-cream-100 bg-white" key={category}>
-              <div className="flex items-center gap-2 bg-sage-50 px-5 py-4">
-                <ListChecks aria-hidden="true" className="text-sage-700" size={18} />
-                <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-sage-700">
+            <section className="pp-panel overflow-hidden" key={category}>
+              <div className="flex items-center gap-2 border-b border-cream-100 bg-sage-50 px-5 py-3.5">
+                <ListChecks aria-hidden="true" className="shrink-0 text-sage-700" size={18} />
+                <h2 className="text-sm font-bold tracking-[0.06em] text-sage-700 uppercase">
                   {ingredientCategoryLabels[category]}
                 </h2>
+                <span className="ml-auto text-xs font-semibold text-sage-700">{items.length}</span>
               </div>
               <ul className="divide-y divide-cream-100">
                 {items.map((item) => (
                   <li key={item.id}>
                     <button
                       aria-pressed={item.checked}
-                      className="flex min-h-16 w-full items-center gap-3 px-5 text-left transition hover:bg-cream-50 disabled:opacity-60"
+                      className="flex min-h-16 w-full items-center gap-3 px-5 text-left transition-colors hover:bg-cream-50 disabled:opacity-60"
                       disabled={changingItemId === item.id}
                       onClick={() => toggleItem(item)}
                       type="button"
                     >
-                      <span className={`grid size-7 shrink-0 place-items-center rounded-lg border ${item.checked ? 'border-sage-600 bg-sage-600 text-white' : 'border-sage-500 bg-white'}`}>
-                        {item.checked && <Check aria-hidden="true" size={16} />}
+                      <span
+                        aria-hidden="true"
+                        className={`grid size-7 shrink-0 place-items-center rounded-lg border ${
+                          item.checked
+                            ? 'border-sage-600 bg-sage-600 text-white'
+                            : 'border-sage-300 bg-white'
+                        }`}
+                      >
+                        {item.checked && <Check size={16} strokeWidth={2.6} />}
                       </span>
-                      <span className={`flex-1 text-sm font-medium ${item.checked ? 'text-ink-500 line-through' : 'text-ink-700'}`}>
+                      <span
+                        className={`flex-1 text-[15px] ${
+                          item.checked
+                            ? 'text-ink-500 line-through'
+                            : 'font-medium text-ink-700'
+                        }`}
+                      >
                         {item.ingredient.name}
                       </span>
                       <span className="shrink-0 text-xs text-ink-500">
@@ -235,7 +266,11 @@ export function ShoppingListPage() {
               </ul>
             </section>
           ))}
-          <div className="rounded-[22px] bg-sage-50 p-4 sm:p-5">
+
+          <section
+            aria-label="Levar a lista para o mercado"
+            className="pp-panel-quiet grid gap-3 p-4 sm:grid-cols-2 sm:p-5"
+          >
             <PdfExportButton
               baby={baby}
               kind="shopping"
@@ -243,13 +278,10 @@ export function ShoppingListPage() {
               shoppingList={shoppingList}
               weekStart={weekStart}
             />
-            <Link
-              className="mt-3 flex min-h-12 items-center justify-center rounded-2xl border border-sage-200 bg-white px-5 text-center text-sm font-semibold text-sage-700 transition hover:border-sage-500"
-              to={`/app/week?week=${weekStart}`}
-            >
+            <Link className="pp-btn pp-btn-secondary w-full" to={`/app/week?week=${weekStart}`}>
               Ver o cardápio desta semana
             </Link>
-          </div>
+          </section>
         </div>
       )}
     </div>

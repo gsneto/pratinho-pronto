@@ -80,3 +80,18 @@ export function formatLongDate(isoDate: string): string {
 export function daysBetween(start: string, end: string): number {
   return Math.round((parseIsoDate(end).getTime() - parseIsoDate(start).getTime()) / MS_PER_DAY)
 }
+
+/**
+ * Desloca uma data ISO com base na distância entre duas semanas de referência.
+ * Usada ao duplicar cardápios para outra semana: preserva o mesmo dia da semana
+ * relativo ao início do plano. Trabalha em datas locais para evitar o desvio de
+ * fuso que aparece quando se combina `new Date(...).toISOString().slice(0,10)`
+ * fora de UTC.
+ */
+export function shiftIsoDate(
+  itemDate: string,
+  sourceReference: string,
+  targetReference: string,
+): string {
+  return addDays(itemDate, daysBetween(sourceReference, targetReference))
+}

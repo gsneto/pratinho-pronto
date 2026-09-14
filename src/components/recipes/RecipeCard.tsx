@@ -32,13 +32,17 @@ export function RecipeCard({
   const { isFavorite, isSaving, toggle } = useFavoriteRecipe(recipe.id)
 
   return (
-    <article className="relative overflow-hidden rounded-[22px] border border-cream-100 bg-white shadow-[0_10px_35px_rgba(65,65,60,0.04)]">
+    <article className="pp-card pp-interactive flex flex-col overflow-hidden">
       <div className="relative">
-        <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} />
+        <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} size="card" />
         <button
           aria-label={isFavorite ? `Remover ${recipe.name} das favoritas` : `Favoritar ${recipe.name}`}
           aria-pressed={isFavorite}
-          className={`absolute top-3 right-3 grid size-11 place-items-center rounded-full shadow-sm transition ${isFavorite ? 'bg-terracotta-500 text-white' : 'bg-white/95 text-terracotta-500 hover:bg-white'}`}
+          className={`absolute top-3 right-3 grid size-11 place-items-center rounded-full shadow-sm transition-colors disabled:opacity-55 ${
+            isFavorite
+              ? 'bg-terracotta-500 text-white'
+              : 'bg-white/95 text-terracotta-500 hover:bg-white'
+          }`}
           disabled={isSaving}
           onClick={toggle}
           type="button"
@@ -46,24 +50,16 @@ export function RecipeCard({
           <Heart aria-hidden="true" fill={isFavorite ? 'currentColor' : 'none'} size={19} />
         </button>
       </div>
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-sage-50 px-2.5 py-1 text-[11px] font-semibold text-sage-700">
-            {mealTypeLabels[recipe.meal_type]}
-          </span>
-          {recipe.is_demo && (
-            <span className="rounded-full bg-terracotta-100 px-2.5 py-1 text-[11px] font-semibold text-terracotta-500">
-              Catálogo
-            </span>
-          )}
+          <span className="pp-badge pp-badge-sage">{mealTypeLabels[recipe.meal_type]}</span>
+          {recipe.is_demo && <span className="pp-badge pp-badge-terracotta">Catálogo</span>}
         </div>
-        <h2 className="mt-3 text-lg font-semibold tracking-[-0.025em] text-ink-900">
-          {recipe.name}
-        </h2>
+        <h2 className="mt-3 text-lg leading-snug break-words text-ink-900">{recipe.name}</h2>
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink-500">
           {publicRecipeText(recipe.description)}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-ink-500">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-500">
           <span className="flex items-center gap-1.5">
             <Clock3 aria-hidden="true" size={15} />
             {recipe.prep_time_minutes} min
@@ -71,7 +67,7 @@ export function RecipeCard({
           <span>A partir de {recipe.min_age_months} meses</span>
         </div>
         {scoreLabel && (
-          <p className="mt-3 rounded-xl bg-sage-50 px-3 py-2 text-xs font-semibold text-sage-700">
+          <p className="pp-badge pp-badge-sage mt-3 w-full justify-start rounded-[14px] px-3 py-2 leading-5">
             {scoreLabel}
           </p>
         )}
@@ -84,7 +80,7 @@ export function RecipeCard({
             {onAddMissing && (
               <>
                 <button
-                  className="mt-3 min-h-11 w-full rounded-xl bg-sage-50 px-3 text-xs font-semibold text-sage-700 transition hover:bg-sage-100 disabled:cursor-not-allowed disabled:opacity-55"
+                  className="pp-btn pp-btn-quiet pp-btn-sm mt-3 w-full"
                   disabled={missingActionDisabled || isAddingMissing}
                   onClick={onAddMissing}
                   type="button"
@@ -102,13 +98,15 @@ export function RecipeCard({
             )}
           </>
         )}
-        <Link
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-cream-100 text-sm font-semibold text-sage-700 transition hover:border-sage-500"
-          state={returnTo ? { returnTo } : undefined}
-          to={`/app/recipes/${recipe.id}`}
-        >
-          Ver como preparar
-        </Link>
+        <div className="mt-auto pt-5">
+          <Link
+            className="pp-btn pp-btn-secondary w-full"
+            state={returnTo ? { returnTo } : undefined}
+            to={`/app/recipes/${recipe.id}`}
+          >
+            Ver como preparar
+          </Link>
+        </div>
       </div>
     </article>
   )

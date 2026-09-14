@@ -16,151 +16,181 @@ import {
   weekDayLabels,
 } from '../../utils/labels'
 
+/**
+ * Impressão econômica: papel branco, sem blocos chapados de cor, texto em
+ * cinza-escuro (legível também em impressão preto e branco) e hierarquia
+ * construída por tamanho, peso e filetes — não por fundo colorido.
+ */
 const colors = {
-  cream: '#F3F5EE',
-  ink: '#2A2A22',
-  muted: '#726F63',
-  sage: '#5F7052',
-  sageLight: '#E8EDE3',
-  terracotta: '#8C3A56',
+  hairline: '#D8D8D0',
+  ink: '#22221C',
+  muted: '#55544C',
+  soft: '#6E6D64',
+  accent: '#5A3243',
 }
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: '#FDFCF9',
+    backgroundColor: '#FFFFFF',
     color: colors.ink,
     fontFamily: 'Helvetica',
-    fontSize: 9,
-    paddingBottom: 34,
-    paddingHorizontal: 36,
-    paddingTop: 34,
+    fontSize: 10,
+    // Margem generosa: nada cai na dobra nem encosta na borda de impressão.
+    paddingBottom: 46,
+    paddingHorizontal: 42,
+    paddingTop: 40,
   },
   eyebrow: {
-    color: colors.terracotta,
+    color: colors.accent,
+    fontFamily: 'Helvetica-Bold',
     fontSize: 8,
-    fontWeight: 700,
-    letterSpacing: 1.2,
-    marginBottom: 7,
+    letterSpacing: 1.4,
+    marginBottom: 8,
     textTransform: 'uppercase',
   },
   title: {
-    fontSize: 22,
-    fontWeight: 700,
-    letterSpacing: -0.5,
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 21,
+    letterSpacing: -0.3,
   },
   subtitle: {
     color: colors.muted,
     fontSize: 10,
     marginTop: 6,
   },
-  divider: {
-    backgroundColor: colors.cream,
+  rule: {
+    backgroundColor: colors.ink,
+    height: 1.4,
+    marginBottom: 18,
+    marginTop: 14,
+  },
+  sectionHeading: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 11,
+    letterSpacing: 0.9,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  sectionRule: {
+    backgroundColor: colors.hairline,
     height: 1,
-    marginBottom: 16,
-    marginTop: 16,
+    marginBottom: 8,
   },
   footer: {
-    bottom: 16,
-    color: colors.muted,
-    fontSize: 7,
-    left: 36,
+    bottom: 22,
+    color: colors.soft,
+    fontSize: 7.5,
+    left: 42,
     position: 'absolute',
-    right: 36,
+    right: 42,
     textAlign: 'center',
   },
+  /* Cardápio da semana */
   dayRow: {
-    borderBottomColor: colors.cream,
+    borderBottomColor: colors.hairline,
     borderBottomWidth: 1,
     flexDirection: 'row',
-    minHeight: 72,
-    paddingBottom: 8,
-    paddingTop: 8,
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   dayLabel: {
-    backgroundColor: colors.sageLight,
-    borderRadius: 7,
-    color: colors.sage,
-    marginRight: 10,
-    padding: 8,
-    width: 58,
+    borderRightColor: colors.hairline,
+    borderRightWidth: 1,
+    marginRight: 12,
+    paddingRight: 10,
+    width: 62,
   },
-  dayName: { fontSize: 10, fontWeight: 700 },
-  dayDate: { color: colors.muted, fontSize: 7, marginTop: 3 },
+  dayName: { fontFamily: 'Helvetica-Bold', fontSize: 11 },
+  dayDate: { color: colors.muted, fontSize: 8, marginTop: 3 },
   mealsGrid: {
     flexDirection: 'row',
     flexGrow: 1,
     flexWrap: 'wrap',
   },
   mealCell: {
-    paddingBottom: 3,
-    paddingHorizontal: 5,
+    paddingBottom: 6,
+    paddingRight: 10,
     width: '50%',
   },
   mealLabel: {
-    color: colors.terracotta,
-    fontSize: 6.5,
-    fontWeight: 700,
+    color: colors.soft,
+    fontSize: 7,
+    letterSpacing: 0.7,
     textTransform: 'uppercase',
   },
-  mealName: { fontSize: 8.5, marginTop: 2 },
-  category: { marginBottom: 14 },
+  mealName: { fontSize: 9.5, lineHeight: 1.3, marginTop: 2 },
+  mealNameEmpty: { color: colors.soft, fontSize: 9.5, marginTop: 2 },
+  /* Lista de compras */
+  category: { marginBottom: 16 },
   categoryTitle: {
-    backgroundColor: colors.sageLight,
-    borderRadius: 6,
-    color: colors.sage,
-    fontSize: 9,
-    fontWeight: 700,
-    letterSpacing: 0.8,
-    paddingHorizontal: 9,
-    paddingVertical: 7,
-    textTransform: 'uppercase',
-  },
-  shoppingRow: {
-    alignItems: 'center',
-    borderBottomColor: colors.cream,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    paddingHorizontal: 5,
-    paddingVertical: 7,
-  },
-  checkbox: {
-    borderColor: colors.sage,
-    borderRadius: 2,
-    borderWidth: 1,
-    height: 11,
-    marginRight: 8,
-    width: 11,
-  },
-  shoppingName: { flexGrow: 1, fontSize: 9 },
-  quantity: { color: colors.muted, fontSize: 8 },
-  recipeBlock: {
-    borderBottomColor: colors.cream,
-    borderBottomWidth: 1,
-    marginBottom: 18,
-    paddingBottom: 14,
-  },
-  recipeTitle: { fontSize: 15, fontWeight: 700 },
-  recipeMeta: { color: colors.muted, fontSize: 8, marginTop: 4 },
-  columns: { flexDirection: 'row', marginTop: 10 },
-  ingredientsColumn: { paddingRight: 12, width: '38%' },
-  instructionsColumn: { paddingLeft: 12, width: '62%' },
-  sectionLabel: {
-    color: colors.sage,
-    fontSize: 8,
-    fontWeight: 700,
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 10.5,
+    letterSpacing: 0.9,
     marginBottom: 5,
     textTransform: 'uppercase',
   },
-  ingredientLine: { fontSize: 8, marginBottom: 3 },
-  bodyText: { color: colors.muted, fontSize: 8.5, lineHeight: 1.45 },
-  stepLine: { color: colors.muted, fontSize: 8.5, lineHeight: 1.45, marginBottom: 3 },
+  categoryRule: {
+    backgroundColor: colors.ink,
+    height: 1,
+    marginBottom: 4,
+  },
+  shoppingRow: {
+    alignItems: 'center',
+    borderBottomColor: colors.hairline,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  checkbox: {
+    borderColor: colors.ink,
+    borderRadius: 2,
+    borderWidth: 1,
+    height: 12,
+    marginRight: 10,
+    width: 12,
+  },
+  shoppingName: { flexGrow: 1, fontSize: 10 },
+  quantity: { color: colors.muted, fontSize: 9 },
+  /* Receitas da semana */
+  recipeBlock: {
+    borderTopColor: colors.ink,
+    borderTopWidth: 1,
+    marginBottom: 20,
+    paddingTop: 12,
+  },
+  recipeTitle: { fontFamily: 'Helvetica-Bold', fontSize: 14, letterSpacing: -0.2 },
+  recipeMeta: { color: colors.muted, fontSize: 8.5, marginTop: 4 },
+  columns: { flexDirection: 'row', marginTop: 12 },
+  ingredientsColumn: {
+    borderRightColor: colors.hairline,
+    borderRightWidth: 1,
+    paddingRight: 14,
+    width: '36%',
+  },
+  instructionsColumn: { paddingLeft: 14, width: '64%' },
+  sectionLabel: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+    letterSpacing: 0.9,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  ingredientLine: { fontSize: 9, lineHeight: 1.4, marginBottom: 4 },
+  stepRow: { flexDirection: 'row', marginBottom: 5 },
+  stepNumber: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 9,
+    width: 14,
+  },
+  stepText: { color: colors.muted, flexGrow: 1, fontSize: 9, lineHeight: 1.5 },
   note: {
-    backgroundColor: colors.sageLight,
-    borderRadius: 6,
+    borderLeftColor: colors.hairline,
+    borderLeftWidth: 2,
     color: colors.muted,
-    fontSize: 7.5,
-    marginTop: 8,
-    padding: 7,
+    fontSize: 8.5,
+    lineHeight: 1.45,
+    marginTop: 10,
+    paddingLeft: 8,
   },
 })
 
@@ -182,7 +212,7 @@ export function WeekPlanDocument({ baby, plan }: { baby: Baby; plan: MealPlan })
           {calculateAgeMonths(baby.birth_date, parseIsoDate(plan.week_start))} meses •{' '}
           {formatShortDate(plan.week_start)} a {formatShortDate(addDays(plan.week_start, 6))}
         </Text>
-        <View style={styles.divider} />
+        <View style={styles.rule} />
 
         {weekDayLabels.map((day, index) => {
           const date = addDays(plan.week_start, index)
@@ -199,7 +229,11 @@ export function WeekPlanDocument({ baby, plan }: { baby: Baby; plan: MealPlan })
                   return (
                     <View key={mealType} style={styles.mealCell}>
                       <Text style={styles.mealLabel}>{mealTypeLabels[mealType]}</Text>
-                      <Text style={styles.mealName}>{item?.recipe.name ?? 'A combinar'}</Text>
+                      {item ? (
+                        <Text style={styles.mealName}>{item.recipe.name}</Text>
+                      ) : (
+                        <Text style={styles.mealNameEmpty}>A combinar</Text>
+                      )}
                     </View>
                   )
                 })}
@@ -241,13 +275,12 @@ export function ShoppingListDocument({
             ? `Semana de ${formatShortDate(weekStart)} a ${formatShortDate(addDays(weekStart, 6))} • marque os itens no mercado.`
             : 'Marque os itens à mão enquanto percorre o mercado.'}
         </Text>
-        <View style={styles.divider} />
+        <View style={styles.rule} />
 
         {orderedGroups.map(([category, items]) => (
-          <View key={category} minPresenceAhead={60} style={styles.category}>
-            <Text style={styles.categoryTitle}>
-              {ingredientCategoryLabels[category]}
-            </Text>
+          <View key={category} minPresenceAhead={64} style={styles.category}>
+            <Text style={styles.categoryTitle}>{ingredientCategoryLabels[category]}</Text>
+            <View style={styles.categoryRule} />
             {items.map((item) => (
               <View key={item.id} style={styles.shoppingRow} wrap={false}>
                 <View style={styles.checkbox} />
@@ -284,10 +317,10 @@ export function WeeklyRecipesDocument({
         <Text style={styles.eyebrow}>Pratinho Pronto • Receitas da semana</Text>
         <Text style={styles.title}>Receitas da semana de {baby.name}</Text>
         <Text style={styles.subtitle}>{uniqueRecipes.length} receitas únicas do seu cardápio.</Text>
-        <View style={styles.divider} />
+        <View style={styles.rule} />
 
         {uniqueRecipes.map((recipe: Recipe) => (
-          <View key={recipe.id} minPresenceAhead={140} style={styles.recipeBlock}>
+          <View key={recipe.id} minPresenceAhead={150} style={styles.recipeBlock}>
             <Text style={styles.recipeTitle}>{recipe.name}</Text>
             <Text style={styles.recipeMeta}>
               {mealTypeLabels[recipe.meal_type]} • {recipe.prep_time_minutes} min • A partir de {recipe.min_age_months} meses
@@ -304,14 +337,13 @@ export function WeeklyRecipesDocument({
               <View style={styles.instructionsColumn}>
                 <Text style={styles.sectionLabel}>Preparo</Text>
                 {splitInstructions(recipe.instructions).map((step, index) => (
-                  <Text key={`${recipe.id}-step-${index}`} style={styles.stepLine} wrap={false}>
-                    {index + 1}. {step}
-                  </Text>
+                  <View key={`${recipe.id}-step-${index}`} style={styles.stepRow} wrap={false}>
+                    <Text style={styles.stepNumber}>{index + 1}.</Text>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </View>
                 ))}
                 {recipe.serving_notes && (
-                  <Text style={styles.note} wrap={false}>
-                    Como servir: {recipe.serving_notes}
-                  </Text>
+                  <Text style={styles.note}>Como servir: {recipe.serving_notes}</Text>
                 )}
               </View>
             </View>

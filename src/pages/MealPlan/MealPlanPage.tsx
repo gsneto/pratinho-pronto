@@ -1,9 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw, Sparkles } from 'lucide-react'
+import {
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  ListChecks,
+  RefreshCw,
+  Sparkles,
+} from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
-import { BabyAvatar, BabyPhotoBackdrop } from '../../components/baby/BabyAvatar'
+import { BabyAvatar } from '../../components/baby/BabyAvatar'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
 import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { PageState } from '../../components/ui/PageState'
@@ -45,6 +54,9 @@ export function MealPlanPage() {
   const [isReplacing, setIsReplacing] = useState(false)
   const [isDuplicating, setIsDuplicating] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  // Dia aberto no destaque. Acompanha a semana exibida: se a semana muda, a
+  // seleção anterior deixa de valer e voltamos ao primeiro dia relevante.
+  const [daySelection, setDaySelection] = useState<{ date: string; week: string } | null>(null)
   const { data: plan, error: planError, isLoading: planLoading } = useMealPlan(
     baby?.id,
     weekStart,
@@ -88,11 +100,7 @@ export function MealPlanPage() {
     return (
       <PageState
         action={
-          <button
-            className="min-h-13 rounded-2xl bg-pumpkin px-5 text-sm font-medium text-[#2A2A22] hover:bg-pumpkin/90"
-            onClick={() => window.location.reload()}
-            type="button"
-          >
+          <button className="pp-btn pp-btn-primary" onClick={() => window.location.reload()} type="button">
             Tentar de novo
           </button>
         }
@@ -104,6 +112,19 @@ export function MealPlanPage() {
   }
 
   const currentBaby = baby
+  // Dia em destaque: o dia selecionado, ou hoje quando a semana exibida é a
+  // atual, ou a segunda-feira da semana visitada.
+  const weekDates = weekDayLabels.map((_, index) => addDays(weekStart, index))
+  const defaultDate = weekDates.includes(todayIso) ? todayIso : weekStart
+  const selectedDate =
+    daySelection && daySelection.week === weekStart ? daySelection.date : defaultDate
+  const selectedDayIndex = Math.max(0, weekDates.indexOf(selectedDate))
+  const selectedDayItems = itemsByDate.get(selectedDate) ?? []
+  const [featuredItem, ...otherItems] = selectedDayItems
+
+  function selectDate(date: string) {
+    setDaySelection({ date, week: weekStart })
+  }
 
   function toggleMealType(mealType: MealType) {
     setSelectedMealTypes((current) =>
@@ -189,253 +210,419 @@ export function MealPlanPage() {
   }
 
   return (
-    <div>
-      <div className="relative isolate overflow-hidden rounded-[24px] border border-cream-100 bg-white p-5 sm:p-6">
-        <BabyPhotoBackdrop name={currentBaby.name} photoUrl={currentBaby.photo_url} />
-        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex items-center gap-3">
-            <BabyAvatar name={currentBaby.name} photoUrl={currentBaby.photo_url} size="lg" />
-            <div>
-              <p className="text-sm font-semibold text-terracotta-500">Cardápio de {currentBaby.name}</p>
-              <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
-                Montar minha semana
-              </h1>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-ink-500" id="week-picker-label">
-              Semana exibida
-            </p>
-            <div className="mt-1 flex items-center gap-2" role="group" aria-labelledby="week-picker-label">
-              <button
-                aria-label="Ver semana anterior"
-                className="grid size-12 shrink-0 place-items-center rounded-2xl border border-cream-100 bg-white text-ink-700 transition hover:border-sage-500"
-                onClick={() => goToWeek(addDays(weekStart, -7))}
-                type="button"
-              >
-                <ChevronLeft aria-hidden="true" size={19} />
-              </button>
-              <div className="min-w-0 flex-1 text-center">
-                <p className="text-sm font-semibold text-ink-900">
-                  {formatShortDate(weekStart)} a {formatShortDate(addDays(weekStart, 6))}
-                </p>
-                {weekStart === thisWeekStart ? (
-                  <p className="text-[11px] font-semibold text-sage-700">Semana de hoje</p>
-                ) : (
-                  <button
-                    className="text-[11px] font-semibold text-sage-700 underline decoration-sage-200 underline-offset-2"
-                    onClick={() => goToWeek(thisWeekStart)}
-                    type="button"
-                  >
-                    Voltar para esta semana
-                  </button>
-                )}
-              </div>
-              <button
-                aria-label="Ver próxima semana"
-                className="grid size-12 shrink-0 place-items-center rounded-2xl border border-cream-100 bg-white text-ink-700 transition hover:border-sage-500"
-                onClick={() => goToWeek(addDays(weekStart, 7))}
-                type="button"
-              >
-                <ChevronRight aria-hidden="true" size={19} />
-              </button>
-            </div>
+    <div className="mx-auto max-w-4xl">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <BabyAvatar name={currentBaby.name} photoUrl={currentBaby.photo_url} size="lg" />
+          <div className="min-w-0">
+            <p className="pp-eyebrow">Cardápio de {currentBaby.name}</p>
+            <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
+              Minha semana
+            </h1>
           </div>
         </div>
-      </div>
+        <div className="pp-card w-full p-3 sm:w-auto sm:min-w-72">
+          <p className="sr-only" id="week-picker-label">
+            Semana exibida
+          </p>
+          <div aria-labelledby="week-picker-label" className="flex items-center gap-2" role="group">
+            <button
+              aria-label="Ver semana anterior"
+              className="pp-icon-btn size-12"
+              onClick={() => goToWeek(addDays(weekStart, -7))}
+              type="button"
+            >
+              <ChevronLeft aria-hidden="true" size={20} />
+            </button>
+            <div className="min-w-0 flex-1 text-center">
+              <p className="flex items-center justify-center gap-1.5 text-sm font-semibold text-ink-900">
+                <CalendarDays aria-hidden="true" className="shrink-0 text-sage-700" size={15} />
+                {formatShortDate(weekStart)} – {formatShortDate(addDays(weekStart, 6))}
+              </p>
+              {weekStart === thisWeekStart ? (
+                <p className="mt-0.5 text-xs font-semibold text-sage-700">Semana de hoje</p>
+              ) : (
+                <button
+                  className="pp-link mt-0.5 text-xs"
+                  onClick={() => goToWeek(thisWeekStart)}
+                  type="button"
+                >
+                  Voltar para esta semana
+                </button>
+              )}
+            </div>
+            <button
+              aria-label="Ver próxima semana"
+              className="pp-icon-btn size-12"
+              onClick={() => goToWeek(addDays(weekStart, 7))}
+              type="button"
+            >
+              <ChevronRight aria-hidden="true" size={20} />
+            </button>
+          </div>
+        </div>
+      </header>
 
       {statusMessage && (
         <p
           aria-live="polite"
-          className="mt-4 rounded-2xl bg-sage-50 px-4 py-3 text-sm font-semibold text-sage-700"
+          className="pp-badge pp-badge-sage mt-4 w-full justify-start rounded-[14px] px-4 py-3 text-sm leading-6"
           role="status"
         >
+          <Check aria-hidden="true" className="shrink-0" size={16} />
           {statusMessage}
         </p>
       )}
-
-      {history.length > 0 && (
-        <section className="mt-5 rounded-[22px] border border-cream-100 bg-white p-4 sm:p-5" aria-labelledby="week-history-title">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-terracotta-500">Seu histórico</p>
-              <h2 className="mt-1 text-lg font-semibold text-ink-900" id="week-history-title">Semanas salvas</h2>
-            </div>
-            {plan && (
-              <button
-                className="min-h-11 rounded-xl bg-sage-50 px-3 text-sm font-semibold text-sage-700 disabled:opacity-55"
-                disabled={isDuplicating}
-                onClick={handleRepeatNextWeek}
-                type="button"
-              >
-                {isDuplicating ? 'Duplicando…' : 'Repetir na próxima semana'}
-              </button>
-            )}
-          </div>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            {history.map((savedWeek) => (
-              <Link
-                aria-current={savedWeek.week_start === weekStart ? 'true' : undefined}
-                className={`min-w-36 rounded-xl border px-3 py-2.5 text-left text-sm transition ${savedWeek.week_start === weekStart ? 'border-sage-500 bg-sage-50 text-sage-700' : 'border-cream-100 text-ink-700 hover:border-sage-300'}`}
-                key={savedWeek.id}
-                to={`/app/week?week=${savedWeek.week_start}`}
-              >
-                <span className="block text-xs font-semibold uppercase tracking-[0.08em]">
-                  {savedWeek.week_start === weekStart
-                    ? 'Você está aqui'
-                    : savedWeek.week_start === thisWeekStart
-                      ? 'Semana de hoje'
-                      : 'Semana salva'}
-                </span>
-                <span className="mt-1 block">{formatShortDate(savedWeek.week_start)}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="mt-6 rounded-[24px] border border-cream-100 bg-white p-5 shadow-[0_12px_40px_rgba(65,65,60,0.04)] sm:p-6">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-2xl bg-sage-50 text-sage-700">
-            <Sparkles aria-hidden="true" size={20} />
-          </span>
-          <div>
-            <h2 className="text-lg font-semibold text-ink-900">Quais refeições deseja planejar?</h2>
-            <p className="mt-1 text-xs text-ink-500">Usamos apenas receitas compatíveis com a idade e as escolhas de {currentBaby.name}.</p>
-          </div>
-        </div>
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {allMealTypes.map((mealType) => (
-            <label
-              className={`flex min-h-12 cursor-pointer items-center gap-2 rounded-2xl border px-3 text-sm font-medium ${
-                selectedMealTypes.includes(mealType)
-                  ? 'border-sage-500 bg-sage-50 text-sage-700'
-                  : 'border-cream-100 text-ink-500'
-              }`}
-              key={mealType}
-            >
-              <input
-                checked={selectedMealTypes.includes(mealType)}
-                className="accent-sage-600"
-                onChange={() => toggleMealType(mealType)}
-                type="checkbox"
-              />
-              {mealTypeLabels[mealType]}
-            </label>
-          ))}
-        </div>
-        {generationError && <p className="mt-4 text-sm text-terracotta-500" role="alert">{generationError}</p>}
-        <button
-          className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] hover:bg-pumpkin/90 disabled:opacity-55 sm:w-auto sm:min-w-64"
-          disabled={isGenerating}
-          onClick={handleGenerate}
-          type="button"
-        >
-          {isGenerating ? 'Montando…' : plan ? 'Refazer esta semana' : 'Montar minha semana'}
-          <Sparkles aria-hidden="true" size={18} />
-        </button>
-      </section>
 
       {planLoading ? (
         <div className="mt-6">
           <PageState description="Buscando o cardápio salvo." title="Carregando semana…" />
         </div>
-      ) : !plan ? (
-        <div className="mt-6">
-          <PageState
-            description="Escolha as refeições acima e monte sua primeira semana em poucos cliques."
-            title="Nenhum cardápio por aqui ainda"
-            variant="empty"
-          />
-        </div>
-      ) : (
-        <section className="mt-8" aria-labelledby="current-week-title">
-          <div className="flex items-center gap-3">
-            <CalendarDays aria-hidden="true" className="text-sage-700" size={22} />
-            <h2 className="text-2xl font-semibold tracking-[-0.035em] text-ink-900" id="current-week-title">
-              {weekStart === thisWeekStart ? 'Sua semana atual' : `Semana de ${formatShortDate(weekStart)}`}
-            </h2>
-          </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            {weekDayLabels.map((dayLabel, index) => {
-              const date = addDays(weekStart, index)
-              const dayItems = itemsByDate.get(date) ?? []
-              const isToday = date === todayIso
-              return (
-                <article
-                  className={`rounded-[22px] border bg-white p-5 ${isToday ? 'border-sage-500 ring-1 ring-sage-500/40' : 'border-cream-100'}`}
-                  key={date}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="flex items-center gap-2 text-base font-semibold text-ink-900">
-                      {dayLabel}
+      ) : plan ? (
+        <>
+          {/* Seletor de dias: onde a mãe está dentro da semana. */}
+          <nav aria-label="Dias da semana" className="mt-6">
+            <ul className="pp-scroller -mx-5 flex gap-2 px-5 pb-1 sm:-mx-8 sm:px-8">
+              {weekDayLabels.map((dayLabel, index) => {
+                const date = weekDates[index]
+                const isToday = date === todayIso
+                const isSelected = date === selectedDate
+                const dayCount = (itemsByDate.get(date) ?? []).length
+                return (
+                  <li key={date}>
+                    <button
+                      aria-current={isSelected ? 'true' : undefined}
+                      aria-label={`${dayLabel}, ${formatShortDate(date)}${isToday ? ', hoje' : ''}, ${dayCount} refeições`}
+                      className="pp-selectable min-w-19 flex-col items-center justify-center gap-0 px-3 py-2"
+                      onClick={() => selectDate(date)}
+                      type="button"
+                    >
+                      <span className="text-xs font-semibold">{dayLabel}</span>
+                      <span className="mt-0.5 text-[11px] text-ink-500">
+                        {formatShortDate(date)}
+                      </span>
                       {isToday && (
-                        <span className="rounded-full bg-sage-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-sage-700">
+                        <span className="mt-1 flex items-center gap-1 text-[10px] font-bold text-sage-700">
+                          <span aria-hidden="true" className="size-1.5 rounded-full bg-sage-700" />
+                          HOJE
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+
+          {/* Destaque do dia selecionado: decisão imediata do que preparar. */}
+          {featuredItem ? (
+            <section
+              aria-labelledby="featured-meal-title"
+              className="pp-panel pp-lifted mt-5 overflow-hidden sm:grid sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
+            >
+              <RecipeVisual
+                imageUrl={featuredItem.recipe.image_url}
+                name={featuredItem.recipe.name}
+                priority
+                size="square"
+              />
+              <div className="p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="pp-badge pp-badge-terracotta">
+                    {mealTypeLabels[featuredItem.meal_type]}
+                  </span>
+                  {selectedDate === todayIso ? (
+                    <span className="pp-badge pp-badge-today">
+                      Hoje · {formatShortDate(selectedDate)}
+                    </span>
+                  ) : (
+                    <span className="pp-badge pp-badge-sage">
+                      {weekDayLabels[selectedDayIndex]} · {formatShortDate(selectedDate)}
+                    </span>
+                  )}
+                </div>
+                <h2
+                  className="mt-3 text-[26px] leading-[1.12] break-words text-ink-900 sm:text-[30px]"
+                  id="featured-meal-title"
+                >
+                  {featuredItem.recipe.name}
+                </h2>
+                <p className="mt-3 flex items-center gap-1.5 text-sm text-ink-500">
+                  <Clock3 aria-hidden="true" size={15} />
+                  {featuredItem.recipe.prep_time_minutes} min · a partir de{' '}
+                  {featuredItem.recipe.min_age_months} meses
+                </p>
+                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                  <Link
+                    className="pp-btn pp-btn-primary pp-btn-lg flex-1"
+                    state={{ returnTo: `/app/week?week=${weekStart}` }}
+                    to={`/app/recipes/${featuredItem.recipe.id}`}
+                  >
+                    Ver como preparar
+                  </Link>
+                  <button
+                    aria-label={`Trocar ${featuredItem.recipe.name}`}
+                    className="pp-btn pp-btn-outline sm:w-auto"
+                    onClick={() => setReplacingItem(featuredItem)}
+                    type="button"
+                  >
+                    <RefreshCw aria-hidden="true" size={16} />
+                    Trocar
+                  </button>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <div className="mt-5">
+              <PageState
+                description="Este dia ficou sem refeição planejada. Escolha outro dia ou refaça a semana com mais refeições marcadas."
+                icon={CalendarDays}
+                title={`Nada planejado em ${formatShortDate(selectedDate)}`}
+                variant="empty"
+              />
+            </div>
+          )}
+
+          {/* Demais refeições do dia, na ordem cronológica do dia. */}
+          {otherItems.length > 0 && (
+            <section aria-labelledby="day-rest-title" className="mt-6">
+              <h2 className="text-lg text-ink-900" id="day-rest-title">
+                Resto do dia
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {otherItems.map((item) => (
+                  <li className="pp-card pp-interactive flex items-center gap-3 p-3" key={item.id}>
+                    <RecipeVisual
+                      imageUrl={item.recipe.image_url}
+                      name={item.recipe.name}
+                      size="thumb"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold tracking-[0.06em] text-terracotta-500 uppercase">
+                        {mealTypeLabels[item.meal_type]}
+                      </p>
+                      <Link
+                        className="pp-link mt-0.5 block text-sm break-words"
+                        state={{ returnTo: `/app/week?week=${weekStart}` }}
+                        to={`/app/recipes/${item.recipe.id}`}
+                      >
+                        {item.recipe.name}
+                      </Link>
+                      <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-500">
+                        <Clock3 aria-hidden="true" size={12} />
+                        {item.recipe.prep_time_minutes} min · Ver como preparar
+                      </p>
+                    </div>
+                    <button
+                      aria-label={`Trocar ${item.recipe.name}`}
+                      className="pp-btn pp-btn-quiet pp-btn-sm shrink-0"
+                      onClick={() => setReplacingItem(item)}
+                      type="button"
+                    >
+                      <RefreshCw aria-hidden="true" size={14} />
+                      Trocar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Semana compacta: organização visível sem competir com o destaque. */}
+          <section aria-labelledby="current-week-title" className="pp-panel mt-8 overflow-hidden">
+            <div className="border-b border-cream-100 px-4 py-3 sm:px-5">
+              <h2 className="text-base text-ink-900" id="current-week-title">
+                {weekStart === thisWeekStart
+                  ? 'Sua semana atual'
+                  : `Semana de ${formatShortDate(weekStart)}`}
+              </h2>
+            </div>
+            <ul className="divide-y divide-cream-100">
+              {weekDayLabels.map((dayLabel, index) => {
+                const date = weekDates[index]
+                const dayItems = itemsByDate.get(date) ?? []
+                const isToday = date === todayIso
+                const isSelected = date === selectedDate
+                return (
+                  <li key={date}>
+                    <button
+                      aria-current={isSelected ? 'true' : undefined}
+                      className={`flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream-50 sm:px-5 ${
+                        isSelected ? 'bg-sage-50' : ''
+                      }`}
+                      onClick={() => selectDate(date)}
+                      type="button"
+                    >
+                      <span className="w-14 shrink-0">
+                        <span className="block text-sm font-semibold text-ink-900">{dayLabel}</span>
+                        <span className="block text-[11px] text-ink-500">
+                          {formatShortDate(date)}
+                        </span>
+                      </span>
+                      {isToday && (
+                        <span className="pp-badge pp-badge-today shrink-0 px-2 py-1 text-[10px]">
                           Hoje
                         </span>
                       )}
-                    </h3>
-                    <span className="text-xs text-ink-500">{formatShortDate(date)}</span>
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {dayItems.length === 0 ? (
-                      <p className="rounded-2xl bg-cream-50 px-3 py-3 text-sm text-ink-500">
-                        Sem refeição planejada neste dia.
-                      </p>
-                    ) : dayItems.map((item) => (
-                      <div className="flex items-center gap-3 rounded-2xl bg-cream-50 px-3 py-3" key={item.id}>
-                        <RecipeVisual imageUrl={item.recipe.image_url} name={item.recipe.name} size="thumb" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-terracotta-500">
-                            {mealTypeLabels[item.meal_type]}
-                          </p>
-                          <Link
-                            className="mt-1 block truncate text-sm font-medium text-sage-700 underline decoration-sage-200 underline-offset-2 transition hover:text-terracotta-500 hover:decoration-terracotta-200 focus:outline-none focus:ring-2 focus:ring-pumpkin focus:ring-offset-2"
-                            state={{ returnTo: `/app/week?week=${weekStart}` }}
-                            to={`/app/recipes/${item.recipe.id}`}
-                          >
-                            {item.recipe.name}
-                          </Link>
-                          <span className="mt-1 block text-[11px] text-ink-500">Ver como preparar</span>
-                        </div>
-                        <button
-                          aria-label={`Trocar ${item.recipe.name}`}
-                          className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-xs font-semibold text-sage-700 transition hover:bg-sage-50"
-                          onClick={() => setReplacingItem(item)}
-                          type="button"
-                        >
-                          <RefreshCw aria-hidden="true" size={14} />
-                          Trocar
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-          <div className="mt-6 grid gap-3 rounded-[22px] bg-sage-50 p-4 sm:grid-cols-2 sm:p-5">
+                      <span className="min-w-0 flex-1 text-sm leading-snug text-ink-700">
+                        {dayItems.length === 0
+                          ? 'Sem refeição planejada neste dia.'
+                          : dayItems.map((item) => item.recipe.name).join(' · ')}
+                      </span>
+                      <ChevronRight
+                        aria-hidden="true"
+                        className="shrink-0 text-ink-500"
+                        size={18}
+                      />
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+
+          {/* Saídas da semana: compras e impressão. */}
+          <section
+            aria-label="Levar esta semana para o mercado e para o papel"
+            className="pp-panel-quiet mt-6 grid gap-3 p-4 sm:grid-cols-3 sm:p-5"
+          >
+            <Link
+              className="pp-btn pp-btn-primary w-full"
+              to={`/app/shopping-list?week=${weekStart}`}
+            >
+              <ListChecks aria-hidden="true" size={18} />
+              Gerar lista de compras
+            </Link>
             <PdfExportButton
               baby={currentBaby}
               kind="week"
-              label="Imprimir cardápio da semana"
+              label="Imprimir cardápio"
               plan={plan}
               weekStart={weekStart}
             />
             <PdfExportButton
               baby={currentBaby}
               kind="recipes"
-              label="Receitas da semana em PDF"
+              label="Receitas em PDF"
               plan={plan}
               weekStart={weekStart}
             />
-            <Link
-              className="flex min-h-13 items-center justify-center rounded-2xl border border-sage-200 bg-white px-5 text-center text-sm font-semibold text-sage-700 transition hover:border-sage-500"
-              to={`/app/shopping-list?week=${weekStart}`}
-            >
-              Gerar lista de compras
-            </Link>
+          </section>
+        </>
+      ) : (
+        <div className="mt-6">
+          <PageState
+            description="Escolha as refeições abaixo e monte sua primeira semana em poucos toques."
+            icon={CalendarDays}
+            title="Nenhum cardápio por aqui ainda"
+            variant="empty"
+          />
+        </div>
+      )}
+
+      {/* Montagem da semana: ação de configuração, abaixo do conteúdo. */}
+      <section aria-labelledby="generator-title" className="pp-panel mt-8 p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-sage-50 text-sage-700">
+            <Sparkles aria-hidden="true" size={20} />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-lg text-ink-900" id="generator-title">
+              Quais refeições deseja planejar?
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-ink-500">
+              Usamos apenas receitas compatíveis com a idade e as escolhas de {currentBaby.name}.
+            </p>
           </div>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {allMealTypes.map((mealType) => {
+            const isChecked = selectedMealTypes.includes(mealType)
+            return (
+              <label
+                className="pp-selectable cursor-pointer text-sm"
+                data-selected={isChecked ? 'true' : undefined}
+                key={mealType}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`grid size-5 shrink-0 place-items-center rounded-md border ${
+                    isChecked
+                      ? 'border-sage-600 bg-sage-600 text-white'
+                      : 'border-cream-200 bg-white'
+                  }`}
+                >
+                  {isChecked && <Check size={13} strokeWidth={2.6} />}
+                </span>
+                <input
+                  checked={isChecked}
+                  className="sr-only"
+                  onChange={() => toggleMealType(mealType)}
+                  type="checkbox"
+                />
+                {mealTypeLabels[mealType]}
+              </label>
+            )
+          })}
+        </div>
+        {generationError && (
+          <p
+            className="mt-4 rounded-[14px] bg-terracotta-100 px-4 py-3 text-sm leading-6 text-terracotta-500"
+            role="alert"
+          >
+            {generationError}
+          </p>
+        )}
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <button
+            className={`pp-btn pp-btn-lg w-full sm:w-auto sm:min-w-64 ${
+              plan ? 'pp-btn-secondary' : 'pp-btn-primary'
+            }`}
+            disabled={isGenerating}
+            onClick={handleGenerate}
+            type="button"
+          >
+            <Sparkles aria-hidden="true" size={18} />
+            {isGenerating ? 'Montando…' : plan ? 'Refazer esta semana' : 'Montar minha semana'}
+          </button>
+          {plan && (
+            <button
+              className="pp-btn pp-btn-quiet w-full sm:w-auto"
+              disabled={isDuplicating}
+              onClick={handleRepeatNextWeek}
+              type="button"
+            >
+              {isDuplicating ? 'Duplicando…' : 'Repetir na próxima semana'}
+            </button>
+          )}
+        </div>
+      </section>
+
+      {history.length > 0 && (
+        <section aria-labelledby="week-history-title" className="mt-6">
+          <h2 className="text-base text-ink-900" id="week-history-title">
+            Semanas salvas
+          </h2>
+          <ul className="pp-scroller -mx-5 mt-3 flex gap-2 px-5 pb-1 sm:-mx-8 sm:px-8">
+            {history.map((savedWeek) => (
+              <li key={savedWeek.id}>
+                <Link
+                  aria-current={savedWeek.week_start === weekStart ? 'true' : undefined}
+                  className="pp-selectable min-w-36 flex-col items-start justify-center gap-0 px-3 py-2.5"
+                  to={`/app/week?week=${savedWeek.week_start}`}
+                >
+                  <span className="text-[11px] font-bold tracking-[0.06em] uppercase">
+                    {savedWeek.week_start === weekStart
+                      ? 'Você está aqui'
+                      : savedWeek.week_start === thisWeekStart
+                        ? 'Semana de hoje'
+                        : 'Semana salva'}
+                  </span>
+                  <span className="mt-1 text-sm">{formatShortDate(savedWeek.week_start)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

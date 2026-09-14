@@ -44,26 +44,26 @@ export function RecipesPage() {
   return (
     <div>
       <div className="max-w-2xl">
-        <p className="text-sm font-semibold text-terracotta-500">Biblioteca do seu catálogo</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
+        <p className="pp-eyebrow">Biblioteca do seu catálogo</p>
+        <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
           Receitas para planejar, não para acumular
         </h1>
-        <p className="mt-3 text-sm leading-6 text-ink-500">
+        <p className="mt-3 text-base leading-7 text-ink-500">
           Filtre por refeição, idade e tempo para encontrar uma opção que caiba na sua rotina. Elas não substituem orientação profissional
           individual.
         </p>
       </div>
 
-      <section className="mt-7 rounded-[22px] border border-cream-100 bg-white p-4 sm:p-5">
+      <section className="pp-panel mt-6 p-4 sm:p-5">
         <div className="relative">
           <Search
             aria-hidden="true"
-            className="absolute top-1/2 left-4 -translate-y-1/2 text-ink-500"
+            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-500"
             size={18}
           />
           <input
             aria-label="Buscar receitas"
-            className="min-h-13 w-full rounded-2xl bg-cream-50 pr-4 pl-11 text-base text-ink-900 placeholder:text-ink-500/60 focus:outline-2 focus:outline-sage-500"
+            className="pp-field pl-11"
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por nome ou descrição"
             type="search"
@@ -71,10 +71,10 @@ export function RecipesPage() {
           />
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <label className="text-xs font-semibold text-ink-500">
+          <label className="pp-field-label">
             Refeição
             <select
-              className="mt-1 min-h-11 w-full rounded-xl bg-cream-50 px-3 text-sm text-ink-700"
+              className="pp-field mt-1.5"
               onChange={(event) => setMealType(event.target.value as MealType | '')}
               value={mealType}
             >
@@ -84,10 +84,10 @@ export function RecipesPage() {
               ))}
             </select>
           </label>
-          <label className="text-xs font-semibold text-ink-500">
+          <label className="pp-field-label">
             Tempo máximo
             <select
-              className="mt-1 min-h-11 w-full rounded-xl bg-cream-50 px-3 text-sm text-ink-700"
+              className="pp-field mt-1.5"
               onChange={(event) => setMaxTime(event.target.value)}
               value={maxTime}
             >
@@ -97,10 +97,10 @@ export function RecipesPage() {
               <option value="45">Até 45 min</option>
             </select>
           </label>
-          <label className="text-xs font-semibold text-ink-500">
+          <label className="pp-field-label">
             Idade mínima até
             <select
-              className="mt-1 min-h-11 w-full rounded-xl bg-cream-50 px-3 text-sm text-ink-700"
+              className="pp-field mt-1.5"
               onChange={(event) => setMaxAge(event.target.value)}
               value={maxAge}
             >
@@ -113,25 +113,32 @@ export function RecipesPage() {
             </select>
           </label>
         </div>
-        <p className="mt-3 flex items-center gap-2 text-xs text-ink-500">
-          <SlidersHorizontal aria-hidden="true" size={15} />
-          {filteredRecipes.length} de {recipes.length} receitas
-        </p>
-        <button
-          aria-pressed={showFavorites}
-          className={`mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition ${showFavorites ? 'bg-terracotta-500 text-white' : 'bg-terracotta-100 text-terracotta-500 hover:bg-terracotta-100/80'}`}
-          onClick={() => setShowFavorites((current) => !current)}
-          type="button"
-        >
-          <Heart aria-hidden="true" fill={showFavorites ? 'currentColor' : 'none'} size={16} />
-          {showFavorites ? 'Mostrando favoritas' : 'Minhas favoritas'}
-        </button>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <button
+            aria-pressed={showFavorites}
+            className={`pp-btn pp-btn-sm ${
+              showFavorites
+                ? 'border-terracotta-500 bg-terracotta-500 text-white'
+                : 'pp-btn-outline'
+            }`}
+            onClick={() => setShowFavorites((current) => !current)}
+            type="button"
+          >
+            <Heart aria-hidden="true" fill={showFavorites ? 'currentColor' : 'none'} size={16} />
+            {showFavorites ? 'Mostrando favoritas' : 'Minhas favoritas'}
+          </button>
+          <p aria-live="polite" className="flex items-center gap-2 text-xs text-ink-500">
+            <SlidersHorizontal aria-hidden="true" size={15} />
+            {filteredRecipes.length} de {recipes.length} receitas
+          </p>
+        </div>
       </section>
 
       {filteredRecipes.length === 0 ? (
         <div className="mt-6">
           <PageState
             description="Tente remover um filtro ou buscar por outro termo."
+            icon={Search}
             title="Nenhuma receita encontrada"
             variant="empty"
           />
