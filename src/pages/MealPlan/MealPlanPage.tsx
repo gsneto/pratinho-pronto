@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
 import { BabyAvatar } from '../../components/baby/BabyAvatar'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
@@ -51,9 +51,12 @@ export function MealPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState<string | null>(null)
   const [replacingItem, setReplacingItem] = useState<MealPlanItem | null>(null)
+  const replacementTriggerRef = useRef<HTMLButtonElement>(null)
   const [isReplacing, setIsReplacing] = useState(false)
+  const [replacementError, setReplacementError] = useState<string | null>(null)
   const [isDuplicating, setIsDuplicating] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   // Dia aberto no destaque. Acompanha a semana exibida: se a semana muda, a
   // seleção anterior deixa de valer e voltamos ao primeiro dia relevante.
   const [daySelection, setDaySelection] = useState<{ date: string; week: string } | null>(null)
@@ -181,6 +184,8 @@ export function MealPlanPage() {
     if (!replacingItem) return
     const previousName = replacingItem.recipe.name
     setIsReplacing(true)
+    setReplacementError(null)
+    setStatusMessage(null)
     try {
       await replaceMealPlanItem(replacingItem.id, recipe.id)
       analytics.track('meal_replaced', { meal_type: replacingItem.meal_type })
@@ -189,6 +194,8 @@ export function MealPlanPage() {
       })
       setReplacingItem(null)
       setStatusMessage(`${previousName} virou ${recipe.name}.`)
+    } catch {
+      setReplacementError('Não conseguimos trocar esta refeição. Confira a conexão e tente novamente.')
     } finally {
       setIsReplacing(false)
     }
@@ -198,25 +205,29 @@ export function MealPlanPage() {
     if (!plan) return
     const nextWeek = addDays(weekStart, 7)
     setIsDuplicating(true)
+    setActionError(null)
+    setStatusMessage(null)
     try {
       await duplicateMealPlan(currentBaby.id, weekStart, nextWeek)
       await queryClient.invalidateQueries({ queryKey: mealPlanHistoryQueryKey(currentBaby.id) })
       await queryClient.invalidateQueries({ queryKey: mealPlanQueryKey(currentBaby.id, nextWeek) })
       goToWeek(nextWeek)
       setStatusMessage(`Cardápio copiado para a semana de ${formatShortDate(nextWeek)}`)
+    } catch {
+      setActionError('Não conseguimos repetir esta semana. Confira a conexão e tente novamente.')
     } finally {
       setIsDuplicating(false)
     }
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="pp-meal-plan mx-auto max-w-4xl">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <BabyAvatar name={currentBaby.name} photoUrl={currentBaby.photo_url} size="lg" />
           <div className="min-w-0">
             <p className="pp-eyebrow">Cardápio de {currentBaby.name}</p>
-            <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
+            <h1 className="pp-page-title">
               Minha semana
             </h1>
           </div>
@@ -263,6 +274,7 @@ export function MealPlanPage() {
         </div>
       </header>
 
+      {actionError && <p className="pp-feedback-error" role="alert">{actionError}</p>}
       {statusMessage && (
         <p
           aria-live="polite"
@@ -282,7 +294,7 @@ export function MealPlanPage() {
         <>
           {/* Seletor de dias: onde a mãe está dentro da semana. */}
           <nav aria-label="Dias da semana" className="mt-6">
-            <ul className="pp-scroller -mx-5 flex gap-2 px-5 pb-1 sm:-mx-8 sm:px-8">
+            <ul className="pp-week-days pp-scroller flex gap-2 pb-1">
               {weekDayLabels.map((dayLabel, index) => {
                 const date = weekDates[index]
                 const isToday = date === todayIso
@@ -363,7 +375,7 @@ export function MealPlanPage() {
                   <button
                     aria-label={`Trocar ${featuredItem.recipe.name}`}
                     className="pp-btn pp-btn-outline sm:w-auto"
-                    onClick={() => setReplacingItem(featuredItem)}
+                    onClick={(event) => { replacementTriggerRef.current = event.currentTarget; setReplacingItem(featuredItem) }}
                     type="button"
                   >
                     <RefreshCw aria-hidden="true" size={16} />
@@ -416,7 +428,7 @@ export function MealPlanPage() {
                     <button
                       aria-label={`Trocar ${item.recipe.name}`}
                       className="pp-btn pp-btn-quiet pp-btn-sm shrink-0"
-                      onClick={() => setReplacingItem(item)}
+                      onClick={(event) => { replacementTriggerRef.current = event.currentTarget; setReplacingItem(item) }}
                       type="button"
                     >
                       <RefreshCw aria-hidden="true" size={14} />
@@ -521,7 +533,9 @@ export function MealPlanPage() {
       )}
 
       {/* Montagem da semana: ação de configuração, abaixo do conteúdo. */}
-      <section aria-labelledby="generator-title" className="pp-panel mt-8 p-5 sm:p-6">
+      <details className="pp-disclosure" key={weekStart} open={!plan}>
+        <summary>{plan ? 'Ajustar meu planejamento' : 'Montar meu primeiro cardápio'}</summary>
+        <div aria-labelledby="generator-title">
         <div className="flex items-start gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-sage-50 text-sage-700">
             <Sparkles aria-hidden="true" size={20} />
@@ -596,14 +610,15 @@ export function MealPlanPage() {
             </button>
           )}
         </div>
-      </section>
+        </div>
+      </details>
 
       {history.length > 0 && (
         <section aria-labelledby="week-history-title" className="mt-6">
           <h2 className="text-base text-ink-900" id="week-history-title">
             Semanas salvas
           </h2>
-          <ul className="pp-scroller -mx-5 mt-3 flex gap-2 px-5 pb-1 sm:-mx-8 sm:px-8">
+          <ul className="pp-scroller mt-3 flex gap-2 pb-1">
             {history.map((savedWeek) => (
               <li key={savedWeek.id}>
                 <Link
@@ -629,10 +644,12 @@ export function MealPlanPage() {
       {replacingItem && (
         <ReplaceMealDialog
           alternatives={alternatives}
+          error={replacementError}
           isSaving={isReplacing}
           item={replacingItem}
           onChoose={handleReplace}
-          onClose={() => setReplacingItem(null)}
+          onClose={() => { setReplacingItem(null); setReplacementError(null) }}
+          returnFocusRef={replacementTriggerRef}
         />
       )}
     </div>

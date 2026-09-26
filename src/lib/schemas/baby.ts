@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from './zod'
 
 export const babyFormSchema = z.object({
   name: z.string().trim().min(2, 'Digite o nome do bebê.').max(80),

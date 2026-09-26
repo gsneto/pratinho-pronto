@@ -65,6 +65,36 @@ npm run build
 npm run pdf:sample
 ```
 
+## Redesign e demonstração isolada
+
+A apresentação atual usa direção botânica/editorial, navegação lateral no
+desktop e barra inferior no celular, com temas claro e escuro. Os tokens,
+componentes e breakpoints estão em [`DESIGN.md`](DESIGN.md). A camada visual
+compartilhada é `src/ui-refresh.css`, importada após `src/index.css`.
+
+Para experimentar as telas reais sem autenticar ou alterar o Supabase:
+
+```bash
+npm run qa:build
+npm run qa:serve
+```
+
+Abra **http://127.0.0.1:4178/app**. O banner identifica dados fictícios; as
+alterações ficam em memória. Essa prévia é distinta de `/preview` (protótipos
+A/B/C) e não é uma publicação em produção.
+
+O roteiro reproduzível, as restrições do ambiente e a cobertura estão em
+[`qa/README.md`](qa/README.md). A rodada v3 acrescenta medição complementar
+CSS/DOM dos diálogos, preservando o axe bruto: `output/ui-qa/report-v3.md`.
+As matrizes de rotas anteriores permanecem em `output/ui-qa/report-v2.md`;
+JSONs, capturas e PDFs acompanham as execuções. A análise específica dos
+três vídeos permanece dispensada.
+
+O convite de instalação tem regressões próprias em `npm run qa:pwa`: falha
+recuperável, evento de uso único, estado compartilhado e instruções acessíveis.
+A suíte usa eventos sintéticos nos três engines; não instala o aplicativo nem
+certifica modo offline ou Safari/iOS físico. Detalhes em `qa/README.md`.
+
 ## Estrutura planejada
 
 ```text

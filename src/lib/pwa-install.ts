@@ -1,8 +1,13 @@
 import { useSyncExternalStore } from 'react'
 
+interface InstallChoice {
+  outcome: 'accepted' | 'dismissed'
+  platform: string
+}
+
 interface InstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
+  prompt: () => Promise<InstallChoice>
+  userChoice: Promise<InstallChoice>
 }
 
 interface NavigatorWithStandalone extends Navigator {
@@ -10,6 +15,7 @@ interface NavigatorWithStandalone extends Navigator {
 }
 
 interface InstallState {
+  isPrompting: boolean
   canInstall: boolean
   isInstalled: boolean
   isIos: boolean
@@ -17,6 +23,8 @@ interface InstallState {
 
 let deferredPrompt: InstallPromptEvent | null = null
 let initialized = false
+let isPrompting = false
+let installedInSession = false
 const listeners = new Set<() => void>()
 
 function detectInstalled() {
@@ -32,15 +40,18 @@ function detectIos() {
 }
 
 let snapshot: InstallState = {
+  isPrompting: false,
   canInstall: false,
   isInstalled: false,
   isIos: false,
 }
 
 function updateSnapshot() {
+  const isInstalled = installedInSession || detectInstalled()
   snapshot = {
-    canInstall: deferredPrompt !== null,
-    isInstalled: detectInstalled(),
+    isPrompting,
+    canInstall: deferredPrompt !== null && !isPrompting && !isInstalled,
+    isInstalled,
     isIos: detectIos(),
   }
   listeners.forEach((listener) => listener())
@@ -52,12 +63,14 @@ export function initializePwaInstall() {
   updateSnapshot()
 
   window.addEventListener('beforeinstallprompt', (event) => {
+    if (snapshot.isInstalled) return
     event.preventDefault()
     deferredPrompt = event as InstallPromptEvent
     updateSnapshot()
   })
 
   window.addEventListener('appinstalled', () => {
+    installedInSession = true
     deferredPrompt = null
     updateSnapshot()
   })
@@ -74,14 +87,24 @@ export function usePwaInstall() {
   const state = useSyncExternalStore(subscribe, () => snapshot, () => snapshot)
 
   async function install() {
-    if (!deferredPrompt) return 'unavailable' as const
+    if (isPrompting) return 'busy' as const
+    if (!deferredPrompt || snapshot.isInstalled) return 'unavailable' as const
 
+    // A BeforeInstallPromptEvent can be prompted only once, including failure.
     const prompt = deferredPrompt
-    await prompt.prompt()
-    const { outcome } = await prompt.userChoice
     deferredPrompt = null
+    isPrompting = true
     updateSnapshot()
-    return outcome
+    try {
+      await prompt.prompt()
+      const { outcome } = await prompt.userChoice
+      return outcome
+    } catch {
+      return 'failed' as const
+    } finally {
+      isPrompting = false
+      updateSnapshot()
+    }
   }
 
   return { ...state, install }

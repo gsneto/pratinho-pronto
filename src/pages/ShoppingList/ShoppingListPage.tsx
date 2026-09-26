@@ -32,6 +32,7 @@ export function ShoppingListPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [changingItemId, setChangingItemId] = useState<string | null>(null)
   const [generationError, setGenerationError] = useState<string | null>(null)
+  const [itemError, setItemError] = useState<string | null>(null)
 
   const groupedItems = useMemo(() => {
     const groups = new Map<IngredientCategory, ShoppingListItem[]>()
@@ -96,11 +97,14 @@ export function ShoppingListPage() {
   async function toggleItem(item: ShoppingListItem) {
     if (!plan) return
     setChangingItemId(item.id)
+    setItemError(null)
     try {
       await setShoppingItemChecked(item.id, !item.checked)
       await queryClient.invalidateQueries({
         queryKey: shoppingListQueryKey(plan.id),
       })
+    } catch {
+      setItemError('Não conseguimos atualizar este item. Confira a conexão e toque novamente para tentar.')
     } finally {
       setChangingItemId(null)
     }
@@ -139,14 +143,13 @@ export function ShoppingListPage() {
     )
   }
 
-  const progressPercent = totals.total === 0 ? 0 : Math.round((totals.checked / totals.total) * 100)
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="pp-shopping mx-auto max-w-3xl">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="pp-eyebrow">Compras de {baby.name}</p>
-          <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
+          <h1 className="pp-page-title">
             Lista de compras
           </h1>
           <p className="mt-2 text-sm text-ink-500">
@@ -173,6 +176,7 @@ export function ShoppingListPage() {
         </button>
       </header>
 
+      {itemError && <p className="pp-feedback-error" role="alert">{itemError}</p>}
       {generationError && (
         <p
           className="mt-4 rounded-[14px] bg-terracotta-100 px-4 py-3 text-sm leading-6 text-terracotta-500"
@@ -204,19 +208,10 @@ export function ShoppingListPage() {
       ) : (
         <div className="mt-6 space-y-4">
           {/* Progresso da compra: barra + texto, nunca só cor. */}
-          <div className="pp-card p-4">
-            <p aria-live="polite" className="text-sm font-semibold text-ink-700">
-              {totals.checked} de {totals.total} itens marcados
-            </p>
-            <div
-              aria-hidden="true"
-              className="mt-2 h-2 w-full overflow-hidden rounded-full bg-cream-100"
-            >
-              <div
-                className="h-full rounded-full bg-sage-500 transition-[width] duration-300 ease-out motion-reduce:transition-none"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+          <div className="pp-shopping-progress">
+            <p aria-live="polite">{totals.checked} de {totals.total} itens marcados</p>
+            <progress aria-label="Itens da lista de compras" max={Math.max(1, totals.total)} value={totals.checked} />
+            {totals.total > 0 && totals.checked === totals.total && <span className="mt-2 block text-sm text-sage-700">Tudo marcado. Sua lista está completa.</span>}
           </div>
 
           {groupedItems.map(([category, items]) => (

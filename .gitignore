@@ -26,3 +26,9 @@ tmp/
 
 .vercel
 supabase/.temp/
+
+# QA/build artefatos locais
+entregaveis/
+output/
+qa/
+screenshots/

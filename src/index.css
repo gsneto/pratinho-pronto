@@ -1,66 +1,45 @@
 @import 'tailwindcss';
 
-/* ==========================================================================
-   Pratinho Pronto — sistema visual
-   "Cozinha acolhedora, organizada e contemporânea".
-   Tokens únicos para claro e escuro: componentes equivalentes usam as mesmas
-   classes (.pp-*) para não divergirem entre telas.
-   ========================================================================== */
-
 @theme {
-  /* Base e superfícies */
-  --color-cream-50: #f2f4ec;
-  --color-cream-100: #e2e6d9;
-  --color-cream-200: #cfd5c3;
-  --color-white: #fdfcf9;
-
-  /* Sálvia: organização, seleção e apoio */
-  --color-sage-50: #e9eee4;
-  --color-sage-100: #d8e0cf;
-  --color-sage-200: #bccbb0;
-  --color-sage-300: #9cb08d;
-  --color-sage-500: #5c6e4f;
-  --color-sage-600: #4d5e42;
-  --color-sage-700: #3f4e36;
-
-  /* Vinho/terracota: marcações editoriais e favoritos */
-  --color-terracotta-100: #f2e3e8;
-  --color-terracotta-200: #e2c5d0;
-  --color-terracotta-500: #8c3a56;
-  --color-terracotta-600: #742f47;
-  --color-beet: #8c3a56;
-
-  /* Abóbora: ação principal única por tela */
-  --color-pumpkin: #d9822b;
-  --color-pumpkin-deep: #a75c12;
-
-  /* Texto */
-  --color-ink-500: #6d6b5f;
-  --color-ink-700: #45443c;
-  --color-ink-900: #2a2a22;
-
+  --color-cream-50: #f7f8f2;
+  --color-cream-100: #e5ebe3;
+  --color-cream-200: #cbd8cd;
+  --color-white: #ffffff;
+  --color-sage-50: #edf3ec;
+  --color-sage-100: #dceadd;
+  --color-sage-200: #bfd5c5;
+  --color-sage-300: #91b9a5;
+  --color-sage-500: #377967;
+  --color-sage-600: #296553;
+  --color-sage-700: #235b50;
+  --color-terracotta-100: #f7e6e4;
+  --color-terracotta-200: #eac3be;
+  --color-terracotta-500: #96564f;
+  --color-terracotta-600: #83463f;
+  --color-beet: #96564f;
+  --color-pumpkin: #e7bb8b;
+  --color-pumpkin-deep: #855a2e;
+  --color-ink-500: #61716a;
+  --color-ink-700: #3e5148;
+  --color-ink-900: #223a31;
   --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", Georgia, serif;
-
-  /* Raios: cartões 16–20px, painéis 24px, campos 14px */
-  --radius-field: 14px;
-  --radius-card: 18px;
-  --radius-panel: 24px;
+  --radius-field: 16px;
+  --radius-card: 22px;
+  --radius-panel: 28px;
   --radius-pill: 999px;
 }
-
 :root {
-  --pp-surface: #fdfcf9;
-  --pp-surface-sunken: #f2f4ec;
-  --pp-border: #e2e6d9;
-  --pp-border-strong: #cfd5c3;
-
-  --pp-shadow-soft: 0 1px 2px rgba(42, 42, 34, 0.04), 0 8px 24px -14px rgba(42, 42, 34, 0.14);
-  --pp-shadow-lifted: 0 2px 4px rgba(42, 42, 34, 0.05), 0 20px 44px -22px rgba(42, 42, 34, 0.2);
-  --pp-shadow-modal: 0 26px 64px -22px rgba(42, 42, 34, 0.38);
-  --pp-focus-ring: color-mix(in srgb, var(--color-sage-500) 55%, transparent);
-  --pp-skeleton: color-mix(in srgb, var(--color-cream-100) 70%, var(--color-white));
-
+  --color-surface: #ffffff;
+  --pp-surface: #ffffff;
+  --pp-surface-sunken: #f0f4ed;
+  --pp-border: #e0e8df;
+  --pp-border-strong: #c1cec3;
+  --pp-shadow-soft: 0 2px 4px rgba(25, 54, 40, .02), 0 12px 28px -20px rgba(25, 54, 40, .1);
+  --pp-shadow-lifted: 0 8px 32px -24px rgba(25, 54, 40, .18);
+  --pp-shadow-modal: 0 24px 80px -20px rgba(10, 36, 27, .35);
+  --pp-focus-ring: #377967;
+  --pp-skeleton: #e5ebe3;
   color: var(--color-ink-900);
   background: var(--color-cream-50);
   font-family: var(--font-sans);
@@ -70,46 +49,38 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 [data-theme='dark'] {
-  --color-cream-50: #1c1a15;
-  --color-cream-100: #3b3730;
-  --color-cream-200: #4c473d;
-  --color-white: #26241d;
-
-  --color-sage-50: #2e352a;
-  --color-sage-100: #3b4635;
-  --color-sage-200: #4d5b44;
-  --color-sage-300: #6c7f5f;
-  --color-sage-500: #a6c08d;
-  --color-sage-600: #a6c08d;
-  --color-sage-700: #b3ca9c;
-
-  --color-terracotta-100: #472935;
-  --color-terracotta-200: #5d3a48;
-  --color-terracotta-500: #e39dbd;
-  --color-terracotta-600: #e39dbd;
-  --color-beet: #e39dbd;
-
-  --color-pumpkin: #e0a15f;
-  --color-pumpkin-deep: #e8b374;
-
-  --color-ink-500: #a8a294;
-  --color-ink-700: #d4cec1;
-  --color-ink-900: #f4f1e9;
-
-  --color-surface: #26241d;
-  --pp-surface: #26241d;
-  --pp-surface-sunken: #1c1a15;
-  --pp-border: #3b3730;
-  --pp-border-strong: #4c473d;
-
-  --pp-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 26px -16px rgba(0, 0, 0, 0.55);
-  --pp-shadow-lifted: 0 2px 6px rgba(0, 0, 0, 0.36), 0 22px 46px -24px rgba(0, 0, 0, 0.65);
-  --pp-shadow-modal: 0 28px 70px -24px rgba(0, 0, 0, 0.72);
-  --pp-focus-ring: color-mix(in srgb, var(--color-sage-500) 62%, transparent);
-  --pp-skeleton: color-mix(in srgb, var(--color-cream-100) 70%, var(--color-white));
-
+  --color-cream-50: #102c2c;
+  --color-cream-100: #28473f;
+  --color-cream-200: #3e6054;
+  --color-white: #193a37;
+  --color-sage-50: #23483f;
+  --color-sage-100: #30594a;
+  --color-sage-200: #527665;
+  --color-sage-300: #739b85;
+  --color-sage-500: #a8d8c5;
+  --color-sage-600: #a8d8c5;
+  --color-sage-700: #bee7d0;
+  --color-terracotta-100: #4a3534;
+  --color-terracotta-200: #76514a;
+  --color-terracotta-500: #efb8ae;
+  --color-terracotta-600: #f4c8bd;
+  --color-beet: #efb8ae;
+  --color-pumpkin: #e9c097;
+  --color-pumpkin-deep: #f0c6a0;
+  --color-ink-500: #b2c7bd;
+  --color-ink-700: #d8e7dc;
+  --color-ink-900: #f1f7ee;
+  --color-surface: #193a37;
+  --pp-surface: #193a37;
+  --pp-surface-sunken: #143330;
+  --pp-border: #2e4d43;
+  --pp-border-strong: #5e7e6c;
+  --pp-shadow-soft: 0 6px 20px -16px rgba(0, 0, 0, .2);
+  --pp-shadow-lifted: 0 10px 30px -20px rgba(0, 0, 0, .3);
+  --pp-shadow-modal: 0 24px 80px -18px rgba(0, 0, 0, .6);
+  --pp-focus-ring: #bee7d0;
+  --pp-skeleton: #28473f;
   color: var(--color-ink-900);
   background: var(--color-cream-50);
 }

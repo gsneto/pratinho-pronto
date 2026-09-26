@@ -64,7 +64,8 @@ export function BabyPhotoEditor({ baby, onChanged }: BabyPhotoEditorProps) {
         <div className="mt-4 flex flex-wrap gap-2">
           <input
             accept="image/*"
-            className="sr-only"
+            aria-label={`Foto de ${baby.name}`}
+            hidden
             disabled={isBusy}
             onChange={(event) => void handleFile(event.target.files?.[0])}
             ref={inputRef}

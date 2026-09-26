@@ -1,4 +1,4 @@
-import { Clock3, Heart } from 'lucide-react'
+import { ArrowRight, Clock3, Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useFavoriteRecipe } from '../../hooks/useFavorites'
 import type { Recipe } from '../../types/domain'
@@ -32,9 +32,11 @@ export function RecipeCard({
   const { isFavorite, isSaving, toggle } = useFavoriteRecipe(recipe.id)
 
   return (
-    <article className="pp-card pp-interactive flex flex-col overflow-hidden">
+    <article className="pp-card pp-recipe-card flex flex-col overflow-hidden">
       <div className="relative">
-        <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} size="card" />
+        <Link aria-label={`Ver receita: ${recipe.name}`} to={`/app/recipes/${recipe.id}`} state={returnTo ? { returnTo } : undefined}>
+          <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} size="card" />
+        </Link>
         <button
           aria-label={isFavorite ? `Remover ${recipe.name} das favoritas` : `Favoritar ${recipe.name}`}
           aria-pressed={isFavorite}
@@ -50,13 +52,13 @@ export function RecipeCard({
           <Heart aria-hidden="true" fill={isFavorite ? 'currentColor' : 'none'} size={19} />
         </button>
       </div>
-      <div className="flex flex-1 flex-col p-5">
+      <div className="pp-recipe-card-body">
         <div className="flex flex-wrap gap-2">
           <span className="pp-badge pp-badge-sage">{mealTypeLabels[recipe.meal_type]}</span>
-          {recipe.is_demo && <span className="pp-badge pp-badge-terracotta">Catálogo</span>}
+          {recipe.is_demo && <span className="pp-badge pp-badge-terracotta">Demonstrativa</span>}
         </div>
-        <h2 className="mt-3 text-lg leading-snug break-words text-ink-900">{recipe.name}</h2>
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink-500">
+        <Link className="pp-recipe-title-link" state={returnTo ? { returnTo } : undefined} to={`/app/recipes/${recipe.id}`}><h2 className="leading-snug break-words text-ink-900">{recipe.name}</h2></Link>
+        <p className="pp-recipe-description mt-2 line-clamp-2 text-sm leading-6 text-ink-500">
           {publicRecipeText(recipe.description)}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-500">
@@ -64,7 +66,7 @@ export function RecipeCard({
             <Clock3 aria-hidden="true" size={15} />
             {recipe.prep_time_minutes} min
           </span>
-          <span>A partir de {recipe.min_age_months} meses</span>
+          <span>{recipe.min_age_months}+ meses</span>
         </div>
         {scoreLabel && (
           <p className="pp-badge pp-badge-sage mt-3 w-full justify-start rounded-[14px] px-3 py-2 leading-5">
@@ -98,14 +100,14 @@ export function RecipeCard({
             )}
           </>
         )}
-        <div className="mt-auto pt-5">
+        <div className="pp-recipe-footer">
           <Link
-            className="pp-btn pp-btn-secondary w-full"
+            className="pp-text-action"
             state={returnTo ? { returnTo } : undefined}
             to={`/app/recipes/${recipe.id}`}
           >
-            Ver como preparar
-          </Link>
+            Ver preparo <ArrowRight aria-hidden="true" size={16} />
+                      </Link>
         </div>
       </div>
     </article>

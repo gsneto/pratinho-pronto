@@ -1,0 +1,111 @@
+{
+  "theme": {
+    "extend": {
+      "colors": {
+        "primary": "#235b50",
+        "on-primary": "#ffffff",
+        "canvas": "#f7f8f2",
+        "surface": "#ffffff",
+        "sunken": "#f0f4ed",
+        "feature": "#e6efe7",
+        "ink": "#223a31",
+        "body": "#3e5148",
+        "muted": "#61716a",
+        "peach": "#f8e5d7",
+        "on-peach": "#785239",
+        "danger-surface": "#f7e6e4",
+        "danger": "#83463f",
+        "border": "#e0e8df",
+        "photo-action": "#e7bb8b",
+        "dark-primary": "#b1dfc8",
+        "dark-on-primary": "#17382f",
+        "dark-canvas": "#102c2c",
+        "dark-surface": "#193a37",
+        "dark-sunken": "#143330",
+        "dark-feature": "#20473f",
+        "dark-ink": "#f1f7ee",
+        "dark-body": "#d8e7dc",
+        "dark-muted": "#b2c7bd",
+        "dark-peach": "#45362f",
+        "dark-on-peach": "#f0c5aa",
+        "dark-danger-surface": "#4a3534",
+        "dark-danger": "#f4c8bd",
+        "dark-border": "#2e4d43",
+        "dark-photo-action": "#e9c097",
+        "on-photo-action": "#2a2a22"
+      },
+      "fontFamily": {
+        "page-title": [
+          "Fraunces"
+        ],
+        "page-title-mobile": [
+          "Fraunces"
+        ],
+        "body": [
+          "Karla"
+        ],
+        "button": [
+          "Karla"
+        ],
+        "meta": [
+          "Karla"
+        ],
+        "eyebrow": [
+          "Karla"
+        ]
+      },
+      "fontSize": {
+        "page-title": [
+          "38px",
+          {
+            "letterSpacing": "-0.035em",
+            "fontWeight": "600"
+          }
+        ],
+        "page-title-mobile": [
+          "27px",
+          {
+            "letterSpacing": "-0.035em",
+            "fontWeight": "600"
+          }
+        ],
+        "body": [
+          "16px",
+          {
+            "fontWeight": "400"
+          }
+        ],
+        "button": [
+          "15px",
+          {
+            "fontWeight": "600"
+          }
+        ],
+        "meta": [
+          "12px",
+          {
+            "fontWeight": "400"
+          }
+        ],
+        "eyebrow": [
+          "11px",
+          {
+            "letterSpacing": "0.13em",
+            "fontWeight": "600"
+          }
+        ]
+      },
+      "borderRadius": {
+        "field": "16px",
+        "card": "22px",
+        "panel": "28px",
+        "pill": "999px"
+      },
+      "spacing": {
+        "control": "12px",
+        "card": "18px",
+        "panel": "24px"
+      }
+    }
+  }
+}

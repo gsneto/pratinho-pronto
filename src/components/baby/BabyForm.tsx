@@ -14,7 +14,7 @@ interface BabyFormProps {
 }
 
 const fieldClassName =
-  'mt-2 min-h-13 w-full rounded-2xl border border-cream-100 bg-cream-50 px-4 py-3 text-base text-ink-900 placeholder:text-ink-500/60 focus:border-sage-500 focus:bg-white focus:outline-none'
+  'pp-field mt-2 min-h-13 px-4 py-3'
 
 export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPreviewUrl }: BabyFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
@@ -53,7 +53,7 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-900">Personalize o Pratinho Pronto</p>
             <p className="mt-1 text-xs leading-5 text-ink-500">A foto personaliza o app e aparece no perfil.</p>
-            <label className="mt-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-sage-700 shadow-sm">
+            <label className="pp-photo-input mt-2 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-sage-700">
               <Camera aria-hidden="true" size={17} />
               {photoPreviewUrl ? 'Trocar foto' : 'Adicionar foto'}
               <input accept="image/*" capture="environment" className="sr-only" onChange={(event) => onPhotoSelected(event.target.files?.[0])} type="file" />
@@ -69,11 +69,12 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
         <input
           {...register('name')}
           aria-invalid={Boolean(errors.name)}
+          aria-describedby={errors.name ? 'baby-name-error' : undefined}
           className={fieldClassName}
           id="baby-name"
           placeholder="Como você chama seu bebê?"
         />
-        {errors.name && <p className="mt-2 text-sm text-terracotta-500">{errors.name.message}</p>}
+        {errors.name && <p className="mt-2 text-sm text-terracotta-500" id="baby-name-error">{errors.name.message}</p>}
       </div>
 
       <div>
@@ -83,16 +84,17 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
         <input
           {...register('birth_date')}
           aria-invalid={Boolean(errors.birth_date)}
+          aria-describedby={errors.birth_date ? 'birth-date-help birth-date-error' : 'birth-date-help'}
           className={fieldClassName}
           id="birth-date"
           max={new Date().toISOString().slice(0, 10)}
           type="date"
         />
-        <p className="mt-2 text-xs leading-5 text-ink-500">
+        <p className="mt-2 text-xs leading-5 text-ink-500" id="birth-date-help">
           A idade será calculada automaticamente e nunca ficará desatualizada.
         </p>
         {errors.birth_date && (
-          <p className="mt-2 text-sm text-terracotta-500">{errors.birth_date.message}</p>
+          <p className="mt-2 text-sm text-terracotta-500" id="birth-date-error">{errors.birth_date.message}</p>
         )}
       </div>
 
@@ -151,7 +153,7 @@ export function BabyForm({ baby, onSubmit, submitLabel, onPhotoSelected, photoPr
       )}
 
       <button
-        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] enabled:hover:bg-pumpkin/90 disabled:cursor-not-allowed disabled:opacity-55"
+        className="pp-btn pp-btn-primary pp-btn-lg w-full"
         disabled={isSubmitting}
         type="submit"
       >

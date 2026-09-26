@@ -1,0 +1,32 @@
+# Arquivos que nao devem ir para o upload do Vercel.
+# O CLI usa .gitignore como padrao, mas queremos ignorar tambem materiais que
+# so existem em disco local e nao pertencem ao runtime do site.
+
+# Producao ja gera dist/ pelo build da Vercel.
+dist
+dist-ssr
+
+# Dependencias e ambiente local.
+node_modules
+tmp
+.vscode
+
+# Materiais fora do site.
+entregaveis
+output
+screenshots
+supabase
+qa
+
+# Notas de trabalho paralelo.
+PARALELO.md
+
+# .env sempre fica fora.
+*.local
+.env
+.env.*
+!.env.example
+
+# Arquivos de sistema.
+.DS_Store
+Thumbs.db

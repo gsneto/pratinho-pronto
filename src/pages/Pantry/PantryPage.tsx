@@ -11,6 +11,7 @@ import { rankRecipesByPantry } from '../../lib/pantry/ranking'
 import { analytics } from '../../services/analytics'
 import { appendShoppingListItems } from '../../services/shoppingLists'
 import { getWeekStart } from '../../utils/dates'
+import { normalizeTerm } from '../../utils/text'
 
 export function PantryPage() {
   const queryClient = useQueryClient()
@@ -30,9 +31,9 @@ export function PantryPage() {
   const { data: currentPlan } = useMealPlan(baby?.id, currentWeekStart)
 
   const visibleIngredients = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase('pt-BR')
+    const term = normalizeTerm(search)
     return ingredients.filter((ingredient) =>
-      ingredient.name.toLocaleLowerCase('pt-BR').includes(term),
+      normalizeTerm(ingredient.name).includes(term),
     )
   }, [ingredients, search])
 
@@ -113,13 +114,13 @@ export function PantryPage() {
   const selectedIngredients = ingredients.filter((ingredient) => selectedIds.includes(ingredient.id))
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <header className="max-w-2xl">
+    <div className="pp-pantry mx-auto max-w-4xl">
+      <header className="pp-page-header">
         <p className="pp-eyebrow">Aproveite o que já tem</p>
-        <h1 className="mt-1.5 text-[28px] leading-tight text-ink-900 sm:text-[34px]">
+        <h1 className="pp-page-title">
           O que tem na sua cozinha hoje?
         </h1>
-        <p className="mt-3 text-base leading-7 text-ink-500">
+        <p className="pp-page-description">
           Marque os ingredientes e encontre receitas compatíveis com {baby.name}.
         </p>
       </header>
@@ -144,12 +145,12 @@ export function PantryPage() {
         {selectedIngredients.length > 0 && (
           <div className="pp-sunken mt-4 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold text-ink-700">
+              <p className="text-xs font-semibold text-ink-700" role="status">
                 {selectedIngredients.length}{' '}
                 {selectedIngredients.length === 1 ? 'ingrediente marcado' : 'ingredientes marcados'}
               </p>
               <button
-                className="pp-link min-h-9 px-1 text-xs"
+                className="pp-text-action min-h-11 px-2 text-xs"
                 onClick={() => {
                   setSelectedIds([])
                   setHasSearched(false)
@@ -164,7 +165,7 @@ export function PantryPage() {
                 <li key={ingredient.id}>
                   <button
                     aria-label={`Remover ${ingredient.name}`}
-                    className="pp-badge pp-badge-sage min-h-9 transition-colors hover:bg-sage-100"
+                    className="pp-badge pp-badge-sage min-h-11 transition-colors hover:bg-sage-100"
                     onClick={() => toggleIngredient(ingredient.id)}
                     type="button"
                   >

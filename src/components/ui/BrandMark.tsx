@@ -15,7 +15,7 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
         <span className="flex h-[72px] w-[180px] shrink-0 items-center overflow-hidden sm:w-[200px]">
           <img
             alt="Pratinho Pronto"
-            className="brand-logo-light h-auto w-full max-w-none object-contain"
+            className="brand-logo-light h-full w-full object-contain"
             decoding="async"
             height={941}
             src="/brand/pratinho-pronto-logo.png"
@@ -24,7 +24,7 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
           <img
             alt=""
             aria-hidden="true"
-            className="brand-logo-dark h-auto w-full max-w-none object-contain"
+            className="brand-logo-dark h-full w-full object-contain"
             decoding="async"
             height={941}
             src="/brand/pratinho-pronto-logo-dark-v2.png"

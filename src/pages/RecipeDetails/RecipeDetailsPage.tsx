@@ -13,9 +13,11 @@ import {
   X,
 } from 'lucide-react'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { RecipeVisual } from '../../components/recipes/RecipeVisual'
+import { CookingSteps } from '../../components/recipes/CookingSteps'
 import { PageState } from '../../components/ui/PageState'
+import { useDialogFocus } from '../../components/ui/useDialogFocus'
 import { useBaby } from '../../hooks/useBaby'
 import { useFavoriteRecipe } from '../../hooks/useFavorites'
 import { mealPlanQueryKey, useMealPlan } from '../../hooks/useMealPlan'
@@ -27,12 +29,6 @@ import { addDays, formatShortDate, normalizeWeekStart } from '../../utils/dates'
 import { mealTypeLabels, weekDayLabels } from '../../utils/labels'
 import { publicRecipeText } from '../../utils/text'
 import { splitInstructions } from '../../utils/instructions'
-
-function textureForRecipe(minAgeMonths: number): string {
-  if (minAgeMonths <= 6) return 'Amassada'
-  if (minAgeMonths <= 8) return 'Macia'
-  return 'Pedaços macios'
-}
 
 export function RecipeDetailsPage() {
   const { recipeId } = useParams()
@@ -67,25 +63,15 @@ export function RecipeDetailsPage() {
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [savedMessage, setSavedMessage] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [shareMessage, setShareMessage] = useState<string | null>(null)
   const plannerCloseRef = useRef<HTMLButtonElement>(null)
   const plannerTriggerRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    if (!showPlanner) return
-    plannerCloseRef.current?.focus()
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape') return
-      setShowPlanner(false)
-      plannerTriggerRef.current?.focus()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [showPlanner])
+  const plannerRef = useDialogFocus(showPlanner, () => setShowPlanner(false), plannerCloseRef, plannerTriggerRef)
 
   function closePlanner() {
     setShowPlanner(false)
-    plannerTriggerRef.current?.focus()
   }
 
   if (isLoading) {
@@ -110,7 +96,7 @@ export function RecipeDetailsPage() {
   const currentRecipe = recipe
   const activeMealType = selectedMealType ?? currentRecipe.meal_type
   const preparationSteps = splitInstructions(currentRecipe.instructions)
-  const canFreeze = currentRecipe.storage_notes?.toLowerCase().includes('congel') ?? false
+
 
   const existingSlot = plan?.meal_plan_items.find(
     (item) => item.date === selectedDate && item.meal_type === activeMealType,
@@ -124,6 +110,7 @@ export function RecipeDetailsPage() {
     if (!baby) return
     setIsSaving(true)
     setSavedMessage(null)
+    setSaveError(null)
     try {
       await addRecipeToMealPlan({
         babyId: baby.id,
@@ -141,6 +128,8 @@ export function RecipeDetailsPage() {
       setSavedMessage(
         `${currentRecipe.name} entrou no ${mealTypeLabels[activeMealType].toLowerCase()} de ${formatShortDate(selectedDate)}`,
       )
+    } catch {
+      setSaveError('Não conseguimos salvar esta refeição. Confira a conexão e tente novamente.')
     } finally {
       setIsSaving(false)
     }
@@ -153,7 +142,11 @@ export function RecipeDetailsPage() {
         await navigator.share({ title: currentRecipe.name, text: publicRecipeText(currentRecipe.description), url: window.location.href })
         return
       }
-      await navigator.clipboard?.writeText(window.location.href)
+      if (!navigator.clipboard?.writeText) {
+        setShareMessage('Você pode copiar o endereço desta receita pelo navegador.')
+        return
+      }
+      await navigator.clipboard.writeText(window.location.href)
       setShareMessage('Link copiado para compartilhar.')
     } catch {
       setShareMessage('Você pode copiar o endereço desta receita pelo navegador.')
@@ -161,7 +154,7 @@ export function RecipeDetailsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="pp-detail mx-auto max-w-4xl">
       <Link className="pp-link inline-flex items-center gap-2 text-sm" to={returnTo}>
         <ArrowLeft aria-hidden="true" size={18} />
         {returnTo.startsWith('/app/week') ? 'Voltar para minha semana' : 'Voltar para receitas'}
@@ -172,7 +165,7 @@ export function RecipeDetailsPage() {
         <div className="p-5 sm:p-8">
           <div className="flex flex-wrap gap-2">
             <span className="pp-badge pp-badge-sage">{mealTypeLabels[recipe.meal_type]}</span>
-            <span className="pp-badge pp-badge-terracotta">Do seu catálogo</span>
+            <span className="pp-badge pp-badge-terracotta">{recipe.is_demo ? 'Demonstrativa' : 'Do seu catálogo'}</span>
           </div>
           <h1 className="mt-4 text-[30px] leading-[1.1] break-words text-ink-900 sm:text-[38px]">
             {recipe.name}
@@ -239,16 +232,16 @@ export function RecipeDetailsPage() {
             </div>
             <div className="pp-sunken p-4">
               <UtensilsCrossed aria-hidden="true" className="text-sage-700" size={19} />
-              <dt className="mt-2 text-xs text-ink-500">Textura sugerida</dt>
+              <dt className="mt-2 text-xs text-ink-500">Como servir</dt>
               <dd className="mt-0.5 text-sm font-semibold text-ink-700">
-                {textureForRecipe(recipe.min_age_months)}
+                {recipe.serving_notes ? <a className="pp-link" href="#serving-notes">Ver orientação</a> : 'Não informado'}
               </dd>
             </div>
             <div className="pp-sunken p-4">
               <Snowflake aria-hidden="true" className="text-sage-700" size={19} />
-              <dt className="mt-2 text-xs text-ink-500">Pode congelar?</dt>
+              <dt className="mt-2 text-xs text-ink-500">Conservação</dt>
               <dd className="mt-0.5 text-sm font-semibold text-ink-700">
-                {canFreeze ? 'Sim, em porções' : 'Veja a conservação'}
+                {recipe.storage_notes ? <a className="pp-link" href="#storage-notes">Consultar notas</a> : 'Não informada'}
               </dd>
             </div>
             <div className="pp-sunken p-4">
@@ -295,26 +288,17 @@ export function RecipeDetailsPage() {
                     mostram o que você precisa.
                   </p>
                 ) : (
-                  <ol className="mt-4 space-y-4">
-                    {preparationSteps.map((step, index) => (
-                      <li className="flex gap-3" key={`${index}-${step.slice(0, 12)}`}>
-                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sage-100 text-xs font-bold text-sage-700">
-                          {index + 1}
-                        </span>
-                        <p className="text-[15px] leading-7 text-ink-700">{step}</p>
-                      </li>
-                    ))}
-                  </ol>
+                  <CookingSteps key={`${recipe.id}:${recipe.instructions}`} steps={preparationSteps} />
                 )}
               </section>
               {recipe.serving_notes && (
-                <section className="pp-sunken bg-sage-50 p-5">
+                <section className="pp-sunken scroll-mt-24 bg-sage-50 p-5" id="serving-notes">
                   <h2 className="text-base text-ink-900">Como servir</h2>
                   <p className="mt-2 text-sm leading-6 text-ink-700">{recipe.serving_notes}</p>
                 </section>
               )}
               {recipe.storage_notes && (
-                <section className="pp-card flex gap-3 p-5">
+                <section className="pp-card scroll-mt-24 flex gap-3 p-5" id="storage-notes">
                   <PackageCheck aria-hidden="true" className="mt-0.5 shrink-0 text-sage-700" size={20} />
                   <div>
                     <h2 className="text-base text-ink-900">Conservação</h2>
@@ -349,6 +333,8 @@ export function RecipeDetailsPage() {
             aria-modal="true"
             className="pp-modal max-h-[88vh] w-full max-w-lg overflow-y-auto p-5 sm:p-6"
             role="dialog"
+            ref={plannerRef}
+            tabIndex={-1}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
@@ -412,6 +398,7 @@ export function RecipeDetailsPage() {
                 substituir ou adicionar como uma opção extra.
               </p>
             )}
+            {saveError && <p className="pp-feedback-error" role="alert">{saveError}</p>}
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <button
                 className="pp-btn pp-btn-primary"

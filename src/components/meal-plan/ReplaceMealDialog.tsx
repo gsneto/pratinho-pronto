@@ -1,5 +1,6 @@
 import { Clock3, RefreshCw, X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useRef, type RefObject } from 'react'
+import { useDialogFocus } from '../ui/useDialogFocus'
 import { RecipeVisual } from '../recipes/RecipeVisual'
 import type { MealPlanItem, Recipe } from '../../types/domain'
 import { formatShortDate } from '../../utils/dates'
@@ -7,36 +8,25 @@ import { mealTypeLabels } from '../../utils/labels'
 
 interface ReplaceMealDialogProps {
   alternatives: Recipe[]
+  error?: string | null
   isSaving: boolean
   item: MealPlanItem
   onChoose: (recipe: Recipe) => void
   onClose: () => void
+  returnFocusRef?: RefObject<HTMLElement | null>
 }
 
 export function ReplaceMealDialog({
   alternatives,
+  error,
   isSaving,
   item,
   onChoose,
   onClose,
+  returnFocusRef,
 }: ReplaceMealDialogProps) {
   const closeRef = useRef<HTMLButtonElement>(null)
-  // Captura o elemento focado ANTES de trazer o foco para o botão de fechar,
-  // para que Esc devolva o foco ao gatilho original (o botão "Trocar" do card),
-  // não ao próprio botão de fechar que o effect acabou de focar.
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
-
-  useEffect(() => {
-    previouslyFocusedRef.current = document.activeElement as HTMLElement | null
-    closeRef.current?.focus()
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape') return
-      onClose()
-      previouslyFocusedRef.current?.focus()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  const dialogRef = useDialogFocus(true, onClose, closeRef, returnFocusRef)
 
   return (
     <div
@@ -51,6 +41,8 @@ export function ReplaceMealDialog({
         aria-modal="true"
         className="pp-modal max-h-[85vh] w-full max-w-lg overflow-y-auto p-5 sm:p-6"
         role="dialog"
+        ref={dialogRef}
+        tabIndex={-1}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -74,6 +66,7 @@ export function ReplaceMealDialog({
           </button>
         </div>
 
+        {error && <p className="pp-feedback-error" role="alert">{error}</p>}
         {alternatives.length === 0 ? (
           <div className="pp-sunken mt-6 p-5">
             <p className="text-sm font-semibold text-ink-900">

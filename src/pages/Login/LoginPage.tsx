@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Check, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Check, Eye, EyeOff, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { BrandMark } from '../../components/ui/BrandMark'
@@ -22,6 +22,7 @@ export function LoginPage() {
   const [mode, setMode] = useState<AccessMode>('login')
   const [serverError, setServerError] = useState<string | null>(null)
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [confirmationError, setConfirmationError] = useState<string | null>(null)
   const {
     formState: { errors, isSubmitting },
@@ -41,6 +42,7 @@ export function LoginPage() {
     setServerError(null)
     setConfirmationError(null)
     setPasswordConfirmation('')
+    setIsPasswordVisible(false)
     reset({ email: '', password: '' })
   }
 
@@ -69,14 +71,13 @@ export function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream-50 px-5 py-7 sm:px-8 sm:py-10 lg:grid lg:grid-cols-[1fr_1.05fr] lg:gap-12 lg:px-12">
-      <section className="mx-auto flex w-full max-w-xl flex-col lg:justify-between lg:py-2">
+    <main className="pp-auth">
+      <section className="pp-auth-story" aria-label="Sua rotina no Pratinho Pronto">
         <BrandMark />
-        <div className="mt-12 hidden lg:block">
+        <div>
           <p className="text-sm font-semibold text-terracotta-500">Seu acesso ao Pratinho Pronto</p>
-          <h1 className="mt-3 max-w-lg text-5xl leading-[1.05] font-semibold tracking-[-0.045em] text-ink-900">
-            Uma semana mais leve começa com um plano pronto.
-          </h1>
+          <h2>Uma semana mais leve começa com um plano pronto.</h2>
+          <img alt="Mingau de banana e aveia do catálogo" className="pp-auth-photo" src="/images/recipes/mingau-de-banana-e-aveia.webp" width="640" height="360" />
           <p className="mt-5 max-w-md text-lg leading-8 text-ink-500">
             Use o e-mail informado na compra e organize as refeições do seu bebê de um jeito simples.
           </p>
@@ -91,20 +92,21 @@ export function LoginPage() {
             ))}
           </ul>
         </div>
-        <p className="mt-10 hidden max-w-md text-xs leading-5 text-ink-500 lg:block">
+        <p className="mt-10 max-w-md text-xs leading-5 text-ink-500">
           O Pratinho Pronto é uma ferramenta de organização alimentar e não substitui orientação individual de pediatra ou nutricionista.
         </p>
       </section>
 
-      <section className="mx-auto mt-10 flex w-full max-w-lg items-center lg:mt-0">
-        <div className="w-full rounded-[28px] border border-cream-100 bg-white p-6 shadow-[0_22px_60px_rgba(65,65,60,0.07)] sm:p-9">
+      <section className="pp-auth-form" aria-labelledby="login-title">
+        <div className="pp-mobile-brand"><BrandMark /></div>
+        <div>
           <span className="grid size-12 place-items-center rounded-2xl bg-sage-50 text-sage-700">
             <LockKeyhole aria-hidden="true" size={22} strokeWidth={1.8} />
           </span>
           <p className="mt-6 text-sm font-semibold text-terracotta-500">
             {isFirstAccess ? 'Primeiro acesso' : 'Acesso liberado para clientes'}
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-ink-900 sm:text-4xl">
+          <h1 className="pp-page-title" id="login-title">
             {isFirstAccess ? 'Crie sua senha' : 'Entre no Pratinho Pronto'}
           </h1>
           <p className="mt-3 text-sm leading-6 text-ink-500">
@@ -126,7 +128,7 @@ export function LoginPage() {
               aria-describedby={errors.email ? 'email-error' : undefined}
               aria-invalid={Boolean(errors.email)}
               autoComplete="email"
-              className="mt-2 min-h-14 w-full rounded-2xl border border-cream-100 bg-cream-50 px-4 text-base text-ink-900 placeholder:text-ink-500/65 focus:border-sage-500 focus:bg-white focus:outline-none"
+              className="pp-field mt-2 min-h-14"
               id="email"
               inputMode="email"
               placeholder="voce@email.com"
@@ -135,16 +137,21 @@ export function LoginPage() {
             {errors.email && <p className="mt-2 text-sm text-terracotta-500" id="email-error">{errors.email.message}</p>}
 
             <label className="mt-5 block text-sm font-semibold text-ink-700" htmlFor="password">Senha</label>
+            <div className="pp-password-field">
             <input
               {...register('password')}
               aria-describedby={errors.password ? 'password-error' : undefined}
               aria-invalid={Boolean(errors.password)}
               autoComplete={isFirstAccess ? 'new-password' : 'current-password'}
-              className="mt-2 min-h-14 w-full rounded-2xl border border-cream-100 bg-cream-50 px-4 text-base text-ink-900 placeholder:text-ink-500/65 focus:border-sage-500 focus:bg-white focus:outline-none"
+              className="pp-field mt-2 min-h-14"
               id="password"
               placeholder="Mínimo de 8 caracteres"
-              type="password"
+              type={isPasswordVisible ? 'text' : 'password'}
             />
+            <button aria-label={isPasswordVisible ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={isPasswordVisible} aria-controls="password" onClick={() => setIsPasswordVisible((visible) => !visible)} type="button">
+              {isPasswordVisible ? <EyeOff aria-hidden="true" size={20} /> : <Eye aria-hidden="true" size={20} />}
+            </button>
+            </div>
             {errors.password && <p className="mt-2 text-sm text-terracotta-500" id="password-error">{errors.password.message}</p>}
 
             {isFirstAccess && (
@@ -152,21 +159,22 @@ export function LoginPage() {
                 <label className="mt-5 block text-sm font-semibold text-ink-700" htmlFor="password-confirmation">Repita a senha</label>
                 <input
                   aria-invalid={Boolean(confirmationError)}
+                  aria-describedby={confirmationError ? 'confirmation-error' : undefined}
                   autoComplete="new-password"
-                  className="mt-2 min-h-14 w-full rounded-2xl border border-cream-100 bg-cream-50 px-4 text-base text-ink-900 placeholder:text-ink-500/65 focus:border-sage-500 focus:bg-white focus:outline-none"
+                  className="pp-field mt-2 min-h-14"
                   id="password-confirmation"
                   onChange={(event) => setPasswordConfirmation(event.target.value)}
                   placeholder="Repita sua senha"
                   type="password"
                   value={passwordConfirmation}
                 />
-                {confirmationError && <p className="mt-2 text-sm text-terracotta-500">{confirmationError}</p>}
+                {confirmationError && <p className="mt-2 text-sm text-terracotta-500" id="confirmation-error">{confirmationError}</p>}
               </>
             )}
 
             {serverError && <p className="mt-3 text-sm leading-5 text-terracotta-500" role="alert">{serverError}</p>}
             <button
-              className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-base font-medium text-[#2A2A22] transition-colors enabled:hover:bg-pumpkin/90 disabled:cursor-not-allowed disabled:opacity-55"
+              className="pp-btn pp-btn-primary pp-btn-lg mt-6 w-full"
               disabled={!isConfigured || isSubmitting}
               type="submit"
             >
@@ -176,7 +184,7 @@ export function LoginPage() {
           </form>
 
           <div className="mt-6 border-t border-cream-100 pt-5 text-center">
-            <button className="text-sm font-semibold text-sage-700 underline-offset-4 hover:underline" onClick={() => changeMode(isFirstAccess ? 'login' : 'first-access')} type="button">
+            <button className="pp-text-action text-sm underline-offset-4 hover:underline" onClick={() => changeMode(isFirstAccess ? 'login' : 'first-access')} type="button">
               {isFirstAccess ? 'Já criei minha senha — entrar' : 'É seu primeiro acesso? Criar senha'}
             </button>
           </div>
@@ -186,7 +194,7 @@ export function LoginPage() {
           </p>
         </div>
       </section>
-      <p className="mx-auto mt-8 max-w-lg text-center text-xs leading-5 text-ink-500 lg:hidden">
+      <p className="pp-mobile-brand mx-auto mt-8 max-w-lg text-center text-xs leading-5 text-ink-500">
         O Pratinho Pronto é uma ferramenta de organização alimentar e não substitui orientação individual de pediatra ou nutricionista.
       </p>
     </main>

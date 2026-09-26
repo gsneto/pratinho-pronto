@@ -53,14 +53,14 @@ export function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-start gap-4">
+      <div className="pp-profile-hero flex items-start gap-4">
         <BabyAvatar name={currentBaby.name} photoUrl={currentBaby.photo_url} size="lg" />
         <div>
-          <p className="text-sm font-semibold text-terracotta-500">Perfil do bebê</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-ink-900">
+          <p className="pp-eyebrow">Perfil do bebê</p>
+          <h1 className="pp-page-title">
             Informações de {currentBaby.name}
           </h1>
-          <p className="mt-2 text-sm text-ink-500">
+          <p className="mt-2 text-sm text-ink-700">
             {calculateAgeMonths(currentBaby.birth_date)} meses hoje
           </p>
         </div>
@@ -69,6 +69,7 @@ export function ProfilePage() {
       {saved && (
         <div
           aria-live="polite"
+          role="status"
           className="mt-6 flex items-center gap-2 rounded-2xl bg-sage-100 px-4 py-3 text-sm font-medium text-sage-700"
         >
           <CheckCircle2 aria-hidden="true" size={18} />
@@ -84,7 +85,7 @@ export function ProfilePage() {
         <BabyPhotoEditor baby={currentBaby} onChanged={handlePhotoChanged} />
       </div>
 
-      <section className="mt-6 rounded-[24px] border border-cream-100 bg-white p-5 shadow-[0_12px_40px_rgba(65,65,60,0.04)] sm:p-7">
+      <section className="pp-panel mt-6 p-5 sm:p-7" aria-label="Editar informações do bebê">
         <BabyForm
           baby={currentBaby}
           onSubmit={handleUpdate}

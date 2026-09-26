@@ -1,5 +1,5 @@
 import { Download, MoreVertical, Share, Smartphone, X } from 'lucide-react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { usePwaInstall } from '../../lib/pwa-install'
 
 interface InstallAppCardProps {
@@ -8,26 +8,34 @@ interface InstallAppCardProps {
 }
 
 export function InstallAppCard({ compact = false, onDismiss }: InstallAppCardProps) {
-  const { canInstall, install, isInstalled, isIos } = usePwaInstall()
+  const { canInstall, install, isInstalled, isIos, isPrompting } = usePwaInstall()
   const [showInstructions, setShowInstructions] = useState(false)
-  const [isPrompting, setIsPrompting] = useState(false)
+  const [installError, setInstallError] = useState<string | null>(null)
+  const id = useId()
+  const titleId = `${id}-title`
+  const instructionsId = `${id}-instructions`
 
   if (isInstalled) return null
 
   async function handleInstall() {
+    setInstallError(null)
     if (!canInstall) {
-      setShowInstructions(true)
+      setShowInstructions((visible) => !visible)
       return
     }
 
-    setIsPrompting(true)
-    await install()
-    setIsPrompting(false)
+    const outcome = await install()
+    if (outcome === 'failed') {
+      setInstallError('Não foi possível abrir a instalação. Você pode adicionar o aplicativo pelo menu do navegador.')
+      setShowInstructions(true)
+    } else if (outcome === 'unavailable') {
+      setShowInstructions(true)
+    }
   }
 
   return (
     <section
-      aria-labelledby="install-app-title"
+      aria-labelledby={titleId}
       className={`relative overflow-hidden rounded-[24px] border border-cream-100 bg-white shadow-[0_12px_40px_rgba(65,65,60,0.04)] ${
         compact ? 'p-5 sm:p-6' : 'p-5 sm:p-7'
       }`}
@@ -51,7 +59,7 @@ export function InstallAppCard({ compact = false, onDismiss }: InstallAppCardPro
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-terracotta-500">
             Acesso rápido
           </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-ink-900" id="install-app-title">
+          <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-ink-900" id={titleId}>
             Tenha o Pratinho Pronto na tela inicial
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink-500">
@@ -62,6 +70,9 @@ export function InstallAppCard({ compact = false, onDismiss }: InstallAppCardPro
 
       <button
         className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-pumpkin px-5 text-sm font-semibold text-[#2A2A22] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+        aria-busy={isPrompting}
+        aria-controls={canInstall ? undefined : instructionsId}
+        aria-expanded={canInstall ? undefined : showInstructions}
         disabled={isPrompting}
         onClick={handleInstall}
         type="button"
@@ -70,25 +81,30 @@ export function InstallAppCard({ compact = false, onDismiss }: InstallAppCardPro
         {isPrompting ? 'Abrindo instalação…' : canInstall ? 'Instalar aplicativo' : 'Como adicionar'}
       </button>
 
-      {showInstructions && (
-        <div className="mt-5 rounded-2xl bg-cream-50 p-4 text-sm leading-6 text-ink-700" role="status">
-          <p className="font-semibold text-ink-900">
-            {isIos ? 'No iPhone ou iPad:' : 'No seu navegador:'}
+      {installError && <p className="pp-feedback-error mt-4" role="alert">{installError}</p>}
+
+      <div
+        className="mt-5 rounded-2xl bg-cream-50 p-4 text-sm leading-6 text-ink-700"
+        hidden={!showInstructions}
+        id={instructionsId}
+        role="status"
+      >
+        <p className="font-semibold text-ink-900">
+          {isIos ? 'No iPhone ou iPad:' : 'No seu navegador:'}
+        </p>
+        {isIos ? (
+          <ol className="mt-2 space-y-2">
+            <li className="flex gap-2"><Share aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />1. Abra esta página no Safari e toque em Compartilhar.</li>
+            <li className="flex gap-2"><Smartphone aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />2. Escolha “Adicionar à Tela de Início”.</li>
+            <li className="flex gap-2"><Download aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />3. Ative “Abrir como App Web” e toque em Adicionar.</li>
+          </ol>
+        ) : (
+          <p className="mt-2 flex gap-2">
+            <MoreVertical aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />
+            Abra o menu do navegador e escolha “Instalar aplicativo” ou “Adicionar à tela inicial”.
           </p>
-          {isIos ? (
-            <ol className="mt-2 space-y-2">
-              <li className="flex gap-2"><Share aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />1. Abra esta página no Safari e toque em Compartilhar.</li>
-              <li className="flex gap-2"><Smartphone aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />2. Escolha “Adicionar à Tela de Início”.</li>
-              <li className="flex gap-2"><Download aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />3. Ative “Abrir como App Web” e toque em Adicionar.</li>
-            </ol>
-          ) : (
-            <p className="mt-2 flex gap-2">
-              <MoreVertical aria-hidden="true" className="mt-1 shrink-0 text-sage-700" size={16} />
-              Abra o menu do navegador e escolha “Instalar aplicativo” ou “Adicionar à tela inicial”.
-            </p>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </section>
   )
 }
