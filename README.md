@@ -1,17 +1,28 @@
 # Pratinho Pronto
 
-MVP mobile-first para transformar receitas de introdução alimentar em um
-planejamento semanal prático.
+App mobile-first para transformar receitas de introdução alimentar em um
+planejamento semanal prático. React + TypeScript + Vite no frontend, Supabase
+(Postgres + Auth + RLS) no backend, PWA instalável.
 
-## Estado atual
+## Funcionalidades
 
-Fases 1 a 9 implementadas: fundação, autenticação por magic link, onboarding,
-RLS, receitas demonstrativas, cardápio determinístico, troca unitária, pantry,
-lista de compras persistida e três PDFs A4. O projeto Supabase real está em
-São Paulo, com migration e seed aplicados, e o fluxo ponta a ponta foi validado
-com dois usuários isolados por RLS.
+- Autenticação por magic link (Supabase Auth).
+- Onboarding do bebê com validação de idade e restrições alimentares.
+- Catálogo editorial de receitas de introdução alimentar com filtros por fase,
+  refeição, alergênicos e tempo de preparo.
+- Cardápio semanal determinístico gerado a partir do perfil do bebê, com troca
+  unitária de refeições sem reembaralhar o restante da semana.
+- Pantry (despensa) persistida e lista de compras derivada do cardápio.
+- Geração de PDFs A4 (cardápio, lista de compras, guias) prontos para impressão.
+- PWA instalável em desktop e mobile, com convite de instalação próprio.
+- Tema claro/escuro com direção visual botânica/editorial.
 
-Produção: https://pratinho-pronto.vercel.app
+## Stack
+
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, React Router.
+- **Backend:** Supabase (Postgres, Auth, Row Level Security, Storage).
+- **Testes:** Vitest, Testing Library, axe-core.
+- **Build/QA:** oxlint, matriz própria de UI QA (`qa/`).
 
 ## Executar localmente
 
@@ -25,11 +36,10 @@ Para autenticar e acessar a home protegida, preencha `VITE_SUPABASE_URL` e
 `VITE_SUPABASE_ANON_KEY`. Nunca exponha uma service role key no frontend.
 
 Para o magic link funcionar, habilite o provedor de e-mail no Supabase e inclua
-estas URLs na lista de redirecionamentos permitidos do projeto:
+o callback local na lista de redirecionamentos permitidos do projeto:
 
 ```text
 http://localhost:5173/auth/callback
-https://pratinho-pronto.vercel.app/auth/callback
 ```
 
 Sem as variáveis públicas, `/login` continua disponível para inspeção, mas o
@@ -51,10 +61,6 @@ tecnicamente contra o Guia Alimentar para Crianças Brasileiras Menores de 2 Ano
 mas não substitui prescrição individual nem revisão de nutricionista infantil.
 Referências editoriais: [Ministério da Saúde](https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/s/saude-da-crianca/primeira-infancia/alimentacao-saudavel)
 e [OMS](https://www.who.int/publications/i/item/9789240081864).
-
-A migration e o seed já estão aplicados no projeto de produção. As URLs local e
-publicada terminadas em `/auth/callback` também estão permitidas no Supabase
-Auth.
 
 ## Validação
 
