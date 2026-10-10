@@ -7,6 +7,7 @@ import {
 } from '@react-pdf/renderer'
 import type { Baby, IngredientCategory, MealPlan, Recipe, ShoppingList } from '../../types/domain'
 import { addDays, calculateAgeMonths, formatShortDate, parseIsoDate } from '../../utils/dates'
+import { mealCellItems } from '../../lib/meal-plan/week-print'
 import { splitInstructions } from '../../utils/instructions'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 import {
@@ -226,14 +227,16 @@ export function WeekPlanDocument({ baby, plan }: { baby: Baby; plan: MealPlan })
               </View>
               <View style={styles.mealsGrid}>
                 {mealTypeOrder.map((mealType) => {
-                  const item = items.find((candidate) => candidate.meal_type === mealType)
+                  const cellItems = mealCellItems(items, date, mealType)
                   return (
                     <View key={mealType} style={styles.mealCell}>
                       <Text style={styles.mealLabel}>{mealTypeLabels[mealType]}</Text>
-                      {item ? (
-                        <Text style={styles.mealName}>{item.recipe.name}</Text>
-                      ) : (
+                      {cellItems.length === 0 ? (
                         <Text style={styles.mealNameEmpty}>A combinar</Text>
+                      ) : (
+                        cellItems.map((item) => (
+                          <Text key={item.id} style={styles.mealName}>{item.recipe.name}</Text>
+                        ))
                       )}
                     </View>
                   )
