@@ -47,10 +47,12 @@ insert into public.babies (id, user_id, name, birth_date) values
   ('a1111111-1111-1111-1111-111111111111', 'a0000000-0000-0000-0000-00000000000a', 'Alice', '2025-12-01'),
   ('b1111111-1111-1111-1111-111111111111', 'b0000000-0000-0000-0000-00000000000b', 'Bia',   '2025-12-01');
 
+-- Ingredientes exclusivos do teste (nomes próprios para não colidir com o
+-- catálogo real, que já existe após migrações + seed).
 insert into public.ingredients (id, name, category) values
-  ('c0000000-0000-0000-0000-000000000001', 'Banana', 'fruit'),
-  ('c0000000-0000-0000-0000-000000000002', 'Aveia',  'grain'),
-  ('c0000000-0000-0000-0000-000000000003', 'Ovo',    'protein');
+  ('c0000000-0000-0000-0000-000000000001', 'Ingrediente Teste Banana', 'fruit'),
+  ('c0000000-0000-0000-0000-000000000002', 'Ingrediente Teste Aveia',  'grain'),
+  ('c0000000-0000-0000-0000-000000000003', 'Ingrediente Teste Ovo',    'protein');
 
 insert into public.meal_plans (id, user_id, baby_id, week_start) values
   ('d0000000-0000-0000-0000-00000000000a', 'a0000000-0000-0000-0000-00000000000a', 'a1111111-1111-1111-1111-111111111111', '2026-09-14'),

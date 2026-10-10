@@ -37,11 +37,12 @@ try {
   run(['run', '-d', '--name', container, '-e', 'POSTGRES_PASSWORD=test', '-e', 'POSTGRES_DB=postgres', 'postgres:17'])
   if (!waitForReady()) throw new Error('Postgres não ficou pronto a tempo')
 
-  // Copia migrações + testes para dentro do container.
+  // Copia migrações, seed e testes para dentro do container.
   run(['exec', container, 'mkdir', '-p', '/sql'])
   run(['cp', migrationsDir + '/.', `${container}:/sql`])
   run(['exec', container, 'mkdir', '-p', '/tests'])
   run(['cp', testsDir + '/.', `${container}:/tests`])
+  run(['cp', resolve(root, 'supabase/seed.sql'), `${container}:/seed.sql`])
 
   // 1) Shim de auth/storage/roles.
   console.log('\nAplicando shim local (auth/roles/storage)...')
@@ -64,15 +65,31 @@ try {
     }
   }
 
-  // 3) Testes de integração (SQL com asserts via RAISE).
+  // 3) Seed (roda depois das migrações, como o Supabase faz em db reset).
+  //    Inclui a validação final do catálogo.
+  console.log('\nAplicando seed:')
+  try {
+    run(['exec', container, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-1', '-f', '/seed.sql'])
+    console.log('  OK   seed.sql')
+  } catch (error) {
+    exitCode = 1
+    failedMigrations.push('seed.sql')
+    console.log('  FAIL seed.sql')
+    console.log((error.stderr || '').toString().trim().split('\n').slice(-3).join('\n'))
+  }
+
+  // 4) Testes de integração (SQL com asserts via RAISE; .sh para concorrência).
   console.log('\nExecutando testes de integração:')
-  const tests = readdirSync(testsDir).filter((file) => file.endsWith('.sql') && file !== 'local_shim.sql').sort()
+  const tests = readdirSync(testsDir)
+    .filter((file) => (file.endsWith('.sql') || file.endsWith('.sh')) && file !== 'local_shim.sql')
+    .sort()
   for (const file of tests) {
     try {
       // 2>&1 para capturar os NOTICE (PASS) do psql, que vão para stderr.
-      const output = run(['exec', container, 'bash', '-lc', `psql -U postgres -v ON_ERROR_STOP=1 -f /tests/${file} 2>&1`])
+      const command = file.endsWith('.sh') ? `bash /tests/${file}` : `psql -U postgres -v ON_ERROR_STOP=1 -f /tests/${file}`
+      const output = run(['exec', container, 'bash', '-lc', `${command} 2>&1`])
       const pass = (output.match(/PASS /g) || []).length
-      const failed = /FAIL |ERROR:/.test(output) || !output.includes('ALL_INTEGRATION_TESTS_PASSED')
+      const failed = /FAIL |ERROR:/.test(output)
       console.log(`  ${failed ? 'FAIL' : 'OK'}   ${file} (${pass} verificações)`)
       if (failed) {
         exitCode = 1

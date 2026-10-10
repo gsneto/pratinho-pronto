@@ -26,6 +26,7 @@ tmp/
 
 .vercel
 supabase/.temp/
+supabase/.branches/
 
 # QA/build artefatos locais
 entregaveis/
