@@ -8,6 +8,7 @@ import {
 import type { Baby, IngredientCategory, MealPlan, Recipe, ShoppingList } from '../../types/domain'
 import { addDays, calculateAgeMonths, formatShortDate, parseIsoDate } from '../../utils/dates'
 import { splitInstructions } from '../../utils/instructions'
+import { formatQuantityWithUnit } from '../../utils/quantity'
 import {
   compareIngredientCategories,
   ingredientCategoryLabels,
@@ -286,7 +287,7 @@ export function ShoppingListDocument({
                 <View style={styles.checkbox} />
                 <Text style={styles.shoppingName}>{item.ingredient.name}</Text>
                 <Text style={styles.quantity}>
-                  {Number(item.quantity).toLocaleString('pt-BR')} {item.unit}
+                  {formatQuantityWithUnit(item.quantity, item.unit)}
                 </Text>
               </View>
             ))}
@@ -330,7 +331,7 @@ export function WeeklyRecipesDocument({
                 <Text style={styles.sectionLabel}>Ingredientes</Text>
                 {recipe.recipe_ingredients.map((item) => (
                   <Text key={item.id} style={styles.ingredientLine}>
-                    {Number(item.quantity).toLocaleString('pt-BR')} {item.unit} de {item.ingredient.name}
+                    {formatQuantityWithUnit(item.quantity, item.unit)} de {item.ingredient.name}
                   </Text>
                 ))}
               </View>

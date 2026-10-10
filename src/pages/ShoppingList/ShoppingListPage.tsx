@@ -15,6 +15,7 @@ import {
 import type { IngredientCategory, ShoppingListItem } from '../../types/domain'
 import { addDays, formatShortDate, getWeekStart, normalizeWeekStart } from '../../utils/dates'
 import { compareIngredientCategories, ingredientCategoryLabels } from '../../utils/labels'
+import { formatQuantityWithUnit } from '../../utils/quantity'
 
 export function ShoppingListPage() {
   const queryClient = useQueryClient()
@@ -253,7 +254,7 @@ export function ShoppingListPage() {
                         {item.ingredient.name}
                       </span>
                       <span className="shrink-0 text-xs text-ink-500">
-                        {Number(item.quantity).toLocaleString('pt-BR')} {item.unit}
+                        {formatQuantityWithUnit(item.quantity, item.unit)}
                       </span>
                     </button>
                   </li>
