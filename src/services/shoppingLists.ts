@@ -1,5 +1,6 @@
 import type { MealPlan, ShoppingList } from '../types/domain'
 import { aggregateShoppingList } from '../lib/shopping-list/aggregate'
+import { mergeShoppingListItems } from '../lib/shopping-list/merge'
 import { getAuthenticatedUserId } from './supabase/auth-user'
 import { getSupabaseClient } from './supabase/client'
 
@@ -87,9 +88,19 @@ export async function appendShoppingListItems(
     .single()
   if (listError) throw listError
 
+  // Soma às quantidades já existentes em vez de sobrescrever: adicionar um
+  // ingrediente faltante não pode reduzir o total calculado pelo cardápio.
+  const { data: existing, error: readError } = await client
+    .from('shopping_list_items')
+    .select('ingredient_id,quantity,unit')
+    .eq('shopping_list_id', list.id)
+  if (readError) throw readError
+
+  const merged = mergeShoppingListItems(existing ?? [], items)
+
   const { error } = await client
     .from('shopping_list_items')
-    .upsert(items.map((item) => ({ ...item, shopping_list_id: list.id })), {
+    .upsert(merged.map((item) => ({ ...item, shopping_list_id: list.id })), {
       onConflict: 'shopping_list_id,ingredient_id,unit',
       ignoreDuplicates: false,
     })

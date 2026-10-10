@@ -186,12 +186,16 @@ describe('setShoppingItemChecked', () => {
 })
 
 describe('appendShoppingListItems', () => {
-  it('faz upsert dos itens vinculando à lista existente', async () => {
+  it('soma a quantidade ao item existente em vez de sobrescrever', async () => {
     const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({
+      data: [{ ingredient_id: 'ing-1', quantity: 3, unit: 'unidade' }],
+      error: null,
+    })
     const itemsUpsert = makeQueryBuilder({ data: null, error: null })
     queueTables({
       shopping_lists: [listUpsert],
-      shopping_list_items: [itemsUpsert],
+      shopping_list_items: [readItems, itemsUpsert],
     })
 
     const listId = await appendShoppingListItems('plan-1', [
@@ -199,6 +203,26 @@ describe('appendShoppingListItems', () => {
     ])
 
     expect(listId).toBe('list-1')
+    expect(readItems.eq).toHaveBeenCalledWith('shopping_list_id', 'list-1')
+    expect(itemsUpsert.upsert).toHaveBeenCalledWith(
+      [{ ingredient_id: 'ing-1', quantity: 5, unit: 'unidade', shopping_list_id: 'list-1' }],
+      { onConflict: 'shopping_list_id,ingredient_id,unit', ignoreDuplicates: false },
+    )
+  })
+
+  it('insere o item quando ainda não existe na lista', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({ data: [], error: null })
+    const itemsUpsert = makeQueryBuilder({ data: null, error: null })
+    queueTables({
+      shopping_lists: [listUpsert],
+      shopping_list_items: [readItems, itemsUpsert],
+    })
+
+    await appendShoppingListItems('plan-1', [
+      { ingredient_id: 'ing-1', quantity: 2, unit: 'unidade' },
+    ])
+
     expect(itemsUpsert.upsert).toHaveBeenCalledWith(
       [{ ingredient_id: 'ing-1', quantity: 2, unit: 'unidade', shopping_list_id: 'list-1' }],
       { onConflict: 'shopping_list_id,ingredient_id,unit', ignoreDuplicates: false },
@@ -214,12 +238,26 @@ describe('appendShoppingListItems', () => {
     ).rejects.toThrow('rls')
   })
 
+  it('propaga erro ao ler os itens existentes', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({ data: null, error: new Error('read-fail') })
+    queueTables({
+      shopping_lists: [listUpsert],
+      shopping_list_items: [readItems],
+    })
+
+    await expect(
+      appendShoppingListItems('plan-1', [{ ingredient_id: 'ing-1', quantity: 1, unit: 'un' }]),
+    ).rejects.toThrow('read-fail')
+  })
+
   it('propaga erro do upsert dos itens', async () => {
     const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({ data: [], error: null })
     const itemsUpsert = makeQueryBuilder({ data: null, error: new Error('boom') })
     queueTables({
       shopping_lists: [listUpsert],
-      shopping_list_items: [itemsUpsert],
+      shopping_list_items: [readItems, itemsUpsert],
     })
 
     await expect(
