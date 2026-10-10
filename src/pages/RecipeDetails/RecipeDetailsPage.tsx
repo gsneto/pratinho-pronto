@@ -32,6 +32,7 @@ import { publicRecipeText } from '../../utils/text'
 import { splitInstructions } from '../../utils/instructions'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
+import { parseDietaryRestrictions, recipeViolatesDiet } from '../../lib/diet/classification'
 
 export function RecipeDetailsPage() {
   const { recipeId } = useParams()
@@ -99,6 +100,11 @@ export function RecipeDetailsPage() {
   const currentRecipe = recipe
   const activeMealType = selectedMealType ?? currentRecipe.meal_type
   const preparationSteps = splitInstructions(currentRecipe.instructions)
+
+  // Inclusão manual é uma escolha explícita, mas avisamos quando a receita
+  // conflita com uma restrição dietética cadastrada (ex.: vegetariano).
+  const dietRule = baby ? parseDietaryRestrictions(baby.restrictions) : null
+  const dietConflict = dietRule ? recipeViolatesDiet(currentRecipe, dietRule) : false
 
 
   const existingSlot = plan?.meal_plan_items.find(
@@ -409,6 +415,12 @@ export function RecipeDetailsPage() {
               <p className="pp-sunken mt-4 bg-terracotta-100 p-4 text-sm leading-6 text-ink-700">
                 Já existe <strong>{existingSlot.recipe.name}</strong> neste horário. Você pode
                 substituir ou adicionar como uma opção extra.
+              </p>
+            )}
+            {dietConflict && (
+              <p className="pp-sunken mt-4 bg-terracotta-100 p-4 text-sm leading-6 text-ink-700">
+                Esta receita tem ingredientes que conflitam com a restrição{' '}
+                <strong>{dietRule?.label}</strong> cadastrada no perfil. Incluir agora é uma escolha sua.
               </p>
             )}
             {saveError && <p className="pp-feedback-error" role="alert">{saveError}</p>}
