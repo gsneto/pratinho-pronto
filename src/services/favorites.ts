@@ -25,7 +25,11 @@ export async function listFavoriteRecipeIds(): Promise<string[]> {
     .eq('user_id', userId)
 
   if (error) return readLocalFavorites(userId)
-  return (data ?? []).map((item) => item.recipe_id as string)
+
+  // Une o que está salvo no servidor com o fallback local: um favorito feito
+  // enquanto o banco estava indisponível não deve sumir quando ele volta.
+  const remote = (data ?? []).map((item) => item.recipe_id as string)
+  return [...new Set([...remote, ...readLocalFavorites(userId)])]
 }
 
 export async function setRecipeFavorite(recipeId: string, favorite: boolean): Promise<void> {
