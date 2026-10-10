@@ -253,7 +253,7 @@ export function ShoppingListPage() {
                       >
                         {item.ingredient.name}
                       </span>
-                      <span className="shrink-0 text-xs text-ink-500">
+                      <span className="shrink-0 text-xs tabular-nums text-ink-500">
                         {formatQuantityWithUnit(item.quantity, item.unit)}
                       </span>
                     </button>

@@ -276,7 +276,7 @@ export function RecipeDetailsPage() {
                     key={item.id}
                   >
                     <span className="text-ink-700">{item.ingredient.name}</span>
-                    <span className="shrink-0 text-ink-500">
+                    <span className="shrink-0 tabular-nums text-ink-500">
                       {formatQuantityWithUnit(item.quantity, item.unit)}
                     </span>
                   </li>
