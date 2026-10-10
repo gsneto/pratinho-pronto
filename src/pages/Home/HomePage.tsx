@@ -7,6 +7,7 @@ import { PageState } from '../../components/ui/PageState'
 import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
+import { useShoppingList } from '../../hooks/useShoppingList'
 import { calculateAgeMonths, formatShortDate, getWeekStart, toIsoDate } from '../../utils/dates'
 import { compareMealTypes, mealTypeLabels } from '../../utils/labels'
 import { analytics } from '../../services/analytics'
@@ -64,6 +65,7 @@ export function HomePage() {
   const { data: baby } = useBaby()
   const currentWeekStart = getWeekStart()
   const { data: plan, isLoading: planLoading, error: planError, refetch } = useMealPlan(baby?.id, currentWeekStart)
+  const { data: shoppingList } = useShoppingList(plan?.id)
   const [showInstallInvite, setShowInstallInvite] = useState(() => {
     try { return window.localStorage.getItem('pratinho-install-invite-dismissed') !== 'true' }
     catch { return false }
@@ -75,6 +77,15 @@ export function HomePage() {
   const nextMeal = upcomingItems[0]
   const furtherMeals = upcomingItems.slice(1, 4)
   const weekLink = `/app/week?week=${currentWeekStart}`
+  const shoppingLink = `/app/shopping-list?week=${currentWeekStart}`
+
+  // Resumo real da semana (sem dados inventados): refeições planejadas e dias
+  // cobertos, além do progresso da lista de compras quando ela já existe.
+  const weekMeals = sortedItems.length
+  const daysCovered = new Set(sortedItems.map((item) => item.date)).size
+  const shoppingItems = shoppingList?.shopping_list_items ?? []
+  const shoppingChecked = shoppingItems.filter((item) => item.checked).length
+  const hasWeekSummary = Boolean(plan) && weekMeals > 0
 
   return (
     <div className="pp-home">
@@ -96,6 +107,32 @@ export function HomePage() {
       <Link className="pp-home-search" to="/app/recipes">
         <Search aria-hidden="true" size={20} /><span>O que vamos preparar hoje?</span><span className="pp-search-arrow"><ArrowRight aria-hidden="true" size={18} /></span>
       </Link>
+
+      {hasWeekSummary && !planError && (
+        <section aria-label="Resumo da semana" className="pp-week-summary">
+          <Link className="pp-week-summary-item" to={weekLink}>
+            <span className="pp-week-summary-value">{weekMeals}</span>
+            <span className="pp-week-summary-label">{weekMeals === 1 ? 'refeição planejada' : 'refeições planejadas'}</span>
+          </Link>
+          <Link className="pp-week-summary-item" to={weekLink}>
+            <span className="pp-week-summary-value">{daysCovered}<small>/7</small></span>
+            <span className="pp-week-summary-label">{daysCovered === 1 ? 'dia com refeição' : 'dias com refeição'}</span>
+          </Link>
+          <Link className="pp-week-summary-item" to={shoppingLink}>
+            {shoppingItems.length > 0 ? (
+              <>
+                <span className="pp-week-summary-value">{shoppingChecked}<small>/{shoppingItems.length}</small></span>
+                <span className="pp-week-summary-label">itens comprados</span>
+              </>
+            ) : (
+              <>
+                <span className="pp-week-summary-value">0<small>/0</small></span>
+                <span className="pp-week-summary-label">lista de compras</span>
+              </>
+            )}
+          </Link>
+        </section>
+      )}
 
       <div className="pp-home-primary">
         <section aria-labelledby="today-heading" className="pp-today">

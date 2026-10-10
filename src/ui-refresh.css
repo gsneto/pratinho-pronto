@@ -64,6 +64,17 @@
 .pp-home-search { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 12px 8px 20px; border: 1px solid var(--pp-border); border-radius: 20px; background: var(--pp-surface); color: var(--color-ink-500); font-size: 15px; }
 .pp-home-search > span:first-of-type { flex: 1; }
 .pp-search-arrow { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; background: var(--color-sage-50); color: var(--color-sage-700); flex-shrink: 0; }
+.pp-week-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pp-week-summary-item { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border: 1px solid var(--pp-border); border-radius: 20px; background: var(--pp-surface); color: var(--color-ink-700); }
+.pp-week-summary-item:hover { border-color: var(--color-sage-300); }
+.pp-week-summary-value { font-family: var(--font-serif); font-size: 30px; line-height: 1; color: var(--color-ink-900); }
+.pp-week-summary-value small { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--color-ink-500); margin-left: 2px; }
+.pp-week-summary-label { font-size: 12px; line-height: 1.35; color: var(--color-ink-500); }
+@media (max-width: 480px) {
+  .pp-week-summary { grid-template-columns: 1fr; }
+  .pp-week-summary-item { flex-direction: row; align-items: baseline; gap: 10px; padding: 12px 16px; }
+  .pp-week-summary-value { font-size: 24px; }
+}
 .pp-home-primary { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(250px, .8fr); gap: 24px; }
 .pp-today { min-width: 0; padding: 24px; border: 1px solid var(--pp-border); border-radius: 30px; background: var(--pp-surface); }
 .pp-feature-meal { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); align-items: center; gap: 22px; }
