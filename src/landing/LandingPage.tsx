@@ -83,7 +83,6 @@ export function LandingPage() {
   const [stickyVisible, setStickyVisible] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [howSlide, setHowSlide] = useState(0)
-  const [howImagesReady, setHowImagesReady] = useState(false)
   const howCarouselRef = useRef<HTMLDivElement>(null)
   const videoBonusCarouselRef = useRef<HTMLDivElement>(null)
   const heroVideoRef = useRef<HTMLVideoElement>(null)
@@ -195,24 +194,9 @@ export function LandingPage() {
     }
   }, [])
 
-  // The five tutorial artworks are important for the story, but none belongs
-  // to the first viewport. Load them shortly before the section enters view so
-  // mobile users get the hero and CTA without paying for below-the-fold bytes.
-  useEffect(() => {
-    const carousel = howCarouselRef.current
-    if (!carousel || typeof IntersectionObserver === 'undefined') {
-      setHowImagesReady(true)
-      return
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry?.isIntersecting) return
-      setHowImagesReady(true)
-      observer.disconnect()
-    }, { rootMargin: '600px 0px' })
-    observer.observe(carousel)
-    return () => observer.disconnect()
-  }, [])
-
+  // Os cinco passos ficam abaixo da primeira dobra. Usamos lazy loading nativo
+  // (`loading="lazy"` no <img>): o src é sempre válido — evitando <img> vazio,
+  // que conta como imagem quebrada — e o navegador adia o download sozinho.
   useEffect(() => {
     const carousel = videoBonusCarouselRef.current
     if (!carousel) return
@@ -293,7 +277,7 @@ export function LandingPage() {
           <div className="lp-section-intro"><p className="lp-kicker">Como funciona</p><h2>Do “o que eu faço hoje?” para a <em>semana organizada.</em></h2><p>Em poucos passos, sem aprender uma ferramenta nova.</p></div>
           <div className="lp-how-swipe-cue"><span>Arraste para o lado</span><strong>Veja os 5 passos</strong><ArrowRight aria-hidden="true" size={18} /></div>
           <div className="lp-how-carousel" ref={howCarouselRef} aria-label="Como funciona em cinco passos" tabIndex={0}>
-            {howImages.map((src, index) => <figure className="lp-how-slide" key={src}><img src={howImagesReady ? src : undefined} alt={howImageDescriptions[index]} width="900" height="1124" loading="lazy" /></figure>)}
+            {howImages.map((src, index) => <figure className="lp-how-slide" key={src}><img alt={howImageDescriptions[index]} height="1124" loading="lazy" src={src} width="900" /></figure>)}
           </div>
           <div className="lp-how-dots" aria-label={`Passo ${howSlide + 1} de 5`}>
             {howImages.map((_, index) => <button className={index === howSlide ? 'is-active' : ''} key={index} type="button" aria-label={`Ver passo ${index + 1}`} aria-current={index === howSlide ? 'true' : undefined} onClick={() => { const carousel = howCarouselRef.current; const slides = carousel?.querySelectorAll<HTMLElement>('.lp-how-slide'); const slide = slides?.[index]; if (slide && slides && carousel) carousel.scrollTo({ left: slide.offsetLeft - slides[0].offsetLeft, behavior: 'smooth' }); setHowSlide(index) }} />)}
