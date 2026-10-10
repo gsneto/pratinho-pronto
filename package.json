@@ -17,6 +17,7 @@
     "qa:dialogs": "node qa/dialogs.mjs",
     "qa:pwa": "node qa/pwa-install.mjs",
     "qa:regressions": "node qa/regressions.mjs",
+    "db:test": "node scripts/db-integration-test.mjs",
     "design:lint": "designmd lint DESIGN.md",
     "preview": "vite preview"
   },
