@@ -64,8 +64,10 @@ export function RecipeVisual({
         className="pp-photo"
         decoding="async"
         fetchPriority={priority ? 'high' : 'auto'}
+        height={800}
         loading={priority ? 'eager' : 'lazy'}
         src={resolvedImageUrl}
+        width={800}
       />
     </div>
   )

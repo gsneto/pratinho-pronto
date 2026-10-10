@@ -119,9 +119,11 @@
     letter-spacing: -0.035em;
   }
 
+  h1,
   h2,
   h3 {
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   p {
@@ -131,6 +133,7 @@
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   button:focus-visible,
