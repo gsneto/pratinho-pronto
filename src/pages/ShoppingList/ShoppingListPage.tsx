@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ListChecks, ShoppingCart } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
@@ -34,6 +35,8 @@ export function ShoppingListPage() {
   const [changingItemId, setChangingItemId] = useState<string | null>(null)
   const [generationError, setGenerationError] = useState<string | null>(null)
   const [itemError, setItemError] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const confirmTriggerRef = useRef<HTMLButtonElement>(null)
 
   const groupedItems = useMemo(() => {
     const groups = new Map<IngredientCategory, ShoppingListItem[]>()
@@ -76,8 +79,8 @@ export function ShoppingListPage() {
     )
   }
 
-  async function handleGenerate() {
-    if (!plan) return
+  async function handleGenerate(): Promise<boolean> {
+    if (!plan) return false
     setIsGenerating(true)
     setGenerationError(null)
     try {
@@ -88,8 +91,12 @@ export function ShoppingListPage() {
       await queryClient.invalidateQueries({
         queryKey: shoppingListQueryKey(plan.id),
       })
+      return true
     } catch {
-      setGenerationError('Não conseguimos montar sua lista agora. Tente novamente em instantes.')
+      setGenerationError(
+        'Não conseguimos atualizar sua lista agora. Sua lista anterior foi mantida. Tente novamente em instantes.',
+      )
+      return false
     } finally {
       setIsGenerating(false)
     }
@@ -169,7 +176,14 @@ export function ShoppingListPage() {
         <button
           className={`pp-btn w-full sm:w-auto ${shoppingList ? 'pp-btn-secondary' : 'pp-btn-primary'}`}
           disabled={isGenerating}
-          onClick={handleGenerate}
+          onClick={(event) => {
+            if (shoppingList) {
+              confirmTriggerRef.current = event.currentTarget
+              setShowConfirm(true)
+            } else {
+              void handleGenerate()
+            }
+          }}
           type="button"
         >
           <ShoppingCart aria-hidden="true" size={18} />
@@ -194,7 +208,7 @@ export function ShoppingListPage() {
               <button
                 className="pp-btn pp-btn-primary"
                 disabled={isGenerating}
-                onClick={handleGenerate}
+                onClick={() => { void handleGenerate() }}
                 type="button"
               >
                 {isGenerating ? 'Gerando…' : 'Gerar lista de compras'}
@@ -283,6 +297,26 @@ export function ShoppingListPage() {
             </Link>
           </section>
         </div>
+      )}
+
+      {showConfirm && (
+        <ConfirmDialog
+          confirmLabel="Atualizar lista"
+          description="A lista será recalculada a partir das refeições do cardápio desta semana."
+          details={[
+            'As quantidades são recalculadas conforme o cardápio atual.',
+            'Itens adicionados manualmente (pela despensa) saem da lista.',
+            'As marcações de "comprado" são zeradas.',
+          ]}
+          isConfirming={isGenerating}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={async () => {
+            await handleGenerate()
+            setShowConfirm(false)
+          }}
+          returnFocusRef={confirmTriggerRef}
+          title="Atualizar a lista de compras?"
+        />
       )}
     </div>
   )
