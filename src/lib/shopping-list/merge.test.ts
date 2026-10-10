@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mergeShoppingListItems } from './merge'
+import { formatQuantityWithUnit } from '../../utils/quantity'
 
 describe('mergeShoppingListItems', () => {
   it('soma a quantidade quando o item já existe com a mesma unidade', () => {
@@ -44,5 +45,15 @@ describe('mergeShoppingListItems', () => {
       ],
     )
     expect(result).toHaveLength(2)
+  })
+
+  it('a quantidade somada é exibida igual em UI e PDF (mesmo formatador)', () => {
+    // A lista de compras (UI) e o PDF usam formatQuantityWithUnit; este teste
+    // garante que a soma do merge chega ao usuário com a mesma string.
+    const merged = mergeShoppingListItems(
+      [{ ingredient_id: 'banana', quantity: 3, unit: 'unidade' }],
+      [{ ingredient_id: 'banana', quantity: 1, unit: 'unidade' }],
+    )
+    expect(formatQuantityWithUnit(merged[0]!.quantity, merged[0]!.unit)).toBe('4 unidades')
   })
 })

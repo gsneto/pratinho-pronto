@@ -214,6 +214,10 @@ export function ShoppingListPage() {
             <progress aria-label="Itens da lista de compras" max={Math.max(1, totals.total)} value={totals.checked} />
             {totals.total > 0 && totals.checked === totals.total && <span className="mt-2 block text-sm text-sage-700">Tudo marcado. Sua lista está completa.</span>}
           </div>
+          <p className="text-xs leading-5 text-ink-500">
+            As quantidades somam o total previsto nas receitas da semana, na medida usada no preparo
+            (colheres, unidades, gramas). Ajuste conforme o que você já tem em casa.
+          </p>
 
           {groupedItems.map(([category, items]) => (
             <section className="pp-panel overflow-hidden" key={category}>

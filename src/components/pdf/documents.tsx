@@ -278,21 +278,36 @@ export function ShoppingListDocument({
         </Text>
         <View style={styles.rule} />
 
-        {orderedGroups.map(([category, items]) => (
-          <View key={category} minPresenceAhead={64} style={styles.category}>
-            <Text style={styles.categoryTitle}>{ingredientCategoryLabels[category]}</Text>
-            <View style={styles.categoryRule} />
-            {items.map((item) => (
-              <View key={item.id} style={styles.shoppingRow} wrap={false}>
-                <View style={styles.checkbox} />
-                <Text style={styles.shoppingName}>{item.ingredient.name}</Text>
-                <Text style={styles.quantity}>
-                  {formatQuantityWithUnit(item.quantity, item.unit)}
-                </Text>
+        <Text style={styles.subtitle}>
+          Quantidades somadas das receitas da semana, na medida usada no preparo.
+        </Text>
+        <View style={styles.sectionRule} />
+
+        {orderedGroups.map(([category, items]) => {
+          const [firstItem, ...restItems] = items
+          const renderRow = (item: (typeof items)[number]) => (
+            <View key={item.id} style={styles.shoppingRow} wrap={false}>
+              <View style={styles.checkbox} />
+              <Text style={styles.shoppingName}>{item.ingredient.name}</Text>
+              <Text style={styles.quantity}>
+                {formatQuantityWithUnit(item.quantity, item.unit)}
+              </Text>
+            </View>
+          )
+          return (
+            <View key={category} style={styles.category}>
+              {/* Título + primeira linha ficam juntos: a categoria nunca abre
+                  com o título órfão no fim da página, e as linhas seguintes
+                  podem fluir normalmente para economizar papel. */}
+              <View wrap={false}>
+                <Text style={styles.categoryTitle}>{ingredientCategoryLabels[category]}</Text>
+                <View style={styles.categoryRule} />
+                {firstItem && renderRow(firstItem)}
               </View>
-            ))}
-          </View>
-        ))}
+              {restItems.map(renderRow)}
+            </View>
+          )
+        })}
         <PdfFooter />
       </Page>
     </Document>
