@@ -4,44 +4,31 @@
 .lp-offer-bonus{display:inline}.lp-offer-bonus>span{width:auto}.lp-offer-bonus s{color:#aebeb6;font-size:.78rem;margin-left:5px}
 .lp-logo-image{display:block;height:auto;object-fit:contain;width:190px}.lp-logo-footer{background:#fff;border-radius:10px;margin-bottom:12px;padding:6px;width:170px}@media (max-width:700px){.lp-logo-image{width:150px}.lp-logo-footer{width:165px}}
 .lp-bonus-total{color:var(--lp-muted);font-size:.95rem;margin:26px auto 0;text-align:center}.lp-bonus-total s{color:#7f8781;font-size:1.15rem;font-weight:700;margin:0 5px}.lp-bonus-total strong{color:#527050;font-size:.85rem}
-/* Condição de parcelamento definida para a prévia atual */
-.lp-price-note::after{color:var(--lp-terra);content:'ou 11x de R$ 5,24 no cartão';font-size:.84rem;font-weight:700;margin-left:4px}
 .lp-vsl-bridge{color:var(--lp-navy);font-size:1rem;font-weight:700;line-height:1.35;margin:14px 0 0;max-width:350px}
-.lp-offer-price strong::after{color:#f3c4ad;content:'ou 11x de R$ 5,24 no cartão';display:block;font-family:Karla,ui-sans-serif,system-ui,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0;margin-top:10px}
-.lp-final-price::after{color:#e9a27f;content:'ou 11x de R$ 5,24 no cartão';font-size:.84rem;font-weight:700}
-.lp-sticky>div::after{color:var(--lp-terra);content:'ou 11x de R$ 5,24';font-size:.68rem;font-weight:700}
+/* Parcelamento como texto real (sem pseudo-elementos com conteúdo). */
+.lp-final-price{flex-wrap:wrap}
+.lp-final-price .lp-final-installment{color:#e9a27f;flex-basis:100%;font-size:.84rem;font-weight:700;text-align:center}
+.lp-sticky .lp-sticky-installment{color:var(--lp-terra);font-size:.68rem;font-weight:700}
+.lp-offer-price strong::after{color:#f3c4ad;content:none}
 /* Na oferta, o preço aparece antes da lista de benefícios */
 .lp-offer-card{grid-template-columns:1fr}
 .lp-offer-price{grid-column:1;grid-row:1}
 .lp-offer-main{grid-column:1;grid-row:2}
 /* Chamada curta posicionada acima do preço na oferta */
 .lp-offer-main>.lp-kicker,.lp-offer-main>h2{display:none}
-.lp-offer-price::before{color:#f3c4ad;content:'Acesse o Pratinho Pronto';font-size:1.35rem;font-weight:700;margin-bottom:18px}
-.lp-offer-price::before{content:none}
 .lp-offer-price .lp-one-time{font-size:0;letter-spacing:0;margin-bottom:18px;text-transform:none}
-.lp-offer-price .lp-one-time::before{color:#fff;content:'Acesse o';font-size:1.35rem;font-weight:700}
-.lp-offer-price .lp-one-time::after{color:#f3c4ad;content:' Pratinho Pronto';font-size:1.35rem;font-weight:700}
 /* Formato final do bloco de preço */
 .lp-offer-price strong{font-size:0;order:1}
-.lp-offer-price strong::before{color:#fff;content:'R$47,00';display:block;font-family:Fraunces,Georgia,serif;font-size:4.7rem;letter-spacing:-.07em;line-height:1}
-.lp-offer-price strong::after{content:none}
 .lp-offer-price .lp-one-time{font-size:0;order:2;margin:0 0 6px}
-.lp-offer-price .lp-one-time::before{color:#dce5df;content:'pagamento único';font-size:1rem;font-weight:400}
-.lp-offer-price .lp-one-time::after{content:none}
-.lp-offer-price>span:not(.lp-one-time):not(.lp-offer-price-kicker){font-size:0;order:3}
-.lp-offer-price>span:not(.lp-one-time):not(.lp-offer-price-kicker)::before{color:#f3c4ad;content:'ou 11x de R$5,24';font-size:1.05rem;font-weight:700}
 .lp-offer-price .lp-button{order:4}
 .lp-offer-price small{order:5}
 .lp-offer-price{scroll-margin-top:76px}
-@media (max-width:700px){.lp-offer-price strong::before{font-size:3.8rem}}
 /* Identificação da oferta acima do preço */
 .lp-offer-price .lp-access-label{color:#fff;display:block;font-size:1.35rem;font-weight:700;letter-spacing:0;margin:0 0 18px;order:0;text-transform:none}
 .lp-offer-price .lp-access-label span{color:#fff}
 .lp-offer-price .lp-access-label b{color:#f3c4ad}
 .lp-offer-price .lp-one-time{color:#dce5df;font-size:1rem;font-weight:400;letter-spacing:0;margin:0 0 6px;order:2;text-transform:none}
-.lp-offer-price .lp-one-time::before,.lp-offer-price .lp-one-time::after{content:none}
 .lp-offer-price strong{font-size:4.7rem;order:1}
-.lp-offer-price strong::before,.lp-offer-price strong::after{content:none}
 .lp-offer-price>span:not(.lp-one-time):not(.lp-access-label):not(.lp-offer-price-kicker){color:#f3c4ad;font-size:1.05rem;font-weight:700;order:3}
 @media (max-width:700px){.lp-offer-price strong{font-size:3.8rem}}
 .lp-offer-price>span.lp-access-label{font-size:1.35rem;order:0}
@@ -98,19 +85,14 @@
 .lp-offer-price .lp-access-label{align-items:center;display:flex;flex-direction:column;gap:4px;justify-content:center}.lp-offer-price .lp-access-label img{background:var(--lp-bg);border-radius:9px;display:block;height:auto;padding:5px 8px;width:126px}
 .lp-offer-price .lp-access-label img{background:transparent;padding:0;width:142px}
 .lp-offer-price .lp-access-label img{display:none!important}
-.lp-offer-price .lp-access-label b{font-size:0;letter-spacing:.14em;text-transform:uppercase}
-.lp-offer-price .lp-access-label b::after{content:'ACESSO VITALÍCIO';font-size:.86rem}
-.lp-offer-price .lp-access-label b{display:none}
-.lp-offer-price .lp-access-label::after{color:#f1e6d8;content:'Tenha o Pratinho Pronto e liberte sua cabeça da pergunta de sempre: “o que eu faço hoje?”';font-size:.92rem;font-weight:500;letter-spacing:0;line-height:1.35;margin-top:6px;max-width:340px;text-align:center;text-transform:none}
-.lp-offer-price .lp-value-anchor{font-size:0!important}
-.lp-offer-price .lp-value-anchor::before{content:'Valor dos itens separadamente: ' !important;font-size:.9rem!important}
-.lp-offer-price .lp-savings::before{color:#f1e6d8!important;content:'Acesso vitalício • ' !important;font-size:.9rem!important;line-height:inherit!important}
+/* O texto da oferta vem do HTML real; nada de `content` em pseudo-elementos,
+   que duplicavam o conteúdo na árvore de acessibilidade. */
+.lp-offer-price>span.lp-access-label{color:#f1e6d8;font-size:.92rem;font-weight:500;letter-spacing:0;line-height:1.35;margin:0 0 18px;max-width:340px;text-align:center;order:0;text-transform:none}
+.lp-offer-price .lp-savings-prefix{color:#f1e6d8}
 @media (max-width:700px){.lp-offer-bonus-groups{border-left:0;border-top:1px solid #547080;padding-left:0;padding-top:22px}.lp-offer-primary h3{font-size:1.25rem}.lp-offer-bonus-groups ul+h3{margin-top:22px}}
 .lp-offer-primary h3{color:#f3c4ad;font-family:Karla,ui-sans-serif,system-ui,sans-serif;font-size:.74rem;letter-spacing:.12em;line-height:1.2;margin:0 0 13px;text-transform:uppercase}
 .lp-check{background:#4caf68;box-shadow:0 0 0 3px #4caf6826}
 .lp-offer-primary ul li:nth-child(2){order:6}
-.lp-offer-primary ul li:nth-child(2)>span:last-child{font-size:0}
-.lp-offer-primary ul li:nth-child(2)>span:last-child::after{content:'Atualizações gratuitas';font-size:.91rem}
 .lp-offer-primary ul li:nth-child(1){order:1}
 .lp-offer-primary ul li:nth-child(4){order:2}
 .lp-offer-primary ul li:nth-child(3){order:3}
@@ -243,7 +225,7 @@ main>#testimonials{order:8}
 .lp-dark-mode .lp-offer-price{background:#102e40}
 .lp-dark-mode .lp-offer-price-kicker{color:#fff7f0!important}.lp-dark-mode .lp-offer-price .lp-today-label,.lp-dark-mode .lp-offer-price .lp-installment{color:#f2ad8c!important}
 .landing-page .lp-bonus-total s,.landing-page .lp-offer-price .lp-value-anchor s{color:#df4d48!important}
-.lp-dark-mode .lp-offer-price .lp-access-label::after{color:#f1e6d8}
+.lp-dark-mode .lp-offer-price .lp-access-label{color:#f1e6d8}
 .lp-dark-mode .lp-countdown{background:#0d202c;border-color:#45636c}
 .lp-dark-mode .lp-vsl-bridge{color:#edf3ef}
 .lp-dark-mode #how .lp-step h3{color:#f5f1e9}
