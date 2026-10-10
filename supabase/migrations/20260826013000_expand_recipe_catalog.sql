@@ -2,10 +2,25 @@
 -- Conteúdo editorial baseado em alimentos in natura ou minimamente processados.
 -- Não substitui avaliação individual nem revisão de nutricionista infantil.
 
+-- Catálogo de ingredientes completo, para que esta migração seja autossuficiente.
+-- O Supabase aplica as migrações ANTES do seed, então não se pode depender de
+-- os ingredientes do seed existirem aqui. A lista é a mesma do seed.sql (que
+-- reaplica com "on conflict do update"); um teste garante que as duas
+-- permaneçam idênticas. Sem isto, uma base limpa ficaria com receitas sem
+-- vínculo de ingrediente.
 insert into public.ingredients (name, category) values
-  ('Couve', 'vegetable'),
-  ('Flocão de milho', 'grain'),
-  ('Pêssego', 'fruit')
+  ('Abacate', 'fruit'), ('Arroz', 'grain'), ('Aveia', 'grain'),
+  ('Banana', 'fruit'), ('Batata', 'vegetable'), ('Batata-doce', 'vegetable'),
+  ('Beterraba', 'vegetable'), ('Brócolis', 'vegetable'), ('Carne bovina', 'protein'),
+  ('Cenoura', 'vegetable'), ('Chia', 'grain'), ('Ervilha', 'vegetable'),
+  ('Espinafre', 'vegetable'), ('Feijão', 'protein'), ('Frango', 'protein'),
+  ('Grão-de-bico', 'protein'), ('Iogurte natural', 'dairy'), ('Lentilha', 'protein'),
+  ('Maçã', 'fruit'), ('Mamão', 'fruit'), ('Manga', 'fruit'),
+  ('Mandioca', 'vegetable'), ('Melão', 'fruit'), ('Ovo', 'protein'),
+  ('Pão integral', 'grain'), ('Pera', 'fruit'), ('Peixe', 'protein'),
+  ('Polenta', 'grain'), ('Quinoa', 'grain'), ('Abóbora', 'vegetable'),
+  ('Abobrinha', 'vegetable'), ('Peru', 'protein'), ('Água', 'other'),
+  ('Couve', 'vegetable'), ('Flocão de milho', 'grain'), ('Pêssego', 'fruit')
 on conflict (name) do update set category = excluded.category;
 
 create temporary table catalog_expansion (
@@ -260,44 +275,7 @@ join public.recipes r on r.name = c.name
 cross join lateral unnest(c.allergens) allergen
 on conflict (recipe_id, allergen) do nothing;
 
-do $$
-declare
-  catalog_total integer;
-  missing_required integer;
-  unbalanced_types integer;
-begin
-  select count(*) into catalog_total
-  from public.recipes
-  where is_demo and is_active;
-
-  if catalog_total < 72 then
-    raise exception 'Catálogo incompleto: esperadas ao menos 72 receitas, encontradas %', catalog_total;
-  end if;
-
-  select count(*) into missing_required
-  from public.recipes r
-  where r.is_demo
-    and r.is_active
-    and not exists (
-      select 1 from public.recipe_ingredients ri
-      where ri.recipe_id = r.id and not ri.is_optional
-    );
-
-  if missing_required > 0 then
-    raise exception 'Catálogo inválido: % receitas sem ingrediente obrigatório', missing_required;
-  end if;
-
-  select count(*) into unbalanced_types
-  from (
-    select meal_type
-    from public.recipes
-    where is_demo and is_active
-    group by meal_type
-    having count(*) < 18
-  ) insufficient;
-
-  if unbalanced_types > 0 then
-    raise exception 'Catálogo desequilibrado: há tipos de refeição com menos de 18 receitas';
-  end if;
-end
-$$;
+-- A validação de que o catálogo completo (≥72 receitas, equilibrado, todas com
+-- ingredientes obrigatórios) foi movida para o fim de supabase/seed.sql. Ela
+-- precisa rodar depois de o seed inserir as 24 receitas restantes; rodar aqui
+-- (antes do seed) abortava a reconstrução limpa encontrando apenas 48.

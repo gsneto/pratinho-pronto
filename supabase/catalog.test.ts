@@ -31,6 +31,12 @@ const ingredientDefinitions = new Set(
 const ingredientLists = [...catalogSection.matchAll(/\$json\$([\s\S]*?)\$json\$/g)]
   .map((match) => JSON.parse(match[1]) as Array<{ name: string; quantity: number; unit: string }>)
 
+// Ingredientes definidos por cada arquivo (não os referenciados nos JSON).
+const ingredientPattern = /\('([^']+)',\s*'(?:fruit|vegetable|protein|grain|dairy|seasoning|other)'\)/g
+const migrationIngredients = new Set([...migration.matchAll(ingredientPattern)].map((m) => m[1]))
+const seedIngredients = new Set([...seed.matchAll(ingredientPattern)].map((m) => m[1]))
+const usedIngredients = new Set(ingredientLists.flat().map((item) => item.name))
+
 describe('catálogo expandido de receitas', () => {
   it('adiciona 48 receitas únicas e completa um catálogo de 72', () => {
     expect(recipeHeaders).toHaveLength(48)
@@ -60,5 +66,17 @@ describe('catálogo expandido de receitas', () => {
   it('não usa açúcar nem mel como ingredientes', () => {
     const forbidden = /^(açúcar|mel|melado|adoçante)$/i
     expect(ingredientLists.flat().some((item) => forbidden.test(item.name))).toBe(false)
+  })
+
+  it('é autossuficiente em ingredientes (não depende do seed rodar antes)', () => {
+    // O Supabase aplica migrações ANTES do seed. Se a migração não definir todos
+    // os ingredientes que suas receitas usam, uma base limpa fica com receitas
+    // sem vínculo de ingrediente.
+    const missingInMigration = [...usedIngredients].filter((name) => !migrationIngredients.has(name))
+    expect(missingInMigration).toEqual([])
+    // E a migração deve cobrir tudo o que o seed define (senão o seed, que roda
+    // depois, precisaria recriar ingredientes que a migração já deveria ter).
+    const seedNotInMigration = [...seedIngredients].filter((name) => !migrationIngredients.has(name))
+    expect(seedNotInMigration).toEqual([])
   })
 })
