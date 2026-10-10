@@ -4,6 +4,7 @@ import { useFavoriteRecipe } from '../../hooks/useFavorites'
 import type { Recipe } from '../../types/domain'
 import { mealTypeLabels } from '../../utils/labels'
 import { publicRecipeText } from '../../utils/text'
+import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
 import { RecipeVisual } from './RecipeVisual'
 
 interface RecipeCardProps {
@@ -55,7 +56,7 @@ export function RecipeCard({
       <div className="pp-recipe-card-body">
         <div className="flex flex-wrap gap-2">
           <span className="pp-badge pp-badge-sage">{mealTypeLabels[recipe.meal_type]}</span>
-          {recipe.is_demo && <span className="pp-badge pp-badge-terracotta">Demonstrativa</span>}
+          {shouldShowDemoBadge(recipe.is_demo) && <span className="pp-badge pp-badge-terracotta">Demonstrativa</span>}
         </div>
         <Link className="pp-recipe-title-link" state={returnTo ? { returnTo } : undefined} to={`/app/recipes/${recipe.id}`}><h2 className="leading-snug break-words text-ink-900">{recipe.name}</h2></Link>
         <p className="pp-recipe-description mt-2 line-clamp-2 text-sm leading-6 text-ink-500">

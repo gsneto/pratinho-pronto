@@ -10,6 +10,7 @@ import { useMealPlan } from '../../hooks/useMealPlan'
 import { calculateAgeMonths, formatShortDate, getWeekStart, toIsoDate } from '../../utils/dates'
 import { compareMealTypes, mealTypeLabels } from '../../utils/labels'
 import { analytics } from '../../services/analytics'
+import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
 
 const guideMaterials = [
   {
@@ -114,7 +115,7 @@ export function HomePage() {
                 <h3>{nextMeal.recipe.name}</h3>
                 <div className="pp-meal-meta"><span><Clock3 aria-hidden="true" size={16} />{nextMeal.recipe.prep_time_minutes} min</span><span>{nextMeal.recipe.min_age_months}+ meses</span></div>
                 <Link className="pp-btn pp-btn-primary pp-btn-lg" to={`/app/recipes/${nextMeal.recipe.id}`} state={{ returnTo: '/app' }}>Vamos preparar<ArrowRight aria-hidden="true" size={18} /></Link>
-                {nextMeal.recipe.is_demo && <small className="pp-demo-note">Receita demonstrativa do catálogo</small>}
+                {shouldShowDemoBadge(nextMeal.recipe.is_demo) && <small className="pp-demo-note">Receita demonstrativa do catálogo</small>}
               </div>
             </article>
           ) : (

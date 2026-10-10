@@ -119,6 +119,8 @@
 .pp-video-card p { color: var(--color-ink-500); font-size: 12px; line-height: 1.6; margin-top: 7px; }
 .pp-care-note { display: flex; align-items: flex-start; gap: 10px; color: var(--color-ink-500); line-height: 1.7; font-size: 12px; }
 .pp-care-note svg { flex-shrink: 0; margin-top: 2px; color: var(--color-sage-700); }
+.pp-catalog-note { display: flex; align-items: flex-start; gap: 10px; margin-top: 20px; padding: 14px 16px; border-radius: 16px; background: var(--color-sage-50); color: var(--color-ink-500); font-size: 13px; line-height: 1.6; }
+.pp-catalog-note svg { flex-shrink: 0; margin-top: 2px; color: var(--color-sage-700); }
 .pp-recipe-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 26px; }
 .pp-recipe-card { min-width: 0; transition: transform 180ms ease, border-color 180ms ease; }
 @media (hover: hover) { .pp-recipe-card:hover { transform: translateY(-3px); border-color: var(--color-sage-300); } }

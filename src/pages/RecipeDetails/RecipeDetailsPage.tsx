@@ -9,6 +9,7 @@ import {
   Replace,
   Share2,
   Snowflake,
+  Sprout,
   UtensilsCrossed,
   X,
 } from 'lucide-react'
@@ -29,6 +30,8 @@ import { addDays, formatShortDate, normalizeWeekStart } from '../../utils/dates'
 import { mealTypeLabels, weekDayLabels } from '../../utils/labels'
 import { publicRecipeText } from '../../utils/text'
 import { splitInstructions } from '../../utils/instructions'
+import { formatQuantityWithUnit } from '../../utils/quantity'
+import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
 
 export function RecipeDetailsPage() {
   const { recipeId } = useParams()
@@ -165,7 +168,9 @@ export function RecipeDetailsPage() {
         <div className="p-5 sm:p-8">
           <div className="flex flex-wrap gap-2">
             <span className="pp-badge pp-badge-sage">{mealTypeLabels[recipe.meal_type]}</span>
-            <span className="pp-badge pp-badge-terracotta">{recipe.is_demo ? 'Demonstrativa' : 'Do seu catálogo'}</span>
+            {shouldShowDemoBadge(recipe.is_demo) && (
+              <span className="pp-badge pp-badge-terracotta">Demonstrativa</span>
+            )}
           </div>
           <h1 className="mt-4 text-[30px] leading-[1.1] break-words text-ink-900 sm:text-[38px]">
             {recipe.name}
@@ -253,6 +258,14 @@ export function RecipeDetailsPage() {
             </div>
           </dl>
 
+          <p className="pp-catalog-note">
+            <Sprout aria-hidden="true" className="mt-0.5 shrink-0 text-sage-700" size={18} />
+            <span>
+              Conteúdo educativo do catálogo. Idade mínima, texturas, cortes e alergênicos são
+              referências gerais e não substituem a avaliação de pediatra ou nutricionista.
+            </span>
+          </p>
+
           <div className="mt-8 grid gap-8 md:grid-cols-[0.8fr_1.2fr]">
             <section>
               <h2 className="text-xl text-ink-900">Ingredientes</h2>
@@ -264,7 +277,7 @@ export function RecipeDetailsPage() {
                   >
                     <span className="text-ink-700">{item.ingredient.name}</span>
                     <span className="shrink-0 text-ink-500">
-                      {Number(item.quantity).toLocaleString('pt-BR')} {item.unit}
+                      {formatQuantityWithUnit(item.quantity, item.unit)}
                     </span>
                   </li>
                 ))}

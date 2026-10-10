@@ -31,7 +31,8 @@ it('preserves the source guidance without inferring texture or freezing permissi
   expect(screen.getByText(testRecipe.storage_notes!)).toBeTruthy()
   expect(screen.queryByText('Sim, em porções')).toBeNull()
   expect(screen.queryByText('Textura sugerida')).toBeNull()
-  expect(screen.getByText('Demonstrativa')).toBeTruthy()
+  expect(screen.queryByText('Demonstrativa')).toBeNull()
+  expect(screen.getByText(/Conteúdo educativo do catálogo/)).toBeTruthy()
 })
 
 it('lets the cook check and restart steps without changing their instructions', () => {
