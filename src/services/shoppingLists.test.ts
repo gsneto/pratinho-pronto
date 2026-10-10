@@ -5,7 +5,7 @@ vi.mock('./supabase/auth-user', () => ({
   getAuthenticatedUserId: vi.fn(async () => 'user-1'),
 }))
 
-const supabaseMock = vi.hoisted(() => ({ from: vi.fn() }))
+const supabaseMock = vi.hoisted(() => ({ from: vi.fn(), rpc: vi.fn() }))
 
 vi.mock('./supabase/client', () => ({
   getSupabaseClient: () => supabaseMock,
@@ -13,8 +13,7 @@ vi.mock('./supabase/client', () => ({
 
 function makeQueryBuilder(finalResult: { data?: unknown; error?: unknown }) {
   const builder: Record<string, unknown> = {}
-  const record = () =>
-    vi.fn(() => builder)
+  const record = () => vi.fn(() => builder)
   builder.select = record()
   builder.insert = record()
   builder.update = record()
@@ -59,6 +58,7 @@ const {
 
 beforeEach(() => {
   supabaseMock.from.mockReset()
+  supabaseMock.rpc.mockReset()
 })
 
 const samplePlan: MealPlan = {
@@ -112,57 +112,39 @@ const samplePlan: MealPlan = {
 }
 
 describe('generateShoppingList', () => {
-  it('faz upsert da lista, limpa itens antigos e insere agregados', async () => {
-    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
-    const deleteItems = makeQueryBuilder({ data: null, error: null })
-    const insertItems = makeQueryBuilder({ data: null, error: null })
-    queueTables({
-      shopping_lists: [listUpsert],
-      shopping_list_items: [deleteItems, insertItems],
-    })
+  it('substitui a lista com uma única chamada RPC atômica', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: 'list-1', error: null })
 
     const listId = await generateShoppingList(samplePlan)
 
     expect(listId).toBe('list-1')
-    expect(listUpsert.upsert).toHaveBeenCalledWith(
-      { meal_plan_id: 'plan-1', user_id: 'user-1' },
-      { onConflict: 'meal_plan_id' },
-    )
-    expect(deleteItems.delete).toHaveBeenCalled()
-    const insertPayload = insertItems.insert.mock.calls[0]?.[0] as Array<{
-      ingredient_id: string
-      shopping_list_id: string
-      quantity: number
-      unit: string
-      checked: boolean
-    }>
-    expect(insertPayload).toEqual([
-      {
-        checked: false,
-        ingredient_id: 'ing-banana',
-        quantity: 1,
-        shopping_list_id: 'list-1',
-        unit: 'unidade',
-      },
-    ])
-  })
-
-  it('propaga erro do upsert da lista', async () => {
-    const listUpsert = makeQueryBuilder({ data: null, error: new Error('rls') })
-    queueTables({ shopping_lists: [listUpsert] })
-
-    await expect(generateShoppingList(samplePlan)).rejects.toThrow('rls')
-  })
-
-  it('propaga erro ao limpar itens antigos antes de inserir', async () => {
-    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
-    const deleteItems = makeQueryBuilder({ data: null, error: new Error('boom') })
-    queueTables({
-      shopping_lists: [listUpsert],
-      shopping_list_items: [deleteItems],
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('replace_shopping_list', {
+      p_meal_plan_id: 'plan-1',
+      p_items: [{ ingredient_id: 'ing-banana', quantity: 1, unit: 'unidade' }],
     })
+    // Não deve usar from() para gerar: a atomicidade vem da RPC.
+    expect(supabaseMock.from).not.toHaveBeenCalled()
+  })
 
-    await expect(generateShoppingList(samplePlan)).rejects.toThrow('boom')
+  it('agrega itens repetidos antes de enviar à RPC', async () => {
+    const planWithTwoBananas: MealPlan = {
+      ...samplePlan,
+      meal_plan_items: [samplePlan.meal_plan_items[0], { ...samplePlan.meal_plan_items[0], id: 'i2' }],
+    }
+    supabaseMock.rpc.mockResolvedValue({ data: 'list-1', error: null })
+
+    await generateShoppingList(planWithTwoBananas)
+
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('replace_shopping_list', {
+      p_meal_plan_id: 'plan-1',
+      p_items: [{ ingredient_id: 'ing-banana', quantity: 2, unit: 'unidade' }],
+    })
+  })
+
+  it('propaga erro da RPC (a lista anterior é preservada pelo banco)', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: new Error('rpc-fail') })
+
+    await expect(generateShoppingList(samplePlan)).rejects.toThrow('rpc-fail')
   })
 })
 

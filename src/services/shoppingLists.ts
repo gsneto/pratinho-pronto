@@ -28,38 +28,22 @@ export async function getShoppingList(
 }
 
 export async function generateShoppingList(plan: MealPlan): Promise<string> {
-  const userId = await getAuthenticatedUserId()
-  const items = aggregateShoppingList(plan.meal_plan_items)
-  const client = getSupabaseClient()
-  const { data: list, error: listError } = await client
-    .from('shopping_lists')
-    .upsert(
-      { meal_plan_id: plan.id, user_id: userId },
-      { onConflict: 'meal_plan_id' },
-    )
-    .select('id')
-    .single()
+  await getAuthenticatedUserId()
+  const items = aggregateShoppingList(plan.meal_plan_items).map((item) => ({
+    ingredient_id: item.ingredient_id,
+    quantity: item.quantity,
+    unit: item.unit,
+  }))
 
-  if (listError) throw listError
+  // Uma única chamada atômica: substituir (delete + insert) em transação no
+  // banco. Sem isso, uma falha entre as etapas deixaria a lista incompleta.
+  const { data, error } = await getSupabaseClient().rpc('replace_shopping_list', {
+    p_meal_plan_id: plan.id,
+    p_items: items,
+  })
 
-  const { error: deleteError } = await client
-    .from('shopping_list_items')
-    .delete()
-    .eq('shopping_list_id', list.id)
-  if (deleteError) throw deleteError
-
-  const { error: itemsError } = await client.from('shopping_list_items').insert(
-    items.map((item) => ({
-      checked: false,
-      ingredient_id: item.ingredient_id,
-      quantity: item.quantity,
-      shopping_list_id: list.id,
-      unit: item.unit,
-    })),
-  )
-  if (itemsError) throw itemsError
-
-  return list.id as string
+  if (error) throw error
+  return data as string
 }
 
 export async function setShoppingItemChecked(
