@@ -318,7 +318,7 @@ export function LandingPage() {
 
       <section className="lp-section lp-objection" id="objection" data-track="objection_view"><div className="lp-container lp-objection-grid"><div><p className="lp-kicker">Uma dúvida justa</p><h2>“Mas receita tem de graça na internet.”</h2><p className="lp-objection-answer">Tem mesmo.</p><p className="lp-lead">E é justamente por isso que o Pratinho Pronto não foi criado para ser só mais uma pasta de receitas.</p><p className="lp-lead">O valor está no que acontece depois: organizar a semana, trocar opções, aproveitar ingredientes e montar sua lista de compras em poucos passos.</p><div className="lp-contrast"><strong>Menos procura.</strong><strong>Mais organização.</strong></div></div><div className="lp-proof"><div className="lp-proof-head"><ShieldCheck aria-hidden="true" size={23} /><h3>Veja exatamente o que você está comprando.</h3></div>{['Aplicativo real','Vídeo real do funcionamento','PDFs reais','Preço transparente','Sem mensalidade escondida'].map((item) => <div className="lp-proof-line" key={item}><Check aria-hidden="true" size={15} />{item}</div>)}<p>Você já viu o produto funcionando antes de chegar ao checkout.</p></div>{testimonials.length > 0 && <div className="lp-testimonials">{testimonials.slice(0,3).map((item) => <blockquote key={item.id}><Star aria-hidden="true" size={16} fill="currentColor" />“{item.quote}”<cite>— {item.name}{item.detail ? `, ${item.detail}` : ''}</cite></blockquote>)}</div>}</div></section>
 
-      <section className="lp-section lp-offer" id="offer" data-track="offer_view" ref={offerRef}><div className="lp-container"><div className="lp-offer-card"><div className="lp-offer-main"><p className="lp-kicker">Um único passo para uma semana mais leve</p><h2>Comece a organizar a semana do seu bebê <em>hoje.</em></h2><div className="lp-offer-columns"><div className="lp-offer-primary"><h3>PRATINHO PRONTO — ACESSO VITALÍCIO</h3><ul>{['Cardápio semanal em poucos minutos','Atualizações gratuitas','Receitas organizadas','Receitas com ingredientes que você já tem','Lista de compras automática'].map((item) => <CheckLine key={item}>{item}</CheckLine>)}</ul></div><div className="lp-offer-bonus-groups"><h3>+ 3 GUIAS PRÁTICOS INCLUSOS</h3><ul>{guideBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{guideDisplayNames[bonus.id] ?? bonus.title}</span></span></CheckLine>)}</ul><h3>+ BÔNUS PREMIUM</h3><ul>{videoBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{bonus.title}</span></span></CheckLine>)}</ul></div></div></div><div className="lp-offer-price" id="offer-price"><span className="lp-offer-price-kicker">🚀 OFERTA DE LANÇAMENTO</span><span className="lp-access-label">Tenha o Pratinho Pronto e liberte sua cabeça da pergunta de sempre: “o que eu faço hoje?”</span><span className="lp-value-anchor">Valor dos itens separadamente: <s>R${offerConfig.totalValue}</s></span><span className="lp-today-label">HOJE POR</span><strong>R$47</strong><span className="lp-one-time">pagamento único</span><span className="lp-installment">ou 11x de R$5,24 no cartão</span><span className="lp-savings"><span className="lp-savings-prefix">Acesso vitalício • </span>Você economiza R${offerConfig.savings}</span>{offerConfig.urgency.enabled && offerConfig.urgency.endsAt && <Countdown endsAt={offerConfig.urgency.endsAt} message={offerConfig.urgency.message} />}<PrimaryButton source="offer">QUERO MEU ACESSO VITALÍCIO</PrimaryButton><small className="lp-guarantee-note">Garantia de 7 dias conforme o art. 49 do Código de Defesa do Consumidor.</small></div></div></div></section>
+      <section className="lp-section lp-offer" id="offer" data-track="offer_view" ref={offerRef}><div className="lp-container"><div className="lp-offer-card"><div className="lp-offer-main"><p className="lp-kicker">Um único passo para uma semana mais leve</p><h2>Comece a organizar a semana do seu bebê <em>hoje.</em></h2><div className="lp-offer-columns"><div className="lp-offer-primary"><h3>PRATINHO PRONTO — ACESSO VITALÍCIO</h3><ul>{['Cardápio semanal em poucos minutos','Atualizações gratuitas','Receitas organizadas','Receitas com ingredientes que você já tem','Lista de compras automática'].map((item) => <CheckLine key={item}>{item}</CheckLine>)}</ul></div><div className="lp-offer-bonus-groups"><h3>+ 3 GUIAS PRÁTICOS INCLUSOS</h3><ul>{guideBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{guideDisplayNames[bonus.id] ?? bonus.title}</span></span></CheckLine>)}</ul><h3>+ BÔNUS PREMIUM</h3><ul>{videoBonuses.map((bonus) => <CheckLine key={bonus.id}><span className="lp-offer-bonus"><Gift className="lp-gift-icon" aria-hidden="true" size={16} /><span>{bonus.title}</span></span></CheckLine>)}</ul></div></div></div><div className="lp-offer-price" id="offer-price"><span className="lp-offer-price-kicker">🚀 OFERTA DE LANÇAMENTO</span><span className="lp-access-label">Tenha o Pratinho Pronto e liberte sua cabeça da pergunta de sempre: “o que eu faço hoje?”</span><span className="lp-value-anchor">Valor dos itens separadamente: <s>R${offerConfig.totalValue}</s></span><span className="lp-today-label">HOJE POR</span><strong>R$47</strong><span className="lp-one-time">pagamento único</span><span className="lp-installment">ou 11x de R$5,24 no cartão</span><span className="lp-savings"><span className="lp-savings-prefix">Acesso vitalício • </span>Você economiza R${offerConfig.savings}</span><PrimaryButton source="offer">QUERO MEU ACESSO VITALÍCIO</PrimaryButton><small className="lp-guarantee-note">Garantia de 7 dias conforme o art. 49 do Código de Defesa do Consumidor.</small></div></div></div></section>
 
       <section className="lp-section lp-guarantee" id="guarantee" data-track="guarantee_view"><div className="lp-container lp-guarantee-grid"><div className="lp-guarantee-card"><span className="lp-shield"><ShieldCheck aria-hidden="true" size={27} /></span><div><h2>Você tem 7 dias para decidir com calma.</h2><p>Se dentro do prazo aplicável à compra online o Pratinho Pronto não fizer sentido para sua rotina, você poderá solicitar o cancelamento conforme as condições informadas.</p><a href="#footer">Ver política de cancelamento <ArrowRight aria-hidden="true" size={15} /></a></div></div><div className="lp-faq"><p className="lp-kicker">Perguntas frequentes</p>{faqItems.map(([question,answer], index) => <div className="lp-faq-item" key={question}><button aria-controls={`faq-answer-${index}`} aria-expanded={openFaq === index} id={`faq-question-${index}`} onClick={() => { setOpenFaq(openFaq === index ? null : index); if (openFaq !== index) track('faq_open', { question }) }} type="button"><span>{question}</span><ChevronDown aria-hidden="true" size={19} /></button><div className={`lp-faq-answer ${openFaq === index ? 'is-open' : ''}`} id={`faq-answer-${index}`} role="region" aria-labelledby={`faq-question-${index}`}><p>{answer}</p></div></div>)}</div></div></section>
 
@@ -354,43 +354,10 @@ export function LandingPage() {
   </div>
 }
 
-function getEndOfToday() {
-  const deadline = new Date()
-  deadline.setHours(23, 59, 59, 999)
-  return deadline
-}
-
-function formatOfferDate(date: Date) {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(date)
-}
-
 function TopOfferBar() {
-  const [deadline, setDeadline] = useState(getEndOfToday)
-
-  useEffect(() => {
-    const update = () => {
-      setDeadline(getEndOfToday())
-    }
-    update()
-    const id = window.setInterval(update, 60_000)
-    return () => window.clearInterval(id)
-  }, [])
-
   return (
     <div className="lp-top-offer-bar" role="region" aria-label="Oferta de acesso vitalício">
-      <span className="lp-top-offer-copy">⏳ <strong>ACESSO VITALÍCIO POR R$47 ATÉ {formatOfferDate(deadline)}</strong> ⏳</span>
+      <span className="lp-top-offer-copy"><strong>ACESSO VITALÍCIO • PAGAMENTO ÚNICO DE R$47</strong></span>
     </div>
   )
-}
-
-function Countdown({ endsAt, message }: { endsAt: string; message: string }) {
-  const [remaining, setRemaining] = useState(() => Math.max(0, new Date(endsAt).getTime() - Date.now()))
-  useEffect(() => { const id = window.setInterval(() => setRemaining(Math.max(0, new Date(endsAt).getTime() - Date.now())), 1000); return () => window.clearInterval(id) }, [endsAt])
-  if (remaining <= 0) return null
-  const totalSeconds = Math.floor(remaining / 1000)
-  const days = Math.floor(totalSeconds / 86400)
-  const hours = Math.floor((totalSeconds % 86400) / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-  return <div className="lp-countdown"><span>{message}</span><strong>{days > 0 ? `${days}d ` : ''}{String(hours).padStart(2,'0')}:{String(minutes).padStart(2,'0')}:{String(seconds).padStart(2,'0')}</strong></div>
 }

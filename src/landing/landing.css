@@ -59,9 +59,9 @@
 .lp-header{justify-content:center}
 @media (max-width:700px){.lp-hero-grid{gap:16px}.lp-vsl-bridge{margin:0}.lp-hero .lp-button{margin-top:8px}}
 @media (max-width:700px){.lp-offer-columns{gap:8px}.lp-offer-columns>div+div h3{margin-top:0}}
-@keyframes lp-gold-pulse{0%,100%{box-shadow:0 10px 30px rgba(242,183,5,.35);transform:scale(1)}50%{box-shadow:0 12px 34px rgba(242,183,5,.5),0 0 0 4px rgba(242,183,5,.1);transform:scale(1.025)}}
-.lp-offer-price .lp-button{animation:lp-gold-pulse 2.2s ease-in-out infinite;background:linear-gradient(135deg,#ffcc33 0%,#e6ac00 100%);border-radius:9999px;box-shadow:0 10px 30px rgba(242,183,5,.35);color:#000;transition:transform .2s,box-shadow .2s,background .2s}
-.lp-offer-price .lp-button:hover{box-shadow:0 12px 34px rgba(242,183,5,.5),0 0 0 4px rgba(242,183,5,.1);transform:scale(1.025)}
+@keyframes lp-offer-pulse{0%,100%{box-shadow:0 10px 30px rgba(169,79,41,.35);transform:scale(1)}50%{box-shadow:0 12px 34px rgba(169,79,41,.5),0 0 0 4px rgba(169,79,41,.1);transform:scale(1.025)}}
+.lp-offer-price .lp-button{animation:lp-offer-pulse 2.2s ease-in-out infinite;background:var(--lp-cta);border-radius:9999px;box-shadow:0 10px 30px rgba(169,79,41,.35);color:#fff;transition:transform .2s,box-shadow .2s,background .2s}
+.lp-offer-price .lp-button:hover{box-shadow:0 12px 34px rgba(169,79,41,.5),0 0 0 4px rgba(169,79,41,.1);transform:scale(1.025)}
 .lp-offer-price .lp-guarantee-note{color:#c7d5ce;font-size:.68rem;line-height:1.35;margin-top:5px;max-width:290px}
 @media (prefers-reduced-motion:reduce){.lp-offer-price .lp-button{animation:none}}
 .lp-offer-price .lp-value-anchor{color:#f1e6d8!important;font-size:.9rem!important;font-weight:700;order:1!important}.lp-offer-price .lp-value-anchor s{color:#f3c4ad;font-size:1.1rem}.lp-offer-price .lp-product-value{color:#c7d5ce!important;font-size:.75rem!important;font-weight:600;order:2!important}.lp-offer-price .lp-product-value s{color:#aebeb6}.lp-offer-price strong{order:3!important}.lp-offer-price .lp-one-time{order:4!important}.lp-offer-price>span:not(.lp-one-time):not(.lp-access-label):not(.lp-value-anchor):not(.lp-product-value):not(.lp-savings){order:5!important}.lp-offer-price .lp-savings{color:#f3c4ad!important;font-size:.88rem!important;font-weight:700;order:6!important}.lp-offer-price .lp-button{order:7!important}.lp-offer-price small{order:8!important}
