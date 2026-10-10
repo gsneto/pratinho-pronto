@@ -73,7 +73,7 @@
 @media (max-width:700px){.lp-hero-grid{gap:16px}.lp-vsl-bridge{margin:0}.lp-hero .lp-button{margin-top:8px}}
 @media (max-width:700px){.lp-offer-columns{gap:8px}.lp-offer-columns>div+div h3{margin-top:0}}
 @keyframes lp-gold-pulse{0%,100%{box-shadow:0 10px 30px rgba(242,183,5,.35);transform:scale(1)}50%{box-shadow:0 12px 34px rgba(242,183,5,.5),0 0 0 4px rgba(242,183,5,.1);transform:scale(1.025)}}
-.lp-offer-price .lp-button{animation:lp-gold-pulse 2.2s ease-in-out infinite;background:linear-gradient(135deg,#ffcc33 0%,#e6ac00 100%);border-radius:9999px;box-shadow:0 10px 30px rgba(242,183,5,.35);color:#000;transition:all}
+.lp-offer-price .lp-button{animation:lp-gold-pulse 2.2s ease-in-out infinite;background:linear-gradient(135deg,#ffcc33 0%,#e6ac00 100%);border-radius:9999px;box-shadow:0 10px 30px rgba(242,183,5,.35);color:#000;transition:transform .2s,box-shadow .2s,background .2s}
 .lp-offer-price .lp-button:hover{box-shadow:0 12px 34px rgba(242,183,5,.5),0 0 0 4px rgba(242,183,5,.1);transform:scale(1.025)}
 .lp-offer-price .lp-guarantee-note{color:#c7d5ce;font-size:.68rem;line-height:1.35;margin-top:5px;max-width:290px}
 @media (prefers-reduced-motion:reduce){.lp-offer-price .lp-button{animation:none}}
@@ -125,11 +125,8 @@
 .lp-footer>p{margin-left:auto;margin-right:auto}
 .lp-footer-details{align-items:center;display:flex;flex-direction:column;gap:8px;text-align:center}
 .lp-footer-details a{color:var(--lp-terra)!important}
-.lp-bonuses .lp-section-intro h2{font-size:0;line-height:1.06}
-.lp-bonuses .lp-section-intro h2::after{color:var(--lp-navy);content:'Seu acesso acompanha 5 materiais.';display:block;font-family:Fraunces,Georgia,serif;font-size:clamp(2rem,4.8vw,3.6rem);font-weight:600;letter-spacing:-.035em;line-height:1.06}
-.lp-bonus-grid article:first-child .lp-badge{font-size:0}
-.lp-bonus-grid article:first-child .lp-badge::after{content:'Produto principal';font-size:.63rem}
-@media (max-width:700px){.lp-bonuses .lp-section-intro h2::after{font-size:clamp(2rem,10vw,3.2rem)}}
+/* Bônus: título e selo vêm do HTML real. Sem pseudo-elementos com `content`,
+   que duplicavam o texto na árvore de acessibilidade. */
 .lp-testimonials-section{background:#f4f1e9}
 .lp-testimonials-section .lp-section-intro{margin:0 auto;text-align:center}
 .lp-testimonials-section .lp-section-intro>p:last-child{margin-left:auto;margin-right:auto;max-width:610px}
@@ -185,15 +182,9 @@ main>#testimonials{order:8}
 #how .lp-step-arrow{color:#8fca9e}
 #how .lp-button{background:var(--lp-terra);color:#fff}
 @media (max-width:700px){#how .lp-step{border-left-color:#496875;border-top-color:transparent}}
-.lp-bonuses .lp-section-intro h2::before,.lp-bonuses .lp-section-intro h2::after{display:inline;font-family:Fraunces,Georgia,serif;font-size:clamp(2rem,4.8vw,3.6rem);font-weight:600;letter-spacing:-.035em;line-height:1.06}
-.lp-bonuses .lp-section-intro h2::before{color:var(--lp-navy);content:'Seu acesso acompanha '}
-.lp-bonuses .lp-section-intro h2::after{color:var(--lp-terra);content:'5 materiais.' !important}
-@media (max-width:700px){.lp-bonuses .lp-section-intro h2::before,.lp-bonuses .lp-section-intro h2::after{font-size:clamp(2rem,10vw,3.2rem)}}
 #bonuses,#benefits{background:var(--lp-navy);color:#fff}
 #bonuses .lp-kicker,#benefits .lp-kicker{color:#e9a27f}
 #bonuses .lp-section-intro h2,#benefits .lp-section-intro h2{color:#fff}
-#bonuses .lp-section-intro h2::before{color:#fff}
-#bonuses .lp-section-intro h2::after{margin-left:-.06em}
 #bonuses .lp-section-intro>p:last-child,#benefits .lp-section-intro>p:last-child{color:#d3dcd7}
 #bonuses .lp-bonus-total{color:#d3dcd7}
 #bonuses .lp-bonus-total s{color:#f3c4ad}
@@ -215,7 +206,6 @@ main>#testimonials{order:8}
 .landing-page{padding-top:42px}
 .lp-top-offer-bar{align-items:center;background:linear-gradient(90deg,#1e2134 0%,#5e2c25 30%,#a13811 60%,#d15209 88%,#e35b05 100%);box-shadow:0 5px 18px rgba(23,52,74,.22);color:#fff;display:flex;font:700 .78rem/1.25 Arial,Helvetica,sans-serif;justify-content:center;left:0;letter-spacing:.12em;min-height:42px;padding:8px 16px;position:fixed;right:0;text-align:center;top:0;z-index:30}
 @media (max-width:700px){.landing-page{padding-top:44px}.lp-top-offer-bar{font-size:.7rem;letter-spacing:.045em;min-height:44px;padding:8px 10px}}
-@media (max-width:700px){#bonuses .lp-section-intro h2::after{display:block;margin-left:0}}
 .lp-offer-price-kicker{align-items:center;align-self:center;backdrop-filter:blur(10px);background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(243,196,173,.025));border:1px solid rgba(243,196,173,.72);border-radius:999px;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 4px rgba(243,196,173,.05),0 10px 30px rgba(8,25,35,.28);color:#fff7f0;display:inline-flex;font-size:.74rem;font-weight:700;gap:9px;isolation:isolate;letter-spacing:.12em;margin:0 0 20px;order:-1;padding:10px 18px;position:relative;text-transform:uppercase}
 .lp-offer-price-kicker::before{content:none;display:none}
 .lp-offer-price-kicker::after{border:1px solid rgba(255,255,255,.05);border-radius:inherit;content:'';inset:1px;pointer-events:none;position:absolute}
