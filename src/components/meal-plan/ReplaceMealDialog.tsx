@@ -87,7 +87,7 @@ export function ReplaceMealDialog({
                   onClick={() => onChoose(recipe)}
                   type="button"
                 >
-                  <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} size="thumb" />
+                  <RecipeVisual imageUrl={recipe.image_url} name={recipe.name} priority size="thumb" />
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold break-words text-ink-900">
                       {recipe.name}
