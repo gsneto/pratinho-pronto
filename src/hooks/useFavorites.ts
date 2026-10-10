@@ -20,7 +20,25 @@ export function useFavoriteRecipe(recipeId: string) {
   })
   const mutation = useMutation({
     mutationFn: (favorite: boolean) => setRecipeFavorite(recipeId, favorite),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: favoritesQueryKey }),
+    // Atualização otimista: o coração muda na hora, mesmo offline (a operação
+    // fica na fila local). O refetch reconcilia com o servidor depois.
+    onMutate: async (favorite: boolean) => {
+      await queryClient.cancelQueries({ queryKey: favoritesQueryKey })
+      const previous = queryClient.getQueryData<string[]>(favoritesQueryKey)
+      queryClient.setQueryData<string[]>(favoritesQueryKey, (current = []) => {
+        const set = new Set(current)
+        if (favorite) set.add(recipeId)
+        else set.delete(recipeId)
+        return [...set]
+      })
+      return { previous }
+    },
+    onError: (_error, _favorite, context) => {
+      if (context && context.previous !== undefined) {
+        queryClient.setQueryData(favoritesQueryKey, context.previous)
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: favoritesQueryKey }),
   })
 
   return {
