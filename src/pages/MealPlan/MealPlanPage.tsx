@@ -410,8 +410,9 @@ export function MealPlanPage() {
                       size="thumb"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold tracking-[0.06em] text-terracotta-500 uppercase">
+                      <p className="flex flex-wrap items-center gap-2 text-[11px] font-bold tracking-[0.06em] text-terracotta-500 uppercase">
                         {mealTypeLabels[item.meal_type]}
+                        {item.position > 0 && <span className="pp-badge pp-badge-sage normal-case tracking-normal">Opção extra</span>}
                       </p>
                       <Link
                         className="pp-link mt-0.5 block text-sm break-words"
