@@ -65,7 +65,11 @@ end;
 $$;
 
 -- Só usuários autenticados podem chamar. Sem acesso para anon/public.
+-- O Supabase concede EXECUTE em funções novas a anon/authenticated/service_role
+-- por default privileges, então é preciso revogar explicitamente de anon
+-- (revogar só de public não remove o grant do papel anon).
 revoke all on function public.replace_shopping_list(uuid, jsonb) from public;
+revoke all on function public.replace_shopping_list(uuid, jsonb) from anon;
 grant execute on function public.replace_shopping_list(uuid, jsonb) to authenticated;
 
 comment on function public.replace_shopping_list(uuid, jsonb) is
