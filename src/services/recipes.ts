@@ -1,4 +1,5 @@
 import type { Ingredient, MealType, Recipe } from '../types/domain'
+import { normalizeTerm } from '../utils/text'
 import { getSupabaseClient } from './supabase/client'
 
 export const recipeFields = `
@@ -52,7 +53,8 @@ export interface RecipeFilters {
 }
 
 export function filterRecipes(recipes: Recipe[], filters: RecipeFilters): Recipe[] {
-  const search = filters.search?.trim().toLocaleLowerCase('pt-BR')
+  // Busca sem depender de acento: "maca" encontra "Maçã", como na despensa.
+  const search = normalizeTerm(filters.search ?? '')
 
   return recipes.filter((recipe) => {
     if (filters.mealType && recipe.meal_type !== filters.mealType) return false
@@ -60,7 +62,7 @@ export function filterRecipes(recipes: Recipe[], filters: RecipeFilters): Recipe
     if (filters.maxMinAge !== undefined && recipe.min_age_months > filters.maxMinAge) {
       return false
     }
-    if (search && !`${recipe.name} ${recipe.description}`.toLocaleLowerCase('pt-BR').includes(search)) {
+    if (search && !normalizeTerm(`${recipe.name} ${recipe.description}`).includes(search)) {
       return false
     }
     return true
