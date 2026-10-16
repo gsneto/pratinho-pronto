@@ -41,7 +41,7 @@ export function RecipeCard({
         <button
           aria-label={isFavorite ? `Remover ${recipe.name} das favoritas` : `Favoritar ${recipe.name}`}
           aria-pressed={isFavorite}
-          className={`absolute top-3 right-3 grid size-11 place-items-center rounded-full shadow-sm transition-colors disabled:opacity-55 ${
+          className={`pp-favorite-btn absolute top-3 right-3 grid size-11 place-items-center rounded-full shadow-sm transition-colors disabled:opacity-55 ${
             isFavorite
               ? 'bg-terracotta-500 text-white'
               : 'bg-white/95 text-terracotta-500 hover:bg-white'

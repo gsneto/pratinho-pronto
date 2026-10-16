@@ -1,0 +1,296 @@
+/* Pratinho Pronto — V3: acabamento visual e microinterações.
+ *
+ * Importado depois de `ui-refresh.css`. Esta camada refina superfícies,
+ * movimento e composição sobre a mesma base de componentes; não introduz
+ * novas rotas nem altera comportamento. Todo movimento é opcional: as ações
+ * continuam funcionando com `prefers-reduced-motion` ativo.
+ */
+
+/* -- Superfícies: profundidade intencional --------------------------------- */
+/* A camada anterior zerava a sombra dos cartões. A V3 devolve elevação
+   discreta (borda + sombra quente) para dar hierarquia sem ruído. */
+.pp-card {
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-panel {
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-panel-quiet {
+  box-shadow: none;
+}
+/* Destaques sobem um nível; o diálogo mantém a sombra de modal. */
+.pp-lifted {
+  box-shadow: var(--pp-shadow-lifted);
+}
+
+/* -- Movimento: base compartilhada ---------------------------------------- */
+:root {
+  --pp-ease: cubic-bezier(.22, .61, .36, 1);
+  --pp-ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+  --pp-dur-fast: 120ms;
+  --pp-dur: 180ms;
+  --pp-dur-slow: 240ms;
+}
+
+/* -- Botões: retorno tátil imediato --------------------------------------- */
+.pp-btn {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    border-color var(--pp-dur) var(--pp-ease), color var(--pp-dur) var(--pp-ease),
+    box-shadow var(--pp-dur) var(--pp-ease), transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(.985);
+}
+.pp-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--pp-action) 70%, transparent);
+}
+.pp-icon-btn {
+  transition: border-color var(--pp-dur) var(--pp-ease),
+    background-color var(--pp-dur) var(--pp-ease), color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-icon-btn:active:not(:disabled) {
+  transform: scale(.94);
+}
+
+/* -- Cartões de receita: presença e elevação no hover ---------------------- */
+.pp-recipe-card {
+  box-shadow: var(--pp-shadow-soft);
+  transition: transform var(--pp-dur-slow) var(--pp-ease),
+    box-shadow var(--pp-dur-slow) var(--pp-ease), border-color var(--pp-dur-slow) var(--pp-ease);
+}
+.pp-recipe-card .pp-photo-frame img {
+  transition: transform var(--pp-dur-slow) var(--pp-ease);
+}
+@media (hover: hover) {
+  .pp-recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--pp-shadow-lifted);
+    border-color: var(--color-sage-200);
+  }
+  .pp-recipe-card:hover .pp-photo-frame img {
+    transform: scale(1.04);
+  }
+}
+
+/* -- Favoritar: coração pulsa ao salvar ----------------------------------- */
+@keyframes pp-heart-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+.pp-favorite-btn[aria-pressed='true'] svg {
+  animation: pp-heart-pop var(--pp-dur-slow) var(--pp-ease-spring);
+}
+
+/* -- Lista de compras: marcação com movimento curto ------------------------ */
+@keyframes pp-check-in {
+  0% { transform: scale(.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pp-shopping [aria-pressed='true'] .pp-check-mark {
+  animation: pp-check-in var(--pp-dur-slow) var(--pp-ease-spring);
+}
+
+/* -- Progresso: transição suave ao atualizar ------------------------------ */
+.pp-shopping-progress progress {
+  transition: opacity var(--pp-dur) var(--pp-ease);
+}
+.pp-shopping-progress progress::-webkit-progress-value {
+  transition: width var(--pp-dur-slow) var(--pp-ease);
+}
+
+/* -- Diálogos e menus: entrada suave -------------------------------------- */
+/* A entrada anima apenas transform, nunca opacidade: como o painel é filho do
+   backdrop, um fade deixaria o texto em opacidade parcial durante a animação
+   (contraste medido e percebido abaixo do ideal). O movimento sozinho já dá o
+   acabamento sem esse efeito colateral. */
+@keyframes pp-sheet-in {
+  from { transform: translateY(14px) scale(.99); }
+  to { transform: translateY(0) scale(1); }
+}
+.pp-modal {
+  animation: pp-sheet-in var(--pp-dur-slow) var(--pp-ease);
+}
+@media (max-width: 640px) {
+  @keyframes pp-sheet-in {
+    from { transform: translateY(26px); }
+    to { transform: translateY(0); }
+  }
+}
+
+/* -- Navegação inferior: indicador do destino atual ----------------------- */
+.pp-bottom-link > span {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    color var(--pp-dur) var(--pp-ease);
+}
+.pp-bottom-link[aria-current='page'] > span {
+  background: var(--color-sage-100);
+}
+
+/* -- Esqueletos: brilho discreto em vez de pulso seco --------------------- */
+@keyframes pp-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.pp-skeleton {
+  animation: none;
+  background: linear-gradient(
+    90deg,
+    var(--pp-skeleton) 0%,
+    color-mix(in srgb, var(--pp-skeleton) 55%, var(--pp-surface)) 50%,
+    var(--pp-skeleton) 100%
+  );
+  background-size: 200% 100%;
+  animation: pp-shimmer 1.5s linear infinite;
+}
+
+/* -- Pílula do bebê e busca: leve elevação no hover ----------------------- */
+.pp-home-search,
+.pp-shortcut,
+.pp-upcoming-card,
+.pp-guide {
+  transition: border-color var(--pp-dur) var(--pp-ease),
+    box-shadow var(--pp-dur) var(--pp-ease), transform var(--pp-dur) var(--pp-ease);
+}
+@media (hover: hover) {
+  .pp-home-search:hover,
+  .pp-shortcut:hover,
+  .pp-upcoming-card:hover {
+    border-color: var(--color-sage-200);
+    box-shadow: var(--pp-shadow-soft);
+  }
+  .pp-shortcut:hover,
+  .pp-upcoming-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* -- Dia selecionado na Semana: transição do realce ----------------------- */
+.pp-meal-plan .pp-week-days button {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    color var(--pp-dur) var(--pp-ease), border-color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-meal-plan .pp-week-days button:active {
+  transform: scale(.96);
+}
+
+/* -- Etapas de preparo: marcação com preenchimento ------------------------ */
+.pp-step-check {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    color var(--pp-dur) var(--pp-ease), border-color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur-fast) var(--pp-ease-spring);
+}
+.pp-cooking-step[aria-pressed='true'] .pp-step-check {
+  transform: scale(1.06);
+}
+
+/* -- Composição: cards, lista e resumo ------------------------------------ */
+.pp-recipe-card .pp-photo-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(20, 34, 28, .22), transparent);
+  pointer-events: none;
+}
+.pp-recipe-card .pp-recipe-card-body {
+  gap: 2px;
+}
+.pp-recipe-card .pp-recipe-description {
+  margin-top: 10px;
+}
+
+/* Itens da lista de compras: linha mais alta, alvo confortável e realce
+   sutil ao passar o ponteiro. */
+.pp-shopping [aria-pressed] .pp-check-mark {
+  display: block;
+}
+@media (hover: hover) {
+  .pp-shopping li:hover {
+    background: color-mix(in srgb, var(--color-sage-50) 60%, transparent);
+  }
+}
+
+/* Resumo da semana: cartões com mais respiro e números com presença. */
+.pp-week-summary-item {
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-week-summary-value {
+  letter-spacing: -.02em;
+}
+
+/* Cabeçalho de seção: alinha o ícone ao bloco de texto. */
+.pp-section-heading svg {
+  flex-shrink: 0;
+  color: var(--color-sage-500);
+}
+
+/* -- Composição editorial: cabeçalhos, destaque e estados ------------------ */
+/* Mais respiro entre o cabeçalho e o conteúdo; títulos com tracking um pouco
+   mais fechado, típico de titulação editorial. */
+.pp-page-header {
+  margin-bottom: 32px;
+}
+.pp-page-title {
+  letter-spacing: -.032em;
+}
+.pp-section-heading {
+  margin-bottom: 16px;
+}
+.pp-section-heading h2 {
+  letter-spacing: -.028em;
+}
+
+/* Painel do dia na Home: raio maior reforça a sensação de superfície principal. */
+.pp-today {
+  border-radius: 32px;
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-feature-copy h3 {
+  letter-spacing: -.028em;
+}
+
+/* Estado vazio: moldura suave e ícone com presença. */
+.pp-panel[role='status'] > span:first-child,
+.pp-panel[role='alert'] > span:first-child {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-sage-200) 55%, transparent);
+}
+
+/* Cartão de receita: título com ritmo mais firme. */
+.pp-recipe-card h2 {
+  letter-spacing: -.03em;
+  line-height: 1.26;
+}
+
+/* Navegação inferior: sombra sutil para destacar da página. */
+.pp-bottom-nav {
+  box-shadow: 0 -6px 20px -16px rgba(20, 34, 28, .35);
+}
+
+/* -- Preferência por movimento reduzido ----------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .pp-recipe-card,
+  .pp-recipe-card .pp-photo-frame img,
+  .pp-btn,
+  .pp-icon-btn,
+  .pp-shortcut,
+  .pp-upcoming-card,
+  .pp-shopping-progress progress::-webkit-progress-value,
+  .pp-step-check,
+  .pp-meal-plan .pp-week-days button {
+    transition: none;
+  }
+  .pp-favorite-btn[aria-pressed='true'] svg,
+  .pp-shopping [aria-pressed='true'] .pp-check-mark,
+  .pp-overlay,
+  .pp-modal {
+    animation: none;
+  }
+  .pp-skeleton {
+    animation: none;
+    background: var(--pp-skeleton);
+  }
+}
