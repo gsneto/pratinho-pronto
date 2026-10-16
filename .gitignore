@@ -29,7 +29,13 @@ supabase/.temp/
 supabase/.branches/
 
 # QA/build artefatos locais
+# O harness de QA (qa/*.mjs, qa/*.test.ts, qa/README.md) É versionado: é
+# referenciado por package.json (scripts qa:*), pelo README e pelo vitest.
+# Apenas resultados gerados ficam de fora.
 entregaveis/
 output/
-qa/
 screenshots/
+__pycache__/
+*.pyc
+qa/.tmp/
+qa/tmp/
