@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { GeneratedMealPlanItem, MealPlan } from '../types/domain'
+import type { GeneratedMealPlanItem, MealPlan, MealPlanItem } from '../types/domain'
 
 // A camada de escrita nunca foi testada; qualquer regressão no payload,
 // tratamento de erro do Supabase ou lógica de posicionamento aparece aqui.
@@ -69,6 +69,7 @@ const {
   duplicateMealPlan,
   replaceMealPlanItem,
   saveMealPlan,
+  swapMealPlanItemPositions,
 } = await import('./mealPlans')
 
 beforeEach(() => {
@@ -339,5 +340,35 @@ describe('duplicateMealPlan', () => {
     await expect(
       duplicateMealPlan('baby-1', '2026-08-24', '2026-08-31'),
     ).rejects.toThrow('Semana de origem não encontrada')
+  })
+})
+
+describe('swapMealPlanItemPositions', () => {
+  const first = { id: 'item-a', position: 0 } as MealPlanItem
+  const second = { id: 'item-b', position: 1 } as MealPlanItem
+
+  it('troca as posições passando por uma posição livre temporária', async () => {
+    const step1 = makeQueryBuilder({ data: null, error: null })
+    const step2 = makeQueryBuilder({ data: null, error: null })
+    const step3 = makeQueryBuilder({ data: null, error: null })
+    queueTables({ meal_plan_items: [step1, step2, step3] })
+
+    await swapMealPlanItemPositions(first, second)
+
+    expect(step1.update).toHaveBeenCalledWith({ position: 2 })
+    expect(step1.eq).toHaveBeenCalledWith('id', 'item-a')
+    expect(step2.update).toHaveBeenCalledWith({ position: 0 })
+    expect(step2.eq).toHaveBeenCalledWith('id', 'item-b')
+    expect(step3.update).toHaveBeenCalledWith({ position: 1 })
+    expect(step3.eq).toHaveBeenCalledWith('id', 'item-a')
+  })
+
+  it('propaga erro no meio da troca', async () => {
+    const step1 = makeQueryBuilder({ data: null, error: null })
+    const step2 = makeQueryBuilder({ data: null, error: new Error('unique violation') })
+    queueTables({ meal_plan_items: [step1, step2] })
+
+    await expect(swapMealPlanItemPositions(first, second)).rejects.toThrow('unique violation')
+    expect(supabaseMock.from).toHaveBeenCalledTimes(2)
   })
 })

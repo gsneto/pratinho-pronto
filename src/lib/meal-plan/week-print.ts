@@ -12,5 +12,8 @@ export function mealCellItems(
   date: string,
   mealType: MealType,
 ): MealPlanItem[] {
-  return items.filter((item) => item.date === date && item.meal_type === mealType)
+  return items
+    .filter((item) => item.date === date && item.meal_type === mealType)
+    // Ordena pela posição para o PDF refletir a ordem escolhida na tela.
+    .sort((a, b) => a.position - b.position)
 }

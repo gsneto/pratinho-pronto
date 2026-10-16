@@ -1,4 +1,4 @@
-import type { GeneratedMealPlanItem, MealPlan, MealType } from '../types/domain'
+import type { GeneratedMealPlanItem, MealPlan, MealPlanItem, MealType } from '../types/domain'
 import { shiftIsoDate } from '../utils/dates'
 import { recipeFields } from './recipes'
 import { getAuthenticatedUserId } from './supabase/auth-user'
@@ -78,6 +78,37 @@ export async function replaceMealPlanItem(
     .eq('id', itemId)
 
   if (error) throw error
+}
+
+/**
+ * Troca a `position` de duas refeições do mesmo dia/tipo, preservando a
+ * identidade de cada uma (só a posição muda). Passa por uma posição livre
+ * temporária para não colidir com o índice único
+ * (meal_plan_id, date, meal_type, position) durante a troca.
+ */
+export async function swapMealPlanItemPositions(
+  first: MealPlanItem,
+  second: MealPlanItem,
+): Promise<void> {
+  await getAuthenticatedUserId()
+  const client = getSupabaseClient()
+  const temporary = Math.max(first.position, second.position) + 1
+
+  // Sequência de updates aplicada passo a passo (lazy): assim uma falha no meio
+  // interrompe a troca sem disparar chamadas extras.
+  const updates = [
+    { id: first.id, position: temporary },
+    { id: second.id, position: first.position },
+    { id: first.id, position: second.position },
+  ]
+
+  for (const update of updates) {
+    const { error } = await client
+      .from('meal_plan_items')
+      .update({ position: update.position })
+      .eq('id', update.id)
+    if (error) throw error
+  }
 }
 
 export async function listMealPlanHistory(babyId: string): Promise<Array<{ id: string; week_start: string; created_at: string }>> {

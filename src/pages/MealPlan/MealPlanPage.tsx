@@ -1,5 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import {
+  ArrowDown,
+  ArrowUp,
   CalendarDays,
   Check,
   ChevronLeft,
@@ -24,9 +26,19 @@ import {
   generateWeeklyMealPlan,
   getCompatibleRecipes,
 } from '../../lib/meal-plan/generator'
+import {
+  canMoveMealItem,
+  mealItemNeighbour,
+  type MoveDirection,
+} from '../../lib/meal-plan/reorder'
 import { analytics } from '../../services/analytics'
-import { duplicateMealPlan, replaceMealPlanItem, saveMealPlan } from '../../services/mealPlans'
-import type { MealPlanItem, MealType, Recipe } from '../../types/domain'
+import {
+  duplicateMealPlan,
+  replaceMealPlanItem,
+  saveMealPlan,
+  swapMealPlanItemPositions,
+} from '../../services/mealPlans'
+import type { MealPlan, MealPlanItem, MealType, Recipe } from '../../types/domain'
 import {
   addDays,
   formatShortDate,
@@ -198,6 +210,42 @@ export function MealPlanPage() {
       setReplacementError('Não conseguimos trocar esta refeição. Confira a conexão e tente novamente.')
     } finally {
       setIsReplacing(false)
+    }
+  }
+
+  async function moveItem(item: MealPlanItem, direction: MoveDirection) {
+    if (!plan) return
+    const sibling = mealItemNeighbour(selectedDayItems, item.id, direction)
+    if (!sibling) return
+    setActionError(null)
+    setStatusMessage(null)
+    const key = mealPlanQueryKey(currentBaby.id, weekStart)
+    const previous = queryClient.getQueryData<MealPlan | null>(key)
+    // Atualização otimista: a nova ordem aparece na hora; a invalidação
+    // reconcilia com o servidor logo em seguida.
+    queryClient.setQueryData<MealPlan | null>(key, (current) =>
+      current
+        ? {
+            ...current,
+            meal_plan_items: current.meal_plan_items.map((entry) =>
+              entry.id === item.id
+                ? { ...entry, position: sibling.position }
+                : entry.id === sibling.id
+                  ? { ...entry, position: item.position }
+                  : entry,
+            ),
+          }
+        : current,
+    )
+    try {
+      await swapMealPlanItemPositions(item, sibling)
+      await queryClient.invalidateQueries({ queryKey: key })
+      setStatusMessage(
+        `${item.recipe.name} agora vem ${direction === 'up' ? 'antes' : 'depois'} de ${sibling.recipe.name}.`,
+      )
+    } catch {
+      if (previous !== undefined) queryClient.setQueryData(key, previous)
+      setActionError('Não conseguimos reordenar estas refeições. Confira a conexão e tente novamente.')
     }
   }
 
@@ -402,8 +450,13 @@ export function MealPlanPage() {
                 Resto do dia
               </h2>
               <ul className="mt-3 space-y-2">
-                {otherItems.map((item) => (
-                  <li className="pp-card pp-interactive flex items-center gap-3 p-3" key={item.id}>
+                {otherItems.map((item) => {
+                  // A ordem entre refeições do mesmo tipo é ajustável; tipos
+                  // diferentes seguem a ordem natural do dia (café, almoço…).
+                  const canMoveUp = canMoveMealItem(selectedDayItems, item.id, 'up')
+                  const canMoveDown = canMoveMealItem(selectedDayItems, item.id, 'down')
+                  return (
+                  <li className="pp-card pp-interactive flex items-center gap-2 p-3" key={item.id}>
                     <RecipeVisual
                       imageUrl={item.recipe.image_url}
                       name={item.recipe.name}
@@ -426,6 +479,28 @@ export function MealPlanPage() {
                         {item.recipe.prep_time_minutes} min · Ver como preparar
                       </p>
                     </div>
+                    {(canMoveUp || canMoveDown) && (
+                      <div className="flex shrink-0 flex-col gap-1">
+                        <button
+                          aria-label={`Mover ${item.recipe.name} para cima`}
+                          className="pp-icon-btn size-9"
+                          disabled={!canMoveUp}
+                          onClick={() => { void moveItem(item, 'up') }}
+                          type="button"
+                        >
+                          <ArrowUp aria-hidden="true" size={15} />
+                        </button>
+                        <button
+                          aria-label={`Mover ${item.recipe.name} para baixo`}
+                          className="pp-icon-btn size-9"
+                          disabled={!canMoveDown}
+                          onClick={() => { void moveItem(item, 'down') }}
+                          type="button"
+                        >
+                          <ArrowDown aria-hidden="true" size={15} />
+                        </button>
+                      </div>
+                    )}
                     <button
                       aria-label={`Trocar ${item.recipe.name}`}
                       className="pp-btn pp-btn-quiet pp-btn-sm shrink-0"
@@ -436,7 +511,8 @@ export function MealPlanPage() {
                       Trocar
                     </button>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
             </section>
           )}
