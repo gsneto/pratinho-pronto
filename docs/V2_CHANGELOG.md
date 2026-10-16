@@ -192,3 +192,94 @@ página), ordenação do PDF por posição.
   PostgreSQL local; o Supabase de produção não foi exercitado.
 - **`npm run db:test`** não rodou neste ambiente (Docker ausente); não houve
   migração nova, então não há comportamento de banco novo a validar.
+
+---
+
+# V2.2 — Persistência real dos itens manuais da lista de compras
+
+Mesma branch `feat/pratinho-ux-polish-20261009`. A V2.1 entregou os itens manuais
+apenas no mock (`custom_name` sem coluna real). Esta rodada **elimina a diferença
+entre mock e schema real** com migrações aditivas. Produção não foi tocada.
+
+## Modelo de dados adotado
+
+Um item da lista tem **exatamente uma origem**, garantida por CHECK no banco:
+
+1. **Catálogo:** `ingredient_id` preenchido e `custom_name` nulo.
+2. **Manual:** `ingredient_id` nulo e `custom_name` preenchido (1–80 caracteres).
+
+Migrações novas (aditivas, não destrutivas):
+
+- `20261012000000_add_manual_shopping_list_items.sql` — torna `ingredient_id`
+  anulável, adiciona `custom_name`, cria o CHECK
+  `shopping_list_items_origin_check` e um índice parcial único para itens manuais
+  (mesmo nome/unidade). Nenhum registro existente é alterado.
+- `20261012010000_replace_shopping_list_preserve_manual_items.sql` — redefine a
+  RPC `replace_shopping_list` para apagar **apenas** os itens do cardápio
+  (`ingredient_id is not null`) e **preservar** os itens manuais (com a marcação
+  de "comprado"). Mantém SECURITY INVOKER, atomicidade e grants.
+
+## Comportamento ao recalcular a lista
+
+"Atualizar com o cardápio" recalcula os itens derivados das receitas e **mantém
+os itens livres** que a pessoa adicionou. Os ingredientes extras vindos da
+despensa (itens de catálogo) continuam sendo substituídos pelo cálculo — como
+antes. O diálogo de confirmação foi atualizado para dizer exatamente isso.
+
+## Compatibilidade
+
+- Tipos e serviços já suportavam `ingredient_id` nulo + `custom_name` (V2.1); a
+  leitura continua tolerante caso a coluna ainda não exista (janela antes de a
+  migração ser aplicada em produção).
+- O mock (`qa/store.mjs`) passou a **rejeitar** itens sem origem ou com as duas
+  origens e a **preservar** itens manuais no recálculo — mesmo contrato do banco.
+
+## Testes de banco REAIS (PostgreSQL local, descartável)
+
+Docker não está disponível neste ambiente (`docker` ausente). Para **não simular**
+os testes de banco, usei o PostgreSQL 16 instalado no WSL (Ubuntu 24.04), em
+bancos descartáveis recriados a cada execução:
+
+- **Base limpa:** as 12 migrações aplicam em ordem e o `seed.sql` roda (validação
+  final do catálogo inclusa).
+- `catalog_clean_base.sql` (6), `concurrency.sh` (1),
+  `shopping_list_manual_items.sql` (**novo**, 18) e `shopping_list_rpc.sql` (20)
+  — **45 verificações, 0 falhas**.
+- **Registros antigos preservados:** banco criado com as migrações **até** a
+  versão anterior, dados no formato antigo inseridos, migração nova aplicada e
+  verificado que as linhas seguem válidas e intactas (3 verificações).
+- Cobrem: item do catálogo, item manual, editar quantidade/unidade, editar nome,
+  marcar comprado, remover, rejeitar registros inválidos, isolamento entre
+  usuários (RLS), recalcular preservando manuais, rollback em falha.
+
+## Testes
+
+| Suíte | Resultado |
+|---|---|
+| `npm test` | 248/248 |
+| `npm run lint` / `npm run build` | limpos |
+| `qa:flows` (chromium) | 24/24 |
+| `qa:audit` (chromium) | 60/60 (0 axe, 0 clipping) |
+| `qa:dialogs` (chromium) | 18/18 |
+| `qa:regressions` | 0 falhas |
+| `qa:pwa` (chromium) | 18/18 |
+| Integração PostgreSQL local (WSL) | 45 + 3 verificações, 0 falhas |
+| `npm run db:test` (Docker) | não executável (Docker ausente) |
+| `npm run db:e2e` (Supabase local) | não executável (exige Docker) |
+
+## Validação via Browser MCP (fixtures locais)
+
+Item livre "Fraldas" adicionado, editado (nome → "Fraldas tamanho M",
+quantidade 1→2, unidade "pacote"→"pacote grande"), marcado e conferido após
+recarregar; recálculo da lista **preservou** o item manual (marcado) e trocou os
+itens do cardápio; ingrediente do catálogo somou (Banana 3→4) sem duplicar; o
+**PDF** da lista inclui "Fraldas tamanho M · 2 pacote grande" em "Outros".
+Console: 0 erros.
+
+## Pendências e integração real
+
+- As duas migrações novas **não foram aplicadas** em nenhum banco remoto
+  (produção intacta). Aplicá-las no Supabase habilita a persistência real dos
+  itens manuais; até lá, a leitura tolerante mantém o app funcionando.
+- Validação em PostgreSQL **local** (WSL); o Supabase de produção não foi
+  exercitado e `db:e2e` não rodou (Docker ausente).
