@@ -410,9 +410,10 @@ export function ShoppingListPage() {
           confirmLabel="Atualizar lista"
           description="A lista será recalculada a partir das refeições do cardápio desta semana."
           details={[
-            'As quantidades são recalculadas conforme o cardápio atual.',
-            'Itens adicionados manualmente (pela despensa ou por aqui) saem da lista.',
-            'As marcações de "comprado" são zeradas.',
+            'As quantidades dos ingredientes do cardápio são recalculadas conforme a semana atual.',
+            'Itens livres que você adicionou à mão são mantidos na lista.',
+            'Ingredientes extras adicionados pela despensa são substituídos pelo cálculo do cardápio.',
+            'As marcações de "comprado" dos itens do cardápio são zeradas.',
           ]}
           isConfirming={isGenerating}
           onClose={() => setShowConfirm(false)}

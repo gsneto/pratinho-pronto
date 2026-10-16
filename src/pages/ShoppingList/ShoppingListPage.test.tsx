@@ -53,7 +53,8 @@ it('pede confirmação antes de substituir a lista existente', () => {
   renderShopping()
   fireEvent.click(screen.getByRole('button', { name: 'Atualizar com o cardápio' }))
   expect(screen.getByRole('dialog')).toBeTruthy()
-  expect(screen.getByText(/marcações de "comprado" são zeradas/)).toBeTruthy()
+  expect(screen.getByText(/marcações de "comprado" dos itens do cardápio são zeradas/)).toBeTruthy()
+  expect(screen.getByText(/Itens livres que você adicionou à mão são mantidos/)).toBeTruthy()
   // Ainda não gerou: só confirmou a abertura do diálogo.
   expect(generateShoppingList).not.toHaveBeenCalled()
 })
