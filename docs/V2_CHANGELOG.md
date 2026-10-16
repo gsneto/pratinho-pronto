@@ -381,3 +381,84 @@ caso de reenvio de itens manuais em `shoppingListItems` (unitário).
   acima). A leitura tolerante mantém o app funcionando até lá.
 - **Revisão do catálogo** por nutricionista/pediatra continua pendente
   (`docs/catalogo-revisao-profissional.md`).
+
+---
+
+# V2.4 — Jornada completa do usuário
+
+Mesma branch `feat/pratinho-ux-polish-20261009`. Percorri a jornada de ponta a
+ponta (Home → Semana → Receitas → Despensa → Compras → Perfil → PDFs) no
+ambiente de QA e corrigi os pontos de fricção comprovados. Sem redesign e sem
+produção alterada.
+
+## Melhorias implementadas
+
+### Orientação e navegação
+- **Rótulo de retorno correto na receita.** Quem abria uma receita pela despensa
+  via "Voltar para receitas" apontando para `/app/pantry`. Agora o rótulo deriva
+  do destino real: minha semana, despensa, receitas ou início
+  (`src/lib/navigation/back-link.ts`).
+- **Ação principal sem duplicação.** Com cardápio mas sem lista, a tela de
+  compras mostrava dois botões idênticos "Gerar lista de compras". A ação do
+  topo só aparece quando já existe lista ("Atualizar com o cardápio"); o estado
+  vazio concentra a ação primária.
+- **Home orienta o próximo passo.** Depois de montar a semana, o resumo mostrava
+  "0/0 lista de compras". Agora convida a "Montar lista de compras".
+
+### Consistência de contexto
+- **Dia padrão do planejador.** Abrir "Colocar na minha semana" selecionava
+  sempre a segunda-feira, mesmo sendo quarta. Agora abre no dia de hoje quando a
+  semana de contexto é a atual — como a página Semana.
+- **Horários com mais de uma refeição.** O planejador dizia "Já existe X" e
+  "Usar no lugar desta refeição" mesmo com duas opções extras. Agora descreve
+  "Já existem 2 refeições" e "Substituir as refeições do horário".
+
+### Confirmações que descrevem a consequência
+- **Repetir na próxima semana** sobrescrevia um cardápio já existente sem aviso.
+  Agora confirma quando a semana de destino já tem refeições.
+- **Refazer esta semana** apagava opções extras, trocas e a ordem ajustada sem
+  aviso. Agora confirma, como a lista de compras já fazia.
+
+### Mensagens de erro acionáveis
+- Salvar item manual caía sempre em "Confira a conexão". Agora distingue nome
+  duplicado (índice único), item livre sem suporte no schema (coluna ausente) e
+  falha real de rede (`describeItemSaveError`).
+
+### Paridade mock ↔ banco
+- O mock passou a **recusar item manual duplicado** (mesmo nome e unidade),
+  espelhando o índice parcial único `shopping_list_items_manual_unique` — antes
+  o mock aceitava o que o banco recusaria.
+
+## Testes
+
+| Suíte | Resultado |
+|---|---|
+| `npm test` | 266/266 (era 250) |
+| `npm run lint` / `npm run build` | limpos |
+| `qa:flows` (chromium) | 24/24 |
+| `qa:audit` (chromium, **9 perfis** × 10 rotas) | 90/90 (0 axe, 0 clipping) |
+| `qa:dialogs` (chromium) | 18/18 |
+| `qa:regressions` | 0 falhas |
+| `qa:pwa` (chromium) | 18/18 |
+| Integração PostgreSQL local (WSL) | 13 migrações + seed; 57 verificações, 0 falhas |
+
+O `qa:audit` passou a cobrir também **360, 430 e 1024 px** (antes 320/390/768/1440),
+fechando a matriz de viewports usada no desenvolvimento.
+
+## Validação via Browser MCP
+
+- Jornada completa percorrida (Home, Semana, Receitas, Receita, Despensa,
+  Compras, Perfil).
+- Reordenação, itens manuais, recálculo preservando manuais, favoritos e estado
+  de revisão: comportamento confirmado.
+- Restrição "vegetariano" → regerar a semana → 28 refeições, **0 com carne**.
+- Confirmações de repetir/refazer: cancelar preserva, confirmar aplica.
+- Viewports 320/360/390/430/768/1024/1440: sem overflow horizontal e sem alvos
+  de toque abaixo de 24 px (fora dos checkboxes `sr-only`, cujo alvo é o label).
+- Console: 0 erros.
+
+## Limitações
+
+- Sem stack Supabase local (Docker ausente): validação em SQL direto + shim de
+  auth no PostgreSQL local e no backend simulado do QA.
+- As 4 migrações pendentes continuam **não aplicadas** em produção.

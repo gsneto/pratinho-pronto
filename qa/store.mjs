@@ -28,6 +28,18 @@ export function createFixtureStore(scenario = 'full') {
     if (!hasIngredient && name.length > 80) return 'nome manual excede 80 caracteres'
     return null
   }
+  const normalizeItem = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '')
+  // Espelha o índice parcial único `shopping_list_items_manual_unique`: dois
+  // itens manuais com o mesmo nome e unidade na mesma lista são recusados.
+  const shoppingItemDuplicate = (row, ignoreId) =>
+    row.ingredient_id === null &&
+    tables.shopping_list_items.some((item) =>
+      item.id !== ignoreId &&
+      item.shopping_list_id === row.shopping_list_id &&
+      item.ingredient_id === null &&
+      normalizeItem(item.custom_name) === normalizeItem(row.custom_name) &&
+      normalizeItem(item.unit) === normalizeItem(row.unit),
+    )
   const hydrateMeal = (item) => ({ ...item, recipe: recipeById.get(item.recipe_id) })
   function hydrate(table, row) {
     if (table === 'meal_plans') return { ...row, meal_plan_items: tables.meal_plan_items.filter((item) => item.meal_plan_id === row.id).map(hydrateMeal) }
@@ -104,6 +116,8 @@ export function createFixtureStore(scenario = 'full') {
         if (table === 'shopping_list_items') {
           const problem = targets.map((row) => shoppingItemOriginError({ ...row, ...payload })).find(Boolean)
           if (problem) return { status: 400, body: { message: `shopping_list_items origin violation: ${problem}` } }
+          const duplicate = targets.some((row) => shoppingItemDuplicate({ ...row, ...payload }, row.id))
+          if (duplicate) return { status: 409, body: { code: '23505', message: 'duplicate key value violates unique constraint "shopping_list_items_manual_unique"' } }
         }
         rows = targets
         for (const row of rows) Object.assign(row, payload)
@@ -121,6 +135,11 @@ export function createFixtureStore(scenario = 'full') {
         if (table === 'shopping_list_items') {
           const problem = candidates.map(shoppingItemOriginError).find(Boolean)
           if (problem) return { status: 400, body: { message: `shopping_list_items origin violation: ${problem}` } }
+          const duplicate = candidates.some((candidate, index) => {
+            const previous = keys && tables[table].find((row) => keys.every((key) => row[key] === inputs[index][key]))
+            return shoppingItemDuplicate(candidate, previous?.id)
+          })
+          if (duplicate) return { status: 409, body: { code: '23505', message: 'duplicate key value violates unique constraint "shopping_list_items_manual_unique"' } }
         }
         rows = inputs.map((input) => {
           const previous = keys && tables[table].find((row) => keys.every((key) => row[key] === input[key]))
