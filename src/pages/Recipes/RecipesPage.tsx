@@ -1,9 +1,9 @@
-import { Heart, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Heart, Info, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { RecipeCard } from '../../components/recipes/RecipeCard'
 import { PageState } from '../../components/ui/PageState'
-import { useRecipes } from '../../hooks/useRecipes'
+import { useRecipeReviewStatuses, useRecipes } from '../../hooks/useRecipes'
 import { useFavorites } from '../../hooks/useFavorites'
 import { filterRecipes } from '../../services/recipes'
 import type { MealType } from '../../types/domain'
@@ -14,6 +14,7 @@ const mealTypes: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner']
 export function RecipesPage() {
   const { data: recipes = [], error, isLoading, refetch } = useRecipes()
   const { data: favoriteIds = [] } = useFavorites()
+  const { data: reviewStatuses } = useRecipeReviewStatuses()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('q') ?? ''
   const rawMealType = searchParams.get('meal') ?? ''
@@ -23,6 +24,10 @@ export function RecipesPage() {
   const showFavorites = searchParams.get('favorites') === 'true'
   const [showFilters, setShowFilters] = useState(Boolean(maxTime || maxAge))
   const hasFilters = Boolean(search || mealType || maxTime || maxAge || showFavorites)
+  const hasAnyFavorites = favoriteIds.length > 0
+  const pendingReviewCount = reviewStatuses
+    ? Object.values(reviewStatuses).filter((status) => status === 'pending_professional_review').length
+    : 0
 
   function updateFilter(key: string, value: string) {
     setSearchParams((previous) => {
@@ -49,6 +54,16 @@ export function RecipesPage() {
   return (
     <div className="pp-recipes">
       <header className="pp-page-header"><p className="pp-eyebrow">Inspiração para o pratinho</p><h1 className="pp-page-title">Receitas para cada descoberta.</h1><p className="pp-page-description">Encontre uma ideia que combine com o dia de vocês. Salve as preferidas para preparar de novo.</p></header>
+      {reviewStatuses && (
+        <p className="pp-catalog-note">
+          <Info aria-hidden="true" size={18} />
+          <span>
+            Catálogo em revisão profissional: {pendingReviewCount} de {recipes.length} receitas ainda
+            aguardam revisão de idade, textura, cortes e alergênicos. É uma pendência editorial — não
+            uma validação clínica.
+          </span>
+        </p>
+      )}
       <section className="pp-recipe-filters" aria-label="Buscar e filtrar receitas">
         <div className="pp-search-row">
           <div className="relative"><Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-500" size={19} /><input aria-label="Buscar receitas" className="pp-field pl-12" onChange={(event) => updateFilter('q', event.target.value)} placeholder="Banana, abóbora, panquequinha…" type="search" value={search} /></div>
@@ -66,7 +81,29 @@ export function RecipesPage() {
         </div>}
         <div className="pp-result-meta"><p aria-live="polite">{filteredRecipes.length} de {recipes.length} receitas</p>{hasFilters && <button className="pp-text-action" onClick={() => setSearchParams({}, { replace: true })} type="button"><X aria-hidden="true" size={15} />Limpar filtros</button>}</div>
       </section>
-      {filteredRecipes.length === 0 ? <div className="mt-6"><PageState description={showFavorites ? 'Salve uma receita no coração ou explore o catálogo completo.' : 'Tente outro ingrediente ou retire um dos filtros.'} icon={showFavorites ? Heart : Search} title={showFavorites ? 'Suas favoritas começam aqui' : 'Nenhuma receita por aqui ainda'} variant="empty" action={hasFilters ? <button className="pp-btn pp-btn-secondary" onClick={() => setSearchParams({}, { replace: true })} type="button">Limpar filtros</button> : undefined} /></div> : <div className="pp-recipe-grid">{filteredRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} returnTo={`/app/recipes${searchParams.size ? `?${searchParams.toString()}` : ''}`} />)}</div>}
+      {filteredRecipes.length === 0 ? (
+        <div className="mt-6">
+          {showFavorites && !hasAnyFavorites ? (
+            <PageState
+              action={<button className="pp-btn pp-btn-primary" onClick={() => setSearchParams({}, { replace: true })} type="button">Explorar o catálogo</button>}
+              description="Toque no coração de qualquer receita para salvá-la aqui. Suas favoritas ficam à mão para preparar de novo."
+              icon={Heart}
+              title="Você ainda não salvou favoritas"
+              variant="empty"
+            />
+          ) : (
+            <PageState
+              action={hasFilters ? <button className="pp-btn pp-btn-secondary" onClick={() => setSearchParams({}, { replace: true })} type="button">Limpar filtros</button> : undefined}
+              description={showFavorites ? 'Suas favoritas não aparecem com a busca ou os filtros atuais. Ajuste ou limpe para vê-las.' : 'Tente outro ingrediente ou retire um dos filtros.'}
+              icon={showFavorites ? Heart : Search}
+              title={showFavorites ? 'Suas favoritas começam aqui' : 'Nenhuma receita por aqui ainda'}
+              variant="empty"
+            />
+          )}
+        </div>
+      ) : (
+        <div className="pp-recipe-grid">{filteredRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} returnTo={`/app/recipes${searchParams.size ? `?${searchParams.toString()}` : ''}`} />)}</div>
+      )}
     </div>
   )
 }

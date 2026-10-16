@@ -4,6 +4,7 @@ import {
   Check,
   Clock3,
   Heart,
+  Info,
   PackageCheck,
   Plus,
   Replace,
@@ -23,7 +24,7 @@ import { useBaby } from '../../hooks/useBaby'
 import { useFavoriteRecipe } from '../../hooks/useFavorites'
 import { mealPlanQueryKey, useMealPlan } from '../../hooks/useMealPlan'
 import { mealPlanHistoryQueryKey } from '../../hooks/useMealPlanHistory'
-import { useRecipe } from '../../hooks/useRecipes'
+import { useRecipe, useRecipeReviewStatuses } from '../../hooks/useRecipes'
 import { addRecipeToMealPlan } from '../../services/mealPlans'
 import type { MealType } from '../../types/domain'
 import { addDays, formatShortDate, normalizeWeekStart } from '../../utils/dates'
@@ -32,6 +33,7 @@ import { publicRecipeText } from '../../utils/text'
 import { splitInstructions } from '../../utils/instructions'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
+import { reviewStatusDetail, reviewStatusLabel } from '../../lib/recipes/review'
 import { parseDietaryRestrictions, recipeViolatesDiet } from '../../lib/diet/classification'
 
 export function RecipeDetailsPage() {
@@ -40,6 +42,7 @@ export function RecipeDetailsPage() {
   const queryClient = useQueryClient()
   const { data: baby } = useBaby()
   const { data: recipe, error, isLoading } = useRecipe(recipeId)
+  const { data: reviewStatuses } = useRecipeReviewStatuses()
   const { isFavorite, isSaving: isSavingFavorite, toggle: toggleFavorite } = useFavoriteRecipe(
     recipeId ?? '',
   )
@@ -100,6 +103,7 @@ export function RecipeDetailsPage() {
   const currentRecipe = recipe
   const activeMealType = selectedMealType ?? currentRecipe.meal_type
   const preparationSteps = splitInstructions(currentRecipe.instructions)
+  const reviewStatus = reviewStatuses?.[currentRecipe.id] ?? null
 
   // Inclusão manual é uma escolha explícita, mas avisamos quando a receita
   // conflita com uma restrição dietética cadastrada (ex.: vegetariano).
@@ -271,6 +275,15 @@ export function RecipeDetailsPage() {
               referências gerais e não substituem a avaliação de pediatra ou nutricionista.
             </span>
           </p>
+
+          {reviewStatus && (
+            <p className="pp-catalog-note">
+              <Info aria-hidden="true" size={18} />
+              <span>
+                <strong>{reviewStatusLabel(reviewStatus)}.</strong> {reviewStatusDetail(reviewStatus)}
+              </span>
+            </p>
+          )}
 
           <div className="mt-8 grid gap-8 md:grid-cols-[0.8fr_1.2fr]">
             <section>

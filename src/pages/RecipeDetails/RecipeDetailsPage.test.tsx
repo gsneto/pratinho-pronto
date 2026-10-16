@@ -9,7 +9,7 @@ import { RecipeDetailsPage } from './RecipeDetailsPage'
 import { addRecipeToMealPlan } from '../../services/mealPlans'
 
 vi.mock('../../hooks/useBaby', () => ({ useBaby: () => ({ data: testBaby }) }))
-vi.mock('../../hooks/useRecipes', () => ({ useRecipe: () => ({ data: testRecipe, isLoading: false }) }))
+vi.mock('../../hooks/useRecipes', () => ({ useRecipe: () => ({ data: testRecipe, isLoading: false }), useRecipeReviewStatuses: () => ({ data: null }) }))
 vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: null }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
 vi.mock('../../hooks/useFavorites', () => ({ useFavoriteRecipe: () => ({ isFavorite: false, isSaving: false, toggle: vi.fn() }) }))
 vi.mock('../../services/mealPlans', () => ({ addRecipeToMealPlan: vi.fn() }))
