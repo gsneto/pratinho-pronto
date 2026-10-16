@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type MouseEvent } from 'react'
 import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
 import { BabyAvatar } from '../../components/baby/BabyAvatar'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
@@ -71,6 +71,8 @@ export function MealPlanPage() {
   const [isDuplicating, setIsDuplicating] = useState(false)
   const [showRepeatConfirm, setShowRepeatConfirm] = useState(false)
   const repeatTriggerRef = useRef<HTMLButtonElement>(null)
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false)
+  const regenerateTriggerRef = useRef<HTMLButtonElement>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   // Dia aberto no destaque. Acompanha a semana exibida: se a semana muda, a
@@ -194,6 +196,18 @@ export function MealPlanPage() {
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  // Refazer substitui o cardápio inteiro: opções extras, trocas e a ordem
+  // ajustada se perdem. Quando já existe uma semana, confirmamos antes —
+  // como a lista de compras faz ao ser recalculada.
+  function handleGenerateClick(event: MouseEvent<HTMLButtonElement>) {
+    if (plan) {
+      regenerateTriggerRef.current = event.currentTarget
+      setShowRegenerateConfirm(true)
+      return
+    }
+    void handleGenerate()
   }
 
   async function handleReplace(recipe: Recipe) {
@@ -699,7 +713,7 @@ export function MealPlanPage() {
               plan ? 'pp-btn-secondary' : 'pp-btn-primary'
             }`}
             disabled={isGenerating}
-            onClick={handleGenerate}
+            onClick={handleGenerateClick}
             type="button"
           >
             <Sparkles aria-hidden="true" size={18} />
@@ -773,6 +787,26 @@ export function MealPlanPage() {
           onConfirm={() => { void confirmRepeatNextWeek() }}
           returnFocusRef={repeatTriggerRef}
           title="Substituir o cardápio da próxima semana?"
+        />
+      )}
+
+      {showRegenerateConfirm && (
+        <ConfirmDialog
+          confirmLabel="Refazer a semana"
+          description="Refazer esta semana monta um cardápio novo e substitui o que já está planejado."
+          details={[
+            'As refeições desta semana são trocadas por uma nova seleção.',
+            'Opções extras, trocas e a ordem ajustada nesta semana se perdem.',
+            'A lista de compras só muda quando você a atualizar com o cardápio.',
+          ]}
+          isConfirming={isGenerating}
+          onClose={() => setShowRegenerateConfirm(false)}
+          onConfirm={async () => {
+            await handleGenerate()
+            setShowRegenerateConfirm(false)
+          }}
+          returnFocusRef={regenerateTriggerRef}
+          title="Refazer a semana?"
         />
       )}
     </div>

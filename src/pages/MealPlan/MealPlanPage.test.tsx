@@ -45,6 +45,16 @@ it('reports an offline duplication without discarding the current week', async (
   expect(screen.getByRole('link', { name: 'Gerar lista de compras' }).getAttribute('href')).toContain('week=2026-09-14')
 })
 
+it('confirma antes de refazer uma semana que já existe', async () => {
+  renderWeek()
+  screen.getByText('Ajustar meu planejamento').closest('details')!.open = true
+  fireEvent.click(screen.getByRole('button', { name: 'Refazer esta semana' }))
+  expect(await screen.findByRole('dialog')).toBeTruthy()
+  expect(screen.getByText(/substitui o que já está planejado/)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Refazer a semana' }))
+  await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
 it('pede confirmação antes de substituir um cardápio já existente na próxima semana', async () => {
   vi.mocked(getMealPlan).mockResolvedValueOnce({ ...testPlan, id: 'next-plan', week_start: '2026-09-21' })
   renderWeek()
