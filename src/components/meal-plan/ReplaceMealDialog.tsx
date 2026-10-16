@@ -30,7 +30,7 @@ export function ReplaceMealDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-end bg-ink-900/45 p-3 sm:items-center sm:justify-center"
+      className="pp-overlay fixed inset-0 z-40 flex items-end bg-ink-900/45 p-3 sm:items-center sm:justify-center"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}

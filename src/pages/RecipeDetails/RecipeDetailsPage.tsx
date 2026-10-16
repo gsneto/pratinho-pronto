@@ -209,7 +209,7 @@ export function RecipeDetailsPage() {
             <div className="flex gap-2">
               <button
                 aria-pressed={isFavorite}
-                className={`pp-btn flex-1 ${
+                className={`pp-favorite-btn pp-btn flex-1 ${
                   isFavorite
                     ? 'border-terracotta-500 bg-terracotta-500 text-white'
                     : 'pp-btn-outline'
@@ -361,7 +361,7 @@ export function RecipeDetailsPage() {
 
       {showPlanner && (
         <div
-          className="fixed inset-0 z-40 flex items-end bg-ink-900/45 p-3 sm:items-center sm:justify-center"
+          className="pp-overlay fixed inset-0 z-40 flex items-end bg-ink-900/45 p-3 sm:items-center sm:justify-center"
           onClick={(event) => {
             if (event.target === event.currentTarget) closePlanner()
           }}

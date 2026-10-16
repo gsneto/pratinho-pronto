@@ -1,45 +1,60 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-cream-50: #f7f8f2;
-  --color-cream-100: #e5ebe3;
-  --color-cream-200: #cbd8cd;
+  /* Neutros quentes: o creme da marca, agora levemente mais quente e acolhedor.
+     Verificado para manter contraste nos dois temas. */
+  --color-cream-50: #fff9f2;
+  --color-cream-100: #f2eade;
+  --color-cream-200: #e2d7c6;
   --color-white: #ffffff;
-  --color-sage-50: #edf3ec;
-  --color-sage-100: #dceadd;
-  --color-sage-200: #bfd5c5;
-  --color-sage-300: #91b9a5;
-  --color-sage-500: #377967;
-  --color-sage-600: #296553;
-  --color-sage-700: #235b50;
-  --color-terracotta-100: #f7e6e4;
-  --color-terracotta-200: #eac3be;
-  --color-terracotta-500: #96564f;
-  --color-terracotta-600: #83463f;
-  --color-beet: #96564f;
-  --color-pumpkin: #e7bb8b;
-  --color-pumpkin-deep: #855a2e;
-  --color-ink-500: #61716a;
-  --color-ink-700: #3e5148;
-  --color-ink-900: #223a31;
+  /* Família verde: ação profunda e superfícies botânicas. */
+  --color-sage-50: #edf4ef;
+  --color-sage-100: #dcebe0;
+  --color-sage-200: #c1d8c8;
+  --color-sage-300: #91b6a2;
+  --color-sage-500: #3a7a62;
+  --color-sage-600: #2f6552;
+  --color-sage-700: #2e5b4b;
+  /* Pêssego e coral: acentos editoriais (refeição, favorito, destaques). */
+  --color-terracotta-100: #fbe9e3;
+  --color-terracotta-200: #f3c9bd;
+  --color-terracotta-500: #9d4a36;
+  --color-terracotta-600: #833a28;
+  --color-beet: #9d4a36;
+  --color-pumpkin: #f4b69d;
+  --color-pumpkin-deep: #8a5334;
+  --color-coral: #e98d76;
+  /* Tinta: hierarquia de texto. `ink-500` escurecido para manter 4,5:1 sobre
+     `sage-50` (usado em notas de catálogo e listas). */
+  --color-ink-500: #5c6961;
+  --color-ink-700: #3e4a43;
+  --color-ink-900: #27342e;
   --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", Georgia, serif;
   --radius-field: 16px;
   --radius-card: 22px;
   --radius-panel: 28px;
   --radius-pill: 999px;
+  /* Escala de movimento: curta, precisa e consistente. */
+  --pp-ease: cubic-bezier(.22, .61, .36, 1);
+  --pp-ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+  --pp-dur-fast: 120ms;
+  --pp-dur: 180ms;
+  --pp-dur-slow: 240ms;
 }
 :root {
   --color-surface: #ffffff;
   --pp-surface: #ffffff;
-  --pp-surface-sunken: #f0f4ed;
-  --pp-border: #e0e8df;
-  --pp-border-strong: #c1cec3;
-  --pp-shadow-soft: 0 2px 4px rgba(25, 54, 40, .02), 0 12px 28px -20px rgba(25, 54, 40, .1);
-  --pp-shadow-lifted: 0 8px 32px -24px rgba(25, 54, 40, .18);
-  --pp-shadow-modal: 0 24px 80px -20px rgba(10, 36, 27, .35);
-  --pp-focus-ring: #377967;
-  --pp-skeleton: #e5ebe3;
+  --pp-surface-sunken: #f6efe4;
+  --pp-border: #ece5d8;
+  --pp-border-strong: #d3c7b4;
+  /* Elevação intencional: sombra quente, discreta, que dá profundidade sem
+     pesar. Substitui o antigo "borda apenas" das superfícies principais. */
+  --pp-shadow-soft: 0 1px 2px rgba(39, 52, 46, .04), 0 10px 24px -18px rgba(39, 52, 46, .22);
+  --pp-shadow-lifted: 0 2px 6px rgba(39, 52, 46, .05), 0 22px 44px -26px rgba(39, 52, 46, .3);
+  --pp-shadow-modal: 0 24px 80px -20px rgba(20, 40, 33, .38);
+  --pp-focus-ring: #3a7a62;
+  --pp-skeleton: #efe7da;
   color: var(--color-ink-900);
   background: var(--color-cream-50);
   font-family: var(--font-sans);
@@ -50,37 +65,38 @@
   -moz-osx-font-smoothing: grayscale;
 }
 [data-theme='dark'] {
-  --color-cream-50: #102c2c;
-  --color-cream-100: #28473f;
-  --color-cream-200: #3e6054;
-  --color-white: #193a37;
-  --color-sage-50: #23483f;
-  --color-sage-100: #30594a;
-  --color-sage-200: #527665;
-  --color-sage-300: #739b85;
-  --color-sage-500: #a8d8c5;
-  --color-sage-600: #a8d8c5;
-  --color-sage-700: #bee7d0;
-  --color-terracotta-100: #4a3534;
-  --color-terracotta-200: #76514a;
-  --color-terracotta-500: #efb8ae;
-  --color-terracotta-600: #f4c8bd;
-  --color-beet: #efb8ae;
-  --color-pumpkin: #e9c097;
-  --color-pumpkin-deep: #f0c6a0;
-  --color-ink-500: #b2c7bd;
-  --color-ink-700: #d8e7dc;
-  --color-ink-900: #f1f7ee;
-  --color-surface: #193a37;
-  --pp-surface: #193a37;
-  --pp-surface-sunken: #143330;
-  --pp-border: #2e4d43;
-  --pp-border-strong: #5e7e6c;
-  --pp-shadow-soft: 0 6px 20px -16px rgba(0, 0, 0, .2);
-  --pp-shadow-lifted: 0 10px 30px -20px rgba(0, 0, 0, .3);
-  --pp-shadow-modal: 0 24px 80px -18px rgba(0, 0, 0, .6);
-  --pp-focus-ring: #bee7d0;
-  --pp-skeleton: #28473f;
+  --color-cream-50: #0f2a28;
+  --color-cream-100: #29463e;
+  --color-cream-200: #3f6055;
+  --color-white: #173631;
+  --color-sage-50: #22483f;
+  --color-sage-100: #2f594a;
+  --color-sage-200: #517665;
+  --color-sage-300: #729b85;
+  --color-sage-500: #a9d9c6;
+  --color-sage-600: #a9d9c6;
+  --color-sage-700: #c0e8d1;
+  --color-terracotta-100: #4a3330;
+  --color-terracotta-200: #7a5148;
+  --color-terracotta-500: #f0b8ac;
+  --color-terracotta-600: #f5c9be;
+  --color-beet: #f0b8ac;
+  --color-pumpkin: #f0bd9f;
+  --color-pumpkin-deep: #f2c7a2;
+  --color-coral: #f2a48c;
+  --color-ink-500: #b4c9bf;
+  --color-ink-700: #d9e8dd;
+  --color-ink-900: #f2f7ef;
+  --color-surface: #173631;
+  --pp-surface: #173631;
+  --pp-surface-sunken: #12302c;
+  --pp-border: #2c4c42;
+  --pp-border-strong: #5b7d6b;
+  --pp-shadow-soft: 0 1px 2px rgba(0, 0, 0, .22), 0 12px 26px -20px rgba(0, 0, 0, .5);
+  --pp-shadow-lifted: 0 2px 8px rgba(0, 0, 0, .26), 0 24px 48px -28px rgba(0, 0, 0, .6);
+  --pp-shadow-modal: 0 24px 80px -18px rgba(0, 0, 0, .62);
+  --pp-focus-ring: #c0e8d1;
+  --pp-skeleton: #24463d;
   color: var(--color-ink-900);
   background: var(--color-cream-50);
 }

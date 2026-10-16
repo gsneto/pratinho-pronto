@@ -345,7 +345,7 @@ export function ShoppingListPage() {
                             : 'border-sage-300 bg-white'
                         }`}
                       >
-                        {item.checked && <Check size={16} strokeWidth={2.6} />}
+                        {item.checked && <Check aria-hidden="true" className="pp-check-mark" size={16} strokeWidth={2.6} />}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span
