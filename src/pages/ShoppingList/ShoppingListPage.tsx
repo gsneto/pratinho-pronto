@@ -24,6 +24,7 @@ import {
 } from '../../services/shoppingLists'
 import {
   isManualItem,
+  describeItemSaveError,
   shoppingItemCategory,
   shoppingItemLabel,
 } from '../../lib/shopping-list/manual'
@@ -167,12 +168,8 @@ export function ShoppingListPage() {
       }
       await queryClient.invalidateQueries({ queryKey: shoppingListQueryKey(plan.id) })
       closeItemDialog()
-    } catch {
-      setItemDialogError(
-        values.ingredientId === null
-          ? 'Não conseguimos salvar este item livre. Escolha um nome do catálogo (a lista sugere enquanto você digita) ou tente novamente.'
-          : 'Não conseguimos salvar este item. Confira a conexão e tente novamente.',
-      )
+    } catch (error) {
+      setItemDialogError(describeItemSaveError(error))
     } finally {
       setIsSavingItem(false)
     }

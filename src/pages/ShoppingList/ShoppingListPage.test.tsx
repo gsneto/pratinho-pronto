@@ -146,13 +146,23 @@ it('valida nome, quantidade e unidade antes de enviar', () => {
 })
 
 it('informa quando um item livre não pode ser salvo', async () => {
-  vi.mocked(addShoppingListItem).mockRejectedValueOnce(new Error('missing column'))
+  vi.mocked(addShoppingListItem).mockRejectedValueOnce(Object.assign(new Error('column missing'), { code: '42703' }))
   renderShopping()
   fireEvent.click(screen.getByRole('button', { name: 'Adicionar item' }))
   const dialog = screen.getByRole('dialog')
   fireEvent.change(within(dialog).getByLabelText('Nome do item'), { target: { value: 'Fraldas' } })
   fireEvent.click(within(dialog).getByRole('button', { name: 'Adicionar à lista' }))
   expect((await within(dialog).findByRole('alert')).textContent).toMatch(/item livre/)
+})
+
+it('explica quando o item repete nome e unidade já existentes', async () => {
+  vi.mocked(addShoppingListItem).mockRejectedValueOnce(Object.assign(new Error('duplicate'), { code: '23505' }))
+  renderShopping()
+  fireEvent.click(screen.getByRole('button', { name: 'Adicionar item' }))
+  const dialog = screen.getByRole('dialog')
+  fireEvent.change(within(dialog).getByLabelText('Nome do item'), { target: { value: 'Fraldas' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Adicionar à lista' }))
+  expect((await within(dialog).findByRole('alert')).textContent).toMatch(/Já existe um item com esse nome e unidade/)
 })
 
 it('edita a quantidade de um item existente', async () => {
