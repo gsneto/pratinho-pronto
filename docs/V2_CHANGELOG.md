@@ -462,3 +462,59 @@ fechando a matriz de viewports usada no desenvolvimento.
 - Sem stack Supabase local (Docker ausente): validação em SQL direto + shim de
   auth no PostgreSQL local e no backend simulado do QA.
 - As 4 migrações pendentes continuam **não aplicadas** em produção.
+
+---
+
+# Consolidação V2.4 + V3 + V3.1/V3.2
+
+Integração dos PRs #2, #3 e #4 em uma **branch de integração dedicada**, com
+validação completa antes do push.
+
+## Estratégia
+
+- Branch de integração: `integration/pratinho-v3-consolidated-20261016`,
+  criada a partir de `design/maternal-ui-refresh` (`ec12791`).
+- **A branch padrão não foi mergeada.** `design/maternal-ui-refresh` é a branch
+  padrão do GitHub e a candidata a produção na Vercel; não foi possível
+  confirmar (sem status de deploy no repositório e sem workflows) se um push
+  nela dispara publicação. Por isso a consolidação ocorreu em `integration/*`,
+  que não é a branch padrão. O merge de promoção fica pendente de decisão do
+  proprietário.
+- Método: **merge commit** em cada PR, preservando a ancestralidade dos commits
+  empilhados. Antes de cada merge, a base do PR foi retargetada para a branch de
+  integração, garantindo que o diff mostrasse apenas o trabalho próprio.
+
+## Ordem e resultado
+
+| Ordem | PR | Base retargetada | Merge commit | Diff próprio |
+|---|---|---|---|---|
+| 1 | #2 (V2.4) | → `integration/*` | `3d1c537` | 16 arquivos |
+| 2 | #3 (V3) | → `integration/*` | `dc1bc96` | 10 arquivos |
+| 3 | #4 (V3.1/V3.2) | → `integration/*` | `1d509f8` | 5 arquivos |
+
+## Verificação do conteúdo
+
+- A árvore de `integration/*` é **idêntica** ao head final da V3.1 (`5f9ff5f`):
+  `git diff` vazio entre as duas.
+- Diff consolidado contra a base anterior: **25 arquivos, +1574/−233**,
+  cobrindo V2.4 (docs, `lib/navigation`, `lib/shopping-list/manual`, Semana,
+  Compras, Receitas), V3 (tokens, `v3-refresh.css`, diálogos, cards) e
+  V3.1/V3.2 (Home, Perfil, `qa/audit`).
+- Nenhum `.env` real, segredo ou credencial versionado (apenas `.env.example`
+  com placeholders).
+
+## Testes na branch consolidada
+
+| Suíte | Resultado |
+|---|---|
+| `npm test` | 266/266 |
+| `npm run lint` / `build` / `design:lint` | limpos |
+| `qa:flows` | 24/24 |
+| `qa:audit` (9 perfis × 10 rotas) | 90/90 |
+| `qa:dialogs` | 18/18 |
+| `qa:regressions` | 0 falhas |
+| `qa:pwa` | 18/18 |
+
+## Fluxo permanente
+
+Documentado em `docs/DEVELOPMENT_WORKFLOW.md` e resumido em `AGENTS.md`.
