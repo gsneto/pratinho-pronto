@@ -13,10 +13,14 @@ import {
   updateShoppingListItem,
 } from '../../services/shoppingLists'
 
+const listOverride = vi.hoisted(() => ({ current: undefined as unknown }))
 vi.mock('../../hooks/useBaby', () => ({ useBaby: () => ({ data: testBaby }) }))
 vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: testPlan }) }))
 vi.mock('../../hooks/useRecipes', () => ({ useIngredients: () => ({ data: [testIngredient] }) }))
-vi.mock('../../hooks/useShoppingList', () => ({ useShoppingList: () => ({ data: testShoppingList }), shoppingListQueryKey: (id: string) => ['shopping', id] }))
+vi.mock('../../hooks/useShoppingList', () => ({
+  useShoppingList: () => ({ data: listOverride.current === undefined ? testShoppingList : listOverride.current }),
+  shoppingListQueryKey: (id: string) => ['shopping', id],
+}))
 vi.mock('../../services/shoppingLists', () => ({
   addShoppingListItem: vi.fn(),
   generateShoppingList: vi.fn(),
@@ -26,7 +30,10 @@ vi.mock('../../services/shoppingLists', () => ({
 }))
 vi.mock('../../services/analytics', () => ({ analytics: { track: vi.fn() } }))
 vi.mock('../../components/pdf/PdfExportButton', () => ({ PdfExportButton: ({ label }: { label: string }) => <button>{label}</button> }))
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  listOverride.current = undefined
+})
 beforeEach(() => vi.clearAllMocks())
 
 function renderShopping() {
@@ -39,6 +46,13 @@ it('exposes shopping progress to assistive technology and preserves the selected
   expect(progress.value).toBe(0)
   expect(progress.max).toBe(1)
   expect(screen.getByRole('link', { name: 'Ver o cardápio desta semana' }).getAttribute('href')).toBe('/app/week?week=2026-09-14')
+})
+
+it('mostra uma única ação "Gerar lista de compras" quando ainda não há lista', () => {
+  listOverride.current = null
+  renderShopping()
+  expect(screen.getAllByRole('button', { name: 'Gerar lista de compras' })).toHaveLength(1)
+  expect(screen.queryByRole('button', { name: 'Atualizar com o cardápio' })).toBeNull()
 })
 
 it('shows a failed item update and leaves the item unchecked for retry', async () => {

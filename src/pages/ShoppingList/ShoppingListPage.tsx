@@ -260,22 +260,22 @@ export function ShoppingListPage() {
             <Plus aria-hidden="true" size={18} />
             Adicionar item
           </button>
-          <button
-            className={`pp-btn w-full sm:w-auto ${shoppingList ? 'pp-btn-secondary' : 'pp-btn-primary'}`}
-            disabled={isGenerating}
-            onClick={(event) => {
-              if (shoppingList) {
+          {/* Sem lista, a ação principal "Gerar lista de compras" fica no estado
+              vazio; manter as duas duplicaria o mesmo botão na tela. */}
+          {shoppingList && (
+            <button
+              className="pp-btn pp-btn-secondary w-full sm:w-auto"
+              disabled={isGenerating}
+              onClick={(event) => {
                 confirmTriggerRef.current = event.currentTarget
                 setShowConfirm(true)
-              } else {
-                void handleGenerate()
-              }
-            }}
-            type="button"
-          >
-            <ShoppingCart aria-hidden="true" size={18} />
-            {isGenerating ? 'Gerando…' : shoppingList ? 'Atualizar com o cardápio' : 'Gerar lista de compras'}
-          </button>
+              }}
+              type="button"
+            >
+              <ShoppingCart aria-hidden="true" size={18} />
+              {isGenerating ? 'Gerando…' : 'Atualizar com o cardápio'}
+            </button>
+          )}
         </div>
       </header>
 
