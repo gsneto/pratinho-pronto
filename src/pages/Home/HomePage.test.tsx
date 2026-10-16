@@ -66,4 +66,22 @@ describe('Home dashboard', () => {
     expect(links[0].getAttribute('href')).toContain('/app/week?week=')
     expect(links[2].getAttribute('href')).toContain('/app/shopping-list?week=')
   })
+
+  it('convida a montar a lista quando ainda não há lista de compras', () => {
+    const recipe = { id: 'r', name: 'Mingau', meal_type: 'breakfast' } as never
+    state.plan = {
+      data: {
+        id: 'plan', week_start: '2026-09-14',
+        meal_plan_items: [{ id: '1', date: '2026-09-14', meal_type: 'breakfast', recipe }],
+      } as unknown as MealPlan,
+      isLoading: false, error: null, refetch: vi.fn(),
+    }
+    state.shopping = { data: null }
+    render(<MemoryRouter><HomePage /></MemoryRouter>)
+
+    const summary = screen.getByRole('region', { name: 'Resumo da semana' })
+    expect(summary.textContent).toContain('Montar lista de compras')
+    expect(summary.textContent).not.toContain('0/0')
+    expect(summary.querySelectorAll('a')[2].getAttribute('href')).toContain('/app/shopping-list?week=')
+  })
 })

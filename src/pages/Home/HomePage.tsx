@@ -126,8 +126,8 @@ export function HomePage() {
               </>
             ) : (
               <>
-                <span className="pp-week-summary-value">0<small>/0</small></span>
-                <span className="pp-week-summary-label">lista de compras</span>
+                <span className="pp-week-summary-value">—</span>
+                <span className="pp-week-summary-label">Montar lista de compras</span>
               </>
             )}
           </Link>
