@@ -8,7 +8,7 @@ const label = process.argv[2] ?? `audit-${Date.now()}`
 const output = resolve('output/ui-qa', label)
 mkdirSync(resolve(output, 'screenshots'), { recursive: true })
 const routes = [
-  ['home', '/app', '.pp-feature-meal'],
+  ['home', '/app', '.pp-hero'],
   ['landing', '/', '.lp-offer-price'],
   ['recipes', '/app/recipes', '.pp-recipe-card'],
   ['recipe', '/app/recipes/qa-recipe-mingau-de-banana-e-aveia', '.pp-detail'],
