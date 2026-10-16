@@ -115,7 +115,14 @@ export async function appendShoppingListItems(
     .eq('shopping_list_id', list.id)
   if (readError) throw readError
 
-  const merged = mergeShoppingListItems(existing ?? [], items)
+  // Só itens do catálogo entram no merge/upsert. Itens manuais (ingredient_id
+  // nulo) pertencem ao usuário e são preservados: reenviá-los aqui, sem
+  // `custom_name`, violaria a restrição de origem do banco.
+  const catalogItems = (existing ?? []).filter(
+    (item): item is { ingredient_id: string; quantity: number; unit: string } =>
+      item.ingredient_id !== null && item.ingredient_id !== undefined,
+  )
+  const merged = mergeShoppingListItems(catalogItems, items)
 
   const { error } = await client
     .from('shopping_list_items')
@@ -202,14 +209,19 @@ export async function addShoppingListItem(
       .eq('id', match.id)
     if (error) throw error
   } else {
-    const { error } = await client.from('shopping_list_items').insert({
+    const payload: Record<string, unknown> = {
       shopping_list_id: list.id,
       ingredient_id: input.ingredientId,
-      custom_name: input.ingredientId ? null : name,
       quantity: input.quantity,
       unit,
       checked: false,
-    })
+    }
+    // `custom_name` só é enviado para item manual. Em item do catálogo o campo
+    // fica nulo por padrão — assim a inclusão funciona também em um schema que
+    // ainda não recebeu a migração de itens manuais.
+    if (!input.ingredientId) payload.custom_name = name
+
+    const { error } = await client.from('shopping_list_items').insert(payload)
     if (error) throw error
   }
 

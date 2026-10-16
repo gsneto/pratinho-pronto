@@ -215,6 +215,33 @@ describe('appendShoppingListItems', () => {
     )
   })
 
+  it('não reenvia itens manuais ao somar ingredientes faltantes (evita violar a origem)', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({
+      data: [
+        { ingredient_id: 'ing-1', quantity: 3, unit: 'unidade' },
+        { ingredient_id: null, quantity: 2, unit: 'pacote grande', custom_name: 'Fraldas' },
+      ],
+      error: null,
+    })
+    const itemsUpsert = makeQueryBuilder({ data: null, error: null })
+    queueTables({
+      shopping_lists: [listUpsert],
+      shopping_list_items: [readItems, itemsUpsert],
+    })
+
+    await appendShoppingListItems('plan-1', [
+      { ingredient_id: 'ing-1', quantity: 2, unit: 'unidade' },
+    ])
+
+    // O item manual (ingredient_id nulo) não entra no upsert: só o item de
+    // catálogo é somado e reescrito.
+    expect(itemsUpsert.upsert).toHaveBeenCalledWith(
+      [{ ingredient_id: 'ing-1', quantity: 5, unit: 'unidade', shopping_list_id: 'list-1' }],
+      { onConflict: 'shopping_list_id,ingredient_id,unit', ignoreDuplicates: false },
+    )
+  })
+
   it('propaga erro do upsert da lista', async () => {
     const listUpsert = makeQueryBuilder({ data: null, error: new Error('rls') })
     queueTables({ shopping_lists: [listUpsert] })
@@ -301,10 +328,11 @@ describe('addShoppingListItem', () => {
     })
 
     expect(listId).toBe('list-1')
+    // Item do catálogo não envia `custom_name` (fica nulo por padrão no banco):
+    // a inclusão funciona também antes da migração de itens manuais.
     expect(insert.insert).toHaveBeenCalledWith({
       shopping_list_id: 'list-1',
       ingredient_id: 'ing-1',
-      custom_name: null,
       quantity: 2,
       unit: 'unidade',
       checked: false,
