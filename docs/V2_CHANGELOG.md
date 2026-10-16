@@ -283,3 +283,101 @@ Console: 0 erros.
   itens manuais; até lá, a leitura tolerante mantém o app funcionando.
 - Validação em PostgreSQL **local** (WSL); o Supabase de produção não foi
   exercitado e `db:e2e` não rodou (Docker ausente).
+
+---
+
+# V2.3 — Revisão de integração e prontidão para lançamento
+
+Mesma branch `feat/pratinho-ux-polish-20261009`. Revisão de ponta a ponta do
+contrato frontend–backend. Sem redesign e sem produção alterada.
+
+## Incompatibilidades encontradas e corrigidas
+
+### 1. Despensa reenviava itens manuais e violava a origem (corrigido)
+- **Defeito:** `appendShoppingListItems` (usado por "Adicionar faltantes à
+  lista", na despensa) relia **todos** os itens e os reenviava no upsert. Depois
+  da V2.2, um item manual relido vem sem `custom_name`; reenviá-lo como
+  `ingredient_id` nulo e `custom_name` nulo viola o CHECK
+  `shopping_list_items_origin_check` — e a lista inteira falhava. Reproduzido no
+  backend do QA (a origem inválida é recusada, espelhando o banco).
+- **Correção:** o merge/upsert passa a considerar apenas itens **do catálogo**;
+  os manuais são preservados e não são tocados.
+- **Extra:** ao incluir um item do catálogo, `custom_name` deixa de ser enviado
+  (fica nulo por padrão), então a inclusão também funciona num schema que ainda
+  não recebeu a migração de itens manuais.
+
+### 2. Troca de posições colidia com 3+ refeições do mesmo tipo (corrigido)
+- **Defeito comprovado em PostgreSQL real:** a posição temporária era
+  `max(das duas trocadas) + 1`. Com uma terceira refeição do mesmo dia/tipo, ela
+  coincidia com a posição dela e o índice único
+  `(meal_plan_id, date, meal_type, position)` recusava a troca (`duplicate key`).
+  Além disso, os 3 updates separados não eram atômicos: falha no meio deixava a
+  ordem inconsistente, em silêncio.
+- **Correção:** nova migração
+  `20261012020000_add_swap_meal_plan_item_positions_rpc.sql` cria
+  `swap_meal_plan_item_positions(p_first, p_second)` — SECURITY INVOKER, valida
+  identidade/posse/mesmo slot, calcula uma posição temporária **livre** dentro do
+  grupo e troca tudo em uma transação. O serviço passa a chamar a RPC.
+
+### 3. Harness de QA não versionado (corrigido)
+- **Defeito:** o `.gitignore` excluía `qa/`, mas `package.json` (scripts `qa:*`),
+  o `README.md` e o `vitest` (3 arquivos `qa/*.test.ts`) dependem dele. Um clone
+  limpo não conseguia rodar a suíte de QA nem a suíte unitária completa.
+- **Correção:** `qa/` passou a ser versionado (o `.gitignore` só ignora
+  resultados gerados: `entregaveis/`, `output/`, `screenshots/`, `__pycache__/`).
+
+## Migrações revisadas
+
+Ordem de aplicação e dependências conferidas. Treze migrações, todas aplicam em
+**base limpa** e a `20260826013000` (correção da V1.7) continua autossuficiente
+(define os ingredientes que usa). As de itens manuais e a de reordenação são
+**aditivas**; nenhuma altera a semântica de migração já aplicada. Uma base já
+inicializada recebe apenas o que falta (verificado por teste de preservação).
+
+Pendentes de aplicar em produção: `20261010000000` (review status),
+`20261012000000`, `20261012010000` (itens manuais) e `20261012020000`
+(reordenação atômica).
+
+## Testes realmente executados
+
+| Suíte | Resultado |
+|---|---|
+| `npm test` | 250/250 (era 248) |
+| `npm run lint` / `npm run build` | limpos |
+| `qa:flows` (chromium) | 24/24 |
+| `qa:audit` (chromium) | 60/60 (0 axe, 0 clipping) |
+| `qa:dialogs` (chromium) | 18/18 |
+| `qa:regressions` | 0 falhas |
+| `qa:pwa` (chromium) | 18/18 |
+| Integração PostgreSQL local (WSL) | 13 migrações + seed; **57 verificações**, 0 falhas |
+| `npm run db:test` (Docker) | não executável (Docker ausente) |
+| `npm run db:e2e` (Supabase local) | não executável (exige Docker) |
+
+O runner de integração usa o **PostgreSQL 16 instalado no WSL** (Ubuntu 24.04),
+em bancos descartáveis recriados a cada execução, com o shim de auth
+(`auth.uid()`/papéis). Novos testes: `meal_plan_reorder.sql` (9 verificações) e o
+caso de reenvio de itens manuais em `shoppingListItems` (unitário).
+
+## Validação via Browser MCP (fixtures locais)
+
+- **Reordenação com 3 refeições do mesmo tipo** (o caso que quebrava): troca
+  concluída, posições 0/1/2 sem colisão, status "agora vem antes de…", refletido
+  no dia e na lista compacta.
+- **Despensa com item manual presente:** "Adicionar faltantes à lista" concluiu
+  sem erro, o item manual sobreviveu e o ingrediente do catálogo foi somado
+  (Abacate 6→8).
+- **Favoritos:** favoritar → persistiu → filtro "Favoritas" (1 de 72).
+- **Revisão do catálogo:** indicador no catálogo (72/72) e no detalhe.
+- **PDF da lista:** inclui o item manual e o item de catálogo.
+- Console: 0 erros em todos os passos.
+
+## Limitações e ações futuras
+
+- **Sem stack Supabase local (Auth + PostgREST):** Docker não está disponível
+  neste ambiente, então a integração real pelo PostgREST e o `db:e2e` não
+  rodaram. O que foi validado: SQL direto + shim de auth no PostgreSQL local, e
+  o backend simulado do QA. A stack completa (GoTrue/PostgREST) segue pendente.
+- **Migrações pendentes** de aplicação no Supabase de produção (4, listadas
+  acima). A leitura tolerante mantém o app funcionando até lá.
+- **Revisão do catálogo** por nutricionista/pediatra continua pendente
+  (`docs/catalogo-revisao-profissional.md`).
