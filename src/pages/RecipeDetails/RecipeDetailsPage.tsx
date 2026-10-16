@@ -117,9 +117,10 @@ export function RecipeDetailsPage() {
   const dietConflict = dietRule ? recipeViolatesDiet(currentRecipe, dietRule) : false
 
 
-  const existingSlot = plan?.meal_plan_items.find(
+  const slotItems = (plan?.meal_plan_items ?? []).filter(
     (item) => item.date === selectedDate && item.meal_type === activeMealType,
   )
+  const existingSlot = slotItems[0]
   const selectedDayIndex = Math.max(
     0,
     weekDayLabels.findIndex((_, index) => addDays(contextWeekStart, index) === selectedDate),
@@ -432,8 +433,17 @@ export function RecipeDetailsPage() {
             </div>
             {existingSlot && (
               <p className="pp-sunken mt-4 bg-terracotta-100 p-4 text-sm leading-6 text-ink-700">
-                Já existe <strong>{existingSlot.recipe.name}</strong> neste horário. Você pode
-                substituir ou adicionar como uma opção extra.
+                {slotItems.length > 1 ? (
+                  <>
+                    Já existem <strong>{slotItems.length} refeições</strong> neste horário. Você pode
+                    substituir todas elas ou adicionar como mais uma opção extra.
+                  </>
+                ) : (
+                  <>
+                    Já existe <strong>{existingSlot.recipe.name}</strong> neste horário. Você pode
+                    substituir ou adicionar como uma opção extra.
+                  </>
+                )}
               </p>
             )}
             {dietConflict && (
@@ -453,7 +463,9 @@ export function RecipeDetailsPage() {
                 {isSaving
                   ? 'Salvando…'
                   : existingSlot
-                    ? 'Usar no lugar desta refeição'
+                    ? slotItems.length > 1
+                      ? 'Substituir as refeições do horário'
+                      : 'Usar no lugar desta refeição'
                     : `Colocar na ${weekDayLabels[selectedDayIndex] ?? 'semana'}`}
               </button>
               {existingSlot && (

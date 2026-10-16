@@ -9,13 +9,15 @@ import { RecipeDetailsPage } from './RecipeDetailsPage'
 import { addRecipeToMealPlan } from '../../services/mealPlans'
 
 vi.mock('../../hooks/useBaby', () => ({ useBaby: () => ({ data: testBaby }) }))
+const planOverride = vi.hoisted(() => ({ current: null as unknown }))
 vi.mock('../../hooks/useRecipes', () => ({ useRecipe: () => ({ data: testRecipe, isLoading: false }), useRecipeReviewStatuses: () => ({ data: null }) }))
-vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: null }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
+vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: planOverride.current }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
 vi.mock('../../hooks/useFavorites', () => ({ useFavoriteRecipe: () => ({ isFavorite: false, isSaving: false, toggle: vi.fn() }) }))
 vi.mock('../../services/mealPlans', () => ({ addRecipeToMealPlan: vi.fn() }))
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
+  planOverride.current = null
 })
 beforeEach(() => vi.clearAllMocks())
 
@@ -101,6 +103,22 @@ it('rotula o retorno conforme a origem da receita', () => {
   )
   const back = screen.getByRole('link', { name: 'Voltar para a despensa' })
   expect(back.getAttribute('href')).toBe('/app/pantry')
+})
+
+it('avisa quando o horário já tem mais de uma refeição', () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(2026, 8, 16, 12, 0, 0))
+  planOverride.current = {
+    id: 'plan', user_id: 'test-user', baby_id: 'test-baby', week_start: '2026-09-14', created_at: '', updated_at: '',
+    meal_plan_items: [
+      { id: 'a', meal_plan_id: 'plan', recipe_id: testRecipe.id, date: '2026-09-16', meal_type: 'breakfast', position: 0, recipe: testRecipe },
+      { id: 'b', meal_plan_id: 'plan', recipe_id: testRecipe.id, date: '2026-09-16', meal_type: 'breakfast', position: 1, recipe: testRecipe },
+    ],
+  }
+  renderRecipe()
+  fireEvent.click(screen.getByRole('button', { name: 'Colocar na minha semana' }))
+  expect(screen.getByText(/Já existem/)).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Substituir as refeições do horário' })).toBeTruthy()
 })
 
 it('abre o planejador no dia de hoje quando a semana de contexto é a atual', () => {
