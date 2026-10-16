@@ -230,4 +230,3 @@ sozinha não é uma barreira suficiente.
 Esta suíte não verifica instalação nativa, persistência da instalação entre
 sessões, modo offline, leitor de tela real ou aparelho físico. A dispensa da
 revisão dos vídeos permanece inalterada. A rodada PWA é complementar à v3.
-
