@@ -8,8 +8,8 @@ import { RecipeVisual } from '../../components/recipes/RecipeVisual'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
 import { useShoppingList } from '../../hooks/useShoppingList'
-import { calculateAgeMonths, formatShortDate, getWeekStart, toIsoDate } from '../../utils/dates'
-import { compareMealTypes, mealTypeLabels } from '../../utils/labels'
+import { addDays, calculateAgeMonths, formatShortDate, getWeekStart, toIsoDate } from '../../utils/dates'
+import { compareMealTypes, mealTypeLabels, weekDayLabels } from '../../utils/labels'
 import { analytics } from '../../services/analytics'
 import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
 
@@ -72,7 +72,6 @@ export function HomePage() {
   })
   const todayIso = toIsoDate(new Date())
   const sortedItems = [...(plan?.meal_plan_items ?? [])].sort((a, b) => a.date.localeCompare(b.date) || compareMealTypes(a.meal_type, b.meal_type))
-  const todayItems = sortedItems.filter((item) => item.date === todayIso)
   const upcomingItems = sortedItems.filter((item) => item.date >= todayIso)
   const nextMeal = upcomingItems[0]
   const furtherMeals = upcomingItems.slice(1, 4)
@@ -87,91 +86,187 @@ export function HomePage() {
   const shoppingChecked = shoppingItems.filter((item) => item.checked).length
   const hasWeekSummary = Boolean(plan) && weekMeals > 0
 
+  // Ritmo da semana: um dia só aparece "coberto" se tiver refeição de verdade.
+  const weekDates = weekDayLabels.map((_, index) => addDays(currentWeekStart, index))
+  const weekRangeLabel = `${formatShortDate(currentWeekStart)} – ${formatShortDate(addDays(currentWeekStart, 6))}`
+
   return (
     <div className="pp-home">
-      <header className="pp-home-greeting">
-        <div>
-          <p className="pp-eyebrow">Um cuidado de cada vez</p>
-          <h1 className="pp-page-title">Pequenas refeições. Grandes descobertas.</h1>
-          <p className="pp-page-description">Ideias para {baby?.name ?? 'seu bebê'}. Mais leveza para você.</p>
+      {/* HERO editorial: composição assimétrica com a comida em primeiro plano.
+          A fotografia ocupa uma coluna inteira (não uma miniatura dentro de um
+          painel), e a chamada principal fica ao lado, como uma capa de revista. */}
+      <section aria-labelledby="home-title" className="pp-hero">
+        <div className="pp-hero-copy">
+          <p className="pp-eyebrow">Sua semana · {weekRangeLabel}</p>
+          <h1 className="pp-page-title" id="home-title">Pequenas refeições. Grandes descobertas.</h1>
+          <p className="pp-hero-lead">
+            Ideias para {baby?.name ?? 'seu bebê'}. Mais leveza para você.
+          </p>
+          {baby && (
+            <Link className="pp-baby-pill pp-hero-baby" to="/app/profile" aria-label={`Ver perfil de ${baby.name}`}>
+              <BabyAvatar name={baby.name} photoUrl={baby.photo_url} size="sm" />
+              <span><strong>{baby.name}</strong><small>{calculateAgeMonths(baby.birth_date)} meses</small></span>
+              <ChevronRight aria-hidden="true" size={16} />
+            </Link>
+          )}
+
+          {planLoading ? (
+            <div className="pp-hero-meal pp-loading-meal" role="status" aria-busy="true">
+              <div className="pp-skeleton h-24" />
+              <p>Carregando seu cardápio…</p>
+            </div>
+          ) : planError ? (
+            <PageState
+              action={<button className="pp-btn pp-btn-primary" onClick={() => void refetch()} type="button">Tentar novamente</button>}
+              description="Seu cardápio não carregou. As receitas continuam a um toque."
+              title="Vamos tentar de novo?"
+              variant="error"
+            />
+          ) : nextMeal ? (
+            <div className="pp-hero-meal">
+              <span className="pp-hero-meal-kicker">
+                <span className="pp-meal-label">{mealTypeLabels[nextMeal.meal_type]}</span>
+                <span className="pp-hero-meal-when">{nextMeal.date === todayIso ? 'No cardápio de hoje' : formatShortDate(nextMeal.date)}</span>
+              </span>
+              <h2 className="pp-hero-meal-title">{nextMeal.recipe.name}</h2>
+              <div className="pp-meal-meta">
+                <span><Clock3 aria-hidden="true" size={15} />{nextMeal.recipe.prep_time_minutes} min</span>
+                <span>{nextMeal.recipe.min_age_months}+ meses</span>
+              </div>
+              <div className="pp-hero-actions">
+                <Link className="pp-btn pp-btn-primary pp-btn-lg" state={{ returnTo: '/app' }} to={`/app/recipes/${nextMeal.recipe.id}`}>
+                  Vamos preparar<ArrowRight aria-hidden="true" size={18} />
+                </Link>
+                <Link className="pp-btn pp-btn-secondary pp-btn-lg" to={weekLink}>
+                  <CalendarDays aria-hidden="true" size={17} />Ver semana
+                </Link>
+              </div>
+              {shouldShowDemoBadge(nextMeal.recipe.is_demo) && <small className="pp-demo-note">Receita demonstrativa do catálogo</small>}
+            </div>
+          ) : (
+            <div className="pp-hero-meal pp-hero-empty">
+              <h2 className="pp-hero-meal-title">{plan ? 'Um novo dia, novas ideias.' : 'Menos “o que fazer?”. Mais tempo juntos.'}</h2>
+              <p>
+                {plan
+                  ? 'Explore as receitas ou organize a próxima semana no seu ritmo.'
+                  : 'Monte um cardápio com as preferências cadastradas do seu bebê. A lista de compras vem junto.'}
+              </p>
+              <div className="pp-hero-actions">
+                <Link className="pp-btn pp-btn-primary pp-btn-lg" to={weekLink}>
+                  {plan ? 'Organizar minha semana' : 'Montar minha semana'}<ArrowRight aria-hidden="true" size={18} />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
-        {baby && (
-          <Link className="pp-baby-pill" to="/app/profile" aria-label={`Ver perfil de ${baby.name}`}>
-            <BabyAvatar name={baby.name} photoUrl={baby.photo_url} size="sm" />
-            <span><strong>{baby.name}</strong><small>{calculateAgeMonths(baby.birth_date)} meses</small></span>
-            <ChevronRight aria-hidden="true" size={16} />
-          </Link>
-        )}
-      </header>
 
-      <Link className="pp-home-search" to="/app/recipes">
-        <Search aria-hidden="true" size={20} /><span>O que vamos preparar hoje?</span><span className="pp-search-arrow"><ArrowRight aria-hidden="true" size={18} /></span>
-      </Link>
+        <div className="pp-hero-media">
+          {nextMeal ? (
+            <Link aria-label={`Preparar ${nextMeal.recipe.name}`} className="pp-hero-photo" state={{ returnTo: '/app' }} to={`/app/recipes/${nextMeal.recipe.id}`}>
+              <RecipeVisual imageUrl={nextMeal.recipe.image_url} name={nextMeal.recipe.name} priority size="hero" />
+              <span className="pp-hero-photo-caption">
+                <span className="pp-hero-photo-label">{mealTypeLabels[nextMeal.meal_type]}</span>
+                <strong>{nextMeal.recipe.name}</strong>
+              </span>
+            </Link>
+          ) : (
+            <Link className="pp-hero-search-tile" to="/app/recipes">
+              <Search aria-hidden="true" size={22} />
+              <span>O que vamos preparar hoje?</span>
+              <ArrowRight aria-hidden="true" size={18} />
+            </Link>
+          )}
+        </div>
+      </section>
 
+      {/* Resumo integrado: uma barra segmentada, não três cartões soltos. */}
       {hasWeekSummary && !planError && (
-        <section aria-label="Resumo da semana" className="pp-week-summary">
-          <Link className="pp-week-summary-item" to={weekLink}>
-            <span className="pp-week-summary-value">{weekMeals}</span>
-            <span className="pp-week-summary-label">{weekMeals === 1 ? 'refeição planejada' : 'refeições planejadas'}</span>
+        <section aria-label="Resumo da semana" className="pp-stat-strip" role="region">
+          <Link className="pp-stat" to={weekLink}>
+            <span className="pp-stat-value">{weekMeals}</span>
+            <span className="pp-stat-label">{weekMeals === 1 ? 'refeição planejada' : 'refeições planejadas'}</span>
           </Link>
-          <Link className="pp-week-summary-item" to={weekLink}>
-            <span className="pp-week-summary-value">{daysCovered}<small>/7</small></span>
-            <span className="pp-week-summary-label">{daysCovered === 1 ? 'dia com refeição' : 'dias com refeição'}</span>
+          <span aria-hidden="true" className="pp-stat-divider" />
+          <Link className="pp-stat" to={weekLink}>
+            <span className="pp-stat-value">{daysCovered}<small>/7</small></span>
+            <span className="pp-stat-label">{daysCovered === 1 ? 'dia com refeição' : 'dias com refeição'}</span>
           </Link>
-          <Link className="pp-week-summary-item" to={shoppingLink}>
+          <span aria-hidden="true" className="pp-stat-divider" />
+          <Link className="pp-stat" to={shoppingLink}>
             {shoppingItems.length > 0 ? (
               <>
-                <span className="pp-week-summary-value">{shoppingChecked}<small>/{shoppingItems.length}</small></span>
-                <span className="pp-week-summary-label">itens comprados</span>
+                <span className="pp-stat-value">{shoppingChecked}<small>/{shoppingItems.length}</small></span>
+                <span className="pp-stat-label">itens comprados</span>
               </>
             ) : (
               <>
-                <span className="pp-week-summary-value">—</span>
-                <span className="pp-week-summary-label">Montar lista de compras</span>
+                <span className="pp-stat-value pp-stat-value-quiet">—</span>
+                <span className="pp-stat-label">Montar lista de compras</span>
               </>
             )}
           </Link>
         </section>
       )}
 
-      <div className="pp-home-primary">
-        <section aria-labelledby="today-heading" className="pp-today">
-          <div className="pp-section-heading"><div><p className="pp-eyebrow">No seu ritmo</p><h2 id="today-heading">Seu pratinho de hoje</h2></div><CalendarDays aria-hidden="true" size={22} /></div>
-          {planLoading ? (
-            <div className="pp-loading-meal" role="status" aria-busy="true"><div className="pp-skeleton h-36" /><p>Carregando seu cardápio…</p></div>
-          ) : planError ? (
-            <PageState variant="error" title="Vamos tentar de novo?" description="Seu cardápio não carregou. As receitas continuam a um toque." action={<button className="pp-btn pp-btn-primary" onClick={() => void refetch()} type="button">Tentar novamente</button>} />
-          ) : nextMeal ? (
-            <article className="pp-feature-meal">
-              <Link to={`/app/recipes/${nextMeal.recipe.id}`} state={{ returnTo: '/app' }} aria-label={`Preparar ${nextMeal.recipe.name}`} className="pp-feature-image">
-                <RecipeVisual imageUrl={nextMeal.recipe.image_url} name={nextMeal.recipe.name} priority size="square" />
-                <span className="pp-feature-date">{nextMeal.date === todayIso ? 'No cardápio de hoje' : formatShortDate(nextMeal.date)}</span>
-              </Link>
-              <div className="pp-feature-copy">
-                <span className="pp-meal-label">{mealTypeLabels[nextMeal.meal_type]}</span>
-                <h3>{nextMeal.recipe.name}</h3>
-                <div className="pp-meal-meta"><span><Clock3 aria-hidden="true" size={16} />{nextMeal.recipe.prep_time_minutes} min</span><span>{nextMeal.recipe.min_age_months}+ meses</span></div>
-                <Link className="pp-btn pp-btn-primary pp-btn-lg" to={`/app/recipes/${nextMeal.recipe.id}`} state={{ returnTo: '/app' }}>Vamos preparar<ArrowRight aria-hidden="true" size={18} /></Link>
-                {shouldShowDemoBadge(nextMeal.recipe.is_demo) && <small className="pp-demo-note">Receita demonstrativa do catálogo</small>}
-              </div>
-            </article>
-          ) : (
-            <div className="pp-first-week">
-              <span className="pp-first-week-icon"><Sprout aria-hidden="true" size={32} strokeWidth={1.5} /></span>
-              <h3>{plan ? 'Um novo dia, novas ideias.' : 'Menos “o que fazer?”. Mais tempo juntos.'}</h3>
-              <p>{plan ? 'Explore as receitas ou organize a próxima semana no seu ritmo.' : 'Monte um cardápio com as preferências cadastradas do seu bebê. A lista de compras vem junto.'}</p>
-              <Link className="pp-btn pp-btn-primary pp-btn-lg" to={weekLink}>{plan ? 'Organizar minha semana' : 'Montar minha semana'}<ArrowRight aria-hidden="true" size={18} /></Link>
-            </div>
-          )}
-          {plan && !planLoading && !planError && <Link className="pp-today-footer" to={weekLink}><span><CalendarDays aria-hidden="true" size={17} />{todayItems.length > 0 ? `${todayItems.length} refeições no cardápio de hoje` : 'Seu planejamento semanal'}</span><ChevronRight aria-hidden="true" size={18} /></Link>}
+      {/* Ritmo da semana: os sete dias, visualmente, sem virar uma grade de caixas. */}
+      {hasWeekSummary && !planError && (
+        <section aria-labelledby="rhythm-title" className="pp-rhythm">
+          <div className="pp-rhythm-head">
+            <h2 id="rhythm-title">O ritmo da semana</h2>
+            <Link className="pp-text-action" to={weekLink}>Abrir planejamento<ArrowRight aria-hidden="true" size={15} /></Link>
+          </div>
+          <ul className="pp-rhythm-days">
+            {weekDates.map((date, index) => {
+              const count = sortedItems.filter((item) => item.date === date).length
+              const isToday = date === todayIso
+              return (
+                <li key={date}>
+                  <Link
+                    aria-label={`${weekDayLabels[index]}, ${formatShortDate(date)}${isToday ? ', hoje' : ''}, ${count} refeições`}
+                    className="pp-rhythm-day"
+                    data-filled={count > 0 ? 'true' : 'false'}
+                    data-today={isToday ? 'true' : undefined}
+                    to={`${weekLink}&day=${date}`}
+                  >
+                    <span className="pp-rhythm-day-name">{weekDayLabels[index]}</span>
+                    <span aria-hidden="true" className="pp-rhythm-day-dot" />
+                    <span className="pp-rhythm-day-count">{count > 0 ? `${count} refeições` : 'livre'}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         </section>
+      )}
 
-        <aside className="pp-routine" aria-label="Atalhos da sua rotina">
-          <Link to="/app/pantry" className="pp-pantry-invite"><Refrigerator aria-hidden="true" size={26} strokeWidth={1.6} /><div><span className="pp-eyebrow">Na sua cozinha</span><h2>Tem aí? Vira pratinho.</h2><p>Encontre ideias com os ingredientes que você já tem.</p></div><span className="pp-inline-action">Abrir minha despensa<ArrowRight aria-hidden="true" size={18} /></span></Link>
-          <Link className="pp-shortcut" to={`/app/shopping-list?week=${currentWeekStart}`}><span className="pp-shortcut-icon"><ListChecks aria-hidden="true" size={23} /></span><span><strong>Lista de compras</strong><small>Do planejamento para o mercado</small></span><ChevronRight aria-hidden="true" size={19} /></Link>
-          <Link className="pp-shortcut" to="/app/recipes?favorites=true"><span className="pp-shortcut-icon pp-shortcut-rose"><Heart aria-hidden="true" size={22} /></span><span><strong>Receitas favoritas</strong><small>Para fazer de novo, sem procurar</small></span><ChevronRight aria-hidden="true" size={19} /></Link>
-        </aside>
-      </div>
+      {/* Apoio à rotina: três ações compactas, sem disputar o foco da comida. */}
+      <section aria-labelledby="support-title" className="pp-support">
+        <h2 className="sr-only" id="support-title">Atalhos da sua rotina</h2>
+        <Link className="pp-support-card pp-support-pantry" to="/app/pantry">
+          <span className="pp-support-icon"><Refrigerator aria-hidden="true" size={22} strokeWidth={1.7} /></span>
+          <span className="pp-support-copy">
+            <strong>Tem aí? Vira pratinho.</strong>
+            <small>Ideias com o que já está na sua cozinha</small>
+          </span>
+          <ArrowRight aria-hidden="true" className="pp-support-arrow" size={18} />
+        </Link>
+        <Link className="pp-support-card" to={`/app/shopping-list?week=${currentWeekStart}`}>
+          <span className="pp-support-icon"><ListChecks aria-hidden="true" size={22} strokeWidth={1.7} /></span>
+          <span className="pp-support-copy">
+            <strong>Lista de compras</strong>
+            <small>Do planejamento para o mercado</small>
+          </span>
+          <ArrowRight aria-hidden="true" className="pp-support-arrow" size={18} />
+        </Link>
+        <Link className="pp-support-card" to="/app/recipes?favorites=true">
+          <span className="pp-support-icon pp-support-icon-rose"><Heart aria-hidden="true" size={21} strokeWidth={1.7} /></span>
+          <span className="pp-support-copy">
+            <strong>Receitas favoritas</strong>
+            <small>Para fazer de novo, sem procurar</small>
+          </span>
+          <ArrowRight aria-hidden="true" className="pp-support-arrow" size={18} />
+        </Link>
+      </section>
 
       {furtherMeals.length > 0 && !planError && (
         <section aria-labelledby="upcoming-title">
