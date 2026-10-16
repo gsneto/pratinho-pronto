@@ -78,10 +78,6 @@ export function ProfilePage() {
       )}
 
       <div className="mt-6">
-        <InstallAppCard compact />
-      </div>
-
-      <div className="mt-6">
         <BabyPhotoEditor baby={currentBaby} onChanged={handlePhotoChanged} />
       </div>
 
@@ -92,6 +88,12 @@ export function ProfilePage() {
           submitLabel="Salvar alterações"
         />
       </section>
+
+      {/* O convite de instalação fica no fim: entre o cabeçalho e o formulário
+          ele interrompia o fluxo dos dados do bebê. */}
+      <div className="mt-6">
+        <InstallAppCard compact />
+      </div>
     </div>
   )
 }

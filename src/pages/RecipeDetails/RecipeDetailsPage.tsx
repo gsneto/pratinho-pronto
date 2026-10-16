@@ -27,13 +27,14 @@ import { mealPlanHistoryQueryKey } from '../../hooks/useMealPlanHistory'
 import { useRecipe, useRecipeReviewStatuses } from '../../hooks/useRecipes'
 import { addRecipeToMealPlan } from '../../services/mealPlans'
 import type { MealType } from '../../types/domain'
-import { addDays, formatShortDate, normalizeWeekStart } from '../../utils/dates'
+import { addDays, formatShortDate, normalizeWeekStart, toIsoDate } from '../../utils/dates'
 import { mealTypeLabels, weekDayLabels } from '../../utils/labels'
 import { publicRecipeText } from '../../utils/text'
 import { splitInstructions } from '../../utils/instructions'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
 import { reviewStatusDetail, reviewStatusLabel } from '../../lib/recipes/review'
+import { recipeBackLinkLabel } from '../../lib/navigation/back-link'
 import { parseDietaryRestrictions, recipeViolatesDiet } from '../../lib/diet/classification'
 
 export function RecipeDetailsPage() {
@@ -60,13 +61,18 @@ export function RecipeDetailsPage() {
       ? new URLSearchParams(returnTo.split('?')[1] ?? '').get('week')
       : null,
   )
+  const todayIso = toIsoDate(new Date())
   const { data: plan } = useMealPlan(baby?.id, contextWeekStart)
   const [showPlanner, setShowPlanner] = useState(false)
   // O dia escolhido acompanha a semana de contexto sem precisar de efeito:
-  // se a semana muda, a seleção anterior deixa de valer.
+  // se a semana muda, a seleção anterior deixa de valer. Quando a semana de
+  // contexto contém hoje, o dia padrão é hoje — como na página Semana — para
+  // não exigir que a mãe troque o dia manualmente ao planejar a refeição de hoje.
   const [dateSelection, setDateSelection] = useState<{ date: string; week: string } | null>(null)
+  const plannerWeekDates = weekDayLabels.map((_, index) => addDays(contextWeekStart, index))
+  const plannerDefaultDate = plannerWeekDates.includes(todayIso) ? todayIso : contextWeekStart
   const selectedDate =
-    dateSelection && dateSelection.week === contextWeekStart ? dateSelection.date : contextWeekStart
+    dateSelection && dateSelection.week === contextWeekStart ? dateSelection.date : plannerDefaultDate
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [savedMessage, setSavedMessage] = useState<string | null>(null)
@@ -90,7 +96,7 @@ export function RecipeDetailsPage() {
       <PageState
         action={
           <Link className="pp-btn pp-btn-primary" to={returnTo}>
-            {returnTo.startsWith('/app/week') ? 'Voltar para minha semana' : 'Voltar para receitas'}
+            {recipeBackLinkLabel(returnTo)}
           </Link>
         }
         description="Esta receita pode ter saído do catálogo. Você pode voltar e escolher outra."
@@ -111,9 +117,10 @@ export function RecipeDetailsPage() {
   const dietConflict = dietRule ? recipeViolatesDiet(currentRecipe, dietRule) : false
 
 
-  const existingSlot = plan?.meal_plan_items.find(
+  const slotItems = (plan?.meal_plan_items ?? []).filter(
     (item) => item.date === selectedDate && item.meal_type === activeMealType,
   )
+  const existingSlot = slotItems[0]
   const selectedDayIndex = Math.max(
     0,
     weekDayLabels.findIndex((_, index) => addDays(contextWeekStart, index) === selectedDate),
@@ -170,7 +177,7 @@ export function RecipeDetailsPage() {
     <div className="pp-detail mx-auto max-w-4xl">
       <Link className="pp-link inline-flex items-center gap-2 text-sm" to={returnTo}>
         <ArrowLeft aria-hidden="true" size={18} />
-        {returnTo.startsWith('/app/week') ? 'Voltar para minha semana' : 'Voltar para receitas'}
+        {recipeBackLinkLabel(returnTo)}
       </Link>
 
       <article className="pp-panel pp-lifted mt-5 overflow-hidden">
@@ -202,7 +209,7 @@ export function RecipeDetailsPage() {
             <div className="flex gap-2">
               <button
                 aria-pressed={isFavorite}
-                className={`pp-btn flex-1 ${
+                className={`pp-favorite-btn pp-btn flex-1 ${
                   isFavorite
                     ? 'border-terracotta-500 bg-terracotta-500 text-white'
                     : 'pp-btn-outline'
@@ -354,7 +361,7 @@ export function RecipeDetailsPage() {
 
       {showPlanner && (
         <div
-          className="fixed inset-0 z-40 flex items-end bg-ink-900/45 p-3 sm:items-center sm:justify-center"
+          className="pp-overlay fixed inset-0 z-40 flex items-end bg-ink-900/45 p-3 sm:items-center sm:justify-center"
           onClick={(event) => {
             if (event.target === event.currentTarget) closePlanner()
           }}
@@ -426,8 +433,17 @@ export function RecipeDetailsPage() {
             </div>
             {existingSlot && (
               <p className="pp-sunken mt-4 bg-terracotta-100 p-4 text-sm leading-6 text-ink-700">
-                Já existe <strong>{existingSlot.recipe.name}</strong> neste horário. Você pode
-                substituir ou adicionar como uma opção extra.
+                {slotItems.length > 1 ? (
+                  <>
+                    Já existem <strong>{slotItems.length} refeições</strong> neste horário. Você pode
+                    substituir todas elas ou adicionar como mais uma opção extra.
+                  </>
+                ) : (
+                  <>
+                    Já existe <strong>{existingSlot.recipe.name}</strong> neste horário. Você pode
+                    substituir ou adicionar como uma opção extra.
+                  </>
+                )}
               </p>
             )}
             {dietConflict && (
@@ -447,7 +463,9 @@ export function RecipeDetailsPage() {
                 {isSaving
                   ? 'Salvando…'
                   : existingSlot
-                    ? 'Usar no lugar desta refeição'
+                    ? slotItems.length > 1
+                      ? 'Substituir as refeições do horário'
+                      : 'Usar no lugar desta refeição'
                     : `Colocar na ${weekDayLabels[selectedDayIndex] ?? 'semana'}`}
               </button>
               {existingSlot && (

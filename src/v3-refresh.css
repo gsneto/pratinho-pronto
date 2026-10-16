@@ -1,0 +1,774 @@
+/* Pratinho Pronto — V3: acabamento visual e microinterações.
+ *
+ * Importado depois de `ui-refresh.css`. Esta camada refina superfícies,
+ * movimento e composição sobre a mesma base de componentes; não introduz
+ * novas rotas nem altera comportamento. Todo movimento é opcional: as ações
+ * continuam funcionando com `prefers-reduced-motion` ativo.
+ */
+
+/* -- Superfícies: profundidade intencional --------------------------------- */
+/* A camada anterior zerava a sombra dos cartões. A V3 devolve elevação
+   discreta (borda + sombra quente) para dar hierarquia sem ruído. */
+.pp-card {
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-panel {
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-panel-quiet {
+  box-shadow: none;
+}
+/* Destaques sobem um nível; o diálogo mantém a sombra de modal. */
+.pp-lifted {
+  box-shadow: var(--pp-shadow-lifted);
+}
+
+/* -- Movimento: base compartilhada ---------------------------------------- */
+:root {
+  --pp-ease: cubic-bezier(.22, .61, .36, 1);
+  --pp-ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+  --pp-dur-fast: 120ms;
+  --pp-dur: 180ms;
+  --pp-dur-slow: 240ms;
+}
+
+/* -- Botões: retorno tátil imediato --------------------------------------- */
+.pp-btn {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    border-color var(--pp-dur) var(--pp-ease), color var(--pp-dur) var(--pp-ease),
+    box-shadow var(--pp-dur) var(--pp-ease), transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(.985);
+}
+.pp-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--pp-action) 70%, transparent);
+}
+.pp-icon-btn {
+  transition: border-color var(--pp-dur) var(--pp-ease),
+    background-color var(--pp-dur) var(--pp-ease), color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-icon-btn:active:not(:disabled) {
+  transform: scale(.94);
+}
+
+/* -- Cartões de receita: presença e elevação no hover ---------------------- */
+.pp-recipe-card {
+  box-shadow: var(--pp-shadow-soft);
+  transition: transform var(--pp-dur-slow) var(--pp-ease),
+    box-shadow var(--pp-dur-slow) var(--pp-ease), border-color var(--pp-dur-slow) var(--pp-ease);
+}
+.pp-recipe-card .pp-photo-frame img {
+  transition: transform var(--pp-dur-slow) var(--pp-ease);
+}
+@media (hover: hover) {
+  .pp-recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--pp-shadow-lifted);
+    border-color: var(--color-sage-200);
+  }
+  .pp-recipe-card:hover .pp-photo-frame img {
+    transform: scale(1.04);
+  }
+}
+
+/* -- Favoritar: coração pulsa ao salvar ----------------------------------- */
+@keyframes pp-heart-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+.pp-favorite-btn[aria-pressed='true'] svg {
+  animation: pp-heart-pop var(--pp-dur-slow) var(--pp-ease-spring);
+}
+
+/* -- Lista de compras: marcação com movimento curto ------------------------ */
+@keyframes pp-check-in {
+  0% { transform: scale(.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pp-shopping [aria-pressed='true'] .pp-check-mark {
+  animation: pp-check-in var(--pp-dur-slow) var(--pp-ease-spring);
+}
+
+/* -- Progresso: transição suave ao atualizar ------------------------------ */
+.pp-shopping-progress progress {
+  transition: opacity var(--pp-dur) var(--pp-ease);
+}
+.pp-shopping-progress progress::-webkit-progress-value {
+  transition: width var(--pp-dur-slow) var(--pp-ease);
+}
+
+/* -- Diálogos e menus: entrada suave -------------------------------------- */
+/* A entrada anima apenas transform, nunca opacidade: como o painel é filho do
+   backdrop, um fade deixaria o texto em opacidade parcial durante a animação
+   (contraste medido e percebido abaixo do ideal). O movimento sozinho já dá o
+   acabamento sem esse efeito colateral. */
+@keyframes pp-sheet-in {
+  from { transform: translateY(14px) scale(.99); }
+  to { transform: translateY(0) scale(1); }
+}
+.pp-modal {
+  animation: pp-sheet-in var(--pp-dur-slow) var(--pp-ease);
+}
+@media (max-width: 640px) {
+  @keyframes pp-sheet-in {
+    from { transform: translateY(26px); }
+    to { transform: translateY(0); }
+  }
+}
+
+/* -- Navegação inferior: indicador do destino atual ----------------------- */
+.pp-bottom-link > span {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    color var(--pp-dur) var(--pp-ease);
+}
+.pp-bottom-link[aria-current='page'] > span {
+  background: var(--color-sage-100);
+}
+
+/* -- Esqueletos: brilho discreto em vez de pulso seco --------------------- */
+@keyframes pp-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.pp-skeleton {
+  animation: none;
+  background: linear-gradient(
+    90deg,
+    var(--pp-skeleton) 0%,
+    color-mix(in srgb, var(--pp-skeleton) 55%, var(--pp-surface)) 50%,
+    var(--pp-skeleton) 100%
+  );
+  background-size: 200% 100%;
+  animation: pp-shimmer 1.5s linear infinite;
+}
+
+/* -- Pílula do bebê e busca: leve elevação no hover ----------------------- */
+.pp-home-search,
+.pp-shortcut,
+.pp-upcoming-card,
+.pp-guide {
+  transition: border-color var(--pp-dur) var(--pp-ease),
+    box-shadow var(--pp-dur) var(--pp-ease), transform var(--pp-dur) var(--pp-ease);
+}
+@media (hover: hover) {
+  .pp-home-search:hover,
+  .pp-shortcut:hover,
+  .pp-upcoming-card:hover {
+    border-color: var(--color-sage-200);
+    box-shadow: var(--pp-shadow-soft);
+  }
+  .pp-shortcut:hover,
+  .pp-upcoming-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* -- Dia selecionado na Semana: transição do realce ----------------------- */
+.pp-meal-plan .pp-week-days button {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    color var(--pp-dur) var(--pp-ease), border-color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-meal-plan .pp-week-days button:active {
+  transform: scale(.96);
+}
+
+/* -- Etapas de preparo: marcação com preenchimento ------------------------ */
+.pp-step-check {
+  transition: background-color var(--pp-dur) var(--pp-ease),
+    color var(--pp-dur) var(--pp-ease), border-color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur-fast) var(--pp-ease-spring);
+}
+.pp-cooking-step[aria-pressed='true'] .pp-step-check {
+  transform: scale(1.06);
+}
+
+/* -- Composição: cards, lista e resumo ------------------------------------ */
+.pp-recipe-card .pp-photo-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(20, 34, 28, .22), transparent);
+  pointer-events: none;
+}
+.pp-recipe-card .pp-recipe-card-body {
+  gap: 2px;
+}
+.pp-recipe-card .pp-recipe-description {
+  margin-top: 10px;
+}
+
+/* Itens da lista de compras: linha mais alta, alvo confortável e realce
+   sutil ao passar o ponteiro. */
+.pp-shopping [aria-pressed] .pp-check-mark {
+  display: block;
+}
+@media (hover: hover) {
+  .pp-shopping li:hover {
+    background: color-mix(in srgb, var(--color-sage-50) 60%, transparent);
+  }
+}
+
+/* Resumo da semana: cartões com mais respiro e números com presença. */
+.pp-week-summary-item {
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-week-summary-value {
+  letter-spacing: -.02em;
+}
+
+/* Cabeçalho de seção: alinha o ícone ao bloco de texto. */
+.pp-section-heading svg {
+  flex-shrink: 0;
+  color: var(--color-sage-500);
+}
+
+/* -- Composição editorial: cabeçalhos, destaque e estados ------------------ */
+/* Mais respiro entre o cabeçalho e o conteúdo; títulos com tracking um pouco
+   mais fechado, típico de titulação editorial. */
+.pp-page-header {
+  margin-bottom: 32px;
+}
+.pp-page-title {
+  letter-spacing: -.032em;
+}
+.pp-section-heading {
+  margin-bottom: 16px;
+}
+.pp-section-heading h2 {
+  letter-spacing: -.028em;
+}
+
+/* Painel do dia na Home: raio maior reforça a sensação de superfície principal. */
+.pp-today {
+  border-radius: 32px;
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-feature-copy h3 {
+  letter-spacing: -.028em;
+}
+
+/* Estado vazio: moldura suave e ícone com presença. */
+.pp-panel[role='status'] > span:first-child,
+.pp-panel[role='alert'] > span:first-child {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-sage-200) 55%, transparent);
+}
+
+/* Cartão de receita: título com ritmo mais firme. */
+.pp-recipe-card h2 {
+  letter-spacing: -.03em;
+  line-height: 1.26;
+}
+
+/* Navegação inferior: sombra sutil para destacar da página. */
+.pp-bottom-nav {
+  box-shadow: 0 -6px 20px -16px rgba(20, 34, 28, .35);
+}
+
+/* ==========================================================================
+   V3.1 — Editorial Living UI: recomposição estrutural da Home
+   A Home deixa de ser uma pilha de blocos de largura total e passa a ter uma
+   capa assimétrica (comida em primeiro plano), um resumo integrado e um
+   "ritmo da semana" visual.
+   ========================================================================== */
+
+.pp-home {
+  gap: 30px;
+}
+
+/* -- Hero editorial ------------------------------------------------------- */
+/* Desktop: três áreas em duas colunas — texto e detalhe empilhados à esquerda,
+   fotografia ocupando a direita. Mobile: uma coluna na ordem do DOM
+   (texto → foto → detalhe), para a comida entrar na primeira dobra. */
+.pp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+  column-gap: clamp(24px, 3vw, 44px);
+  row-gap: 22px;
+  align-items: start;
+  padding: clamp(22px, 2.6vw, 36px);
+  border-radius: 34px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--color-sage-50) 85%, transparent), transparent 62%),
+    var(--pp-surface);
+  border: 1px solid var(--pp-border);
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-hero-copy {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.pp-hero-detail {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+.pp-hero-media {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  min-width: 0;
+}
+.pp-hero-copy .pp-page-title {
+  margin-top: 10px;
+  max-width: 15ch;
+}
+.pp-hero-lead {
+  margin-top: 14px;
+  max-width: 46ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-ink-500);
+}
+.pp-hero-baby {
+  margin-top: 18px;
+}
+.pp-hero-meal {
+  margin-top: 24px;
+  width: 100%;
+  min-width: 0;
+}
+.pp-hero-meal-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pp-hero-meal-when {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-sage-700);
+}
+.pp-hero-meal-title {
+  margin-top: 12px;
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.08;
+  letter-spacing: -.032em;
+  max-width: 18ch;
+}
+.pp-hero-meal .pp-meal-meta {
+  margin-top: 14px;
+}
+.pp-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+  width: 100%;
+}
+.pp-hero-empty h2 {
+  max-width: 20ch;
+}
+.pp-hero-empty p {
+  margin-top: 12px;
+  max-width: 46ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-ink-500);
+}
+.pp-hero-media {
+  min-width: 0;
+}
+/* A fotografia ocupa a coluna inteira — é a protagonista, não um anexo. */
+.pp-hero-photo {
+  position: relative;
+  display: block;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: var(--pp-shadow-lifted);
+}
+.pp-hero-photo .pp-photo-frame {
+  aspect-ratio: 5 / 4;
+}
+.pp-hero-photo-caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 18px 16px;
+  color: #fff;
+  background: linear-gradient(180deg, transparent, rgba(16, 34, 27, .78));
+}
+.pp-hero-photo-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.pp-hero-photo-when {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: .9;
+}
+.pp-hero-search-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 168px;
+  padding: 24px;
+  border-radius: 26px;
+  border: 1px dashed var(--pp-border-strong);
+  background: var(--pp-surface-sunken);
+  color: var(--color-sage-700);
+  font-family: var(--font-serif);
+  font-size: clamp(18px, 2vw, 23px);
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+.pp-hero-search-tile > span:nth-child(2) { flex: 1; min-width: 0; }
+@media (hover: hover) {
+  .pp-hero-photo:hover .pp-photo-frame img { transform: scale(1.03); }
+  .pp-hero-photo .pp-photo-frame img { transition: transform var(--pp-dur-slow) var(--pp-ease); }
+  .pp-hero-search-tile:hover { border-color: var(--color-sage-300); }
+}
+
+/* -- Resumo integrado: uma barra segmentada ------------------------------- */
+.pp-stat-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 22px;
+  border: 1px solid var(--pp-border);
+  background: var(--pp-surface);
+  box-shadow: var(--pp-shadow-soft);
+}
+.pp-stat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  color: var(--color-ink-700);
+  transition: background-color var(--pp-dur) var(--pp-ease);
+}
+@media (hover: hover) {
+  .pp-stat:hover { background: var(--color-sage-50); }
+}
+.pp-stat-value {
+  font-family: var(--font-serif);
+  font-size: 27px;
+  line-height: 1;
+  color: var(--color-ink-900);
+  letter-spacing: -.02em;
+}
+.pp-stat-value small {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-500);
+  margin-left: 2px;
+}
+.pp-stat-value-quiet { color: var(--color-sage-500); }
+.pp-stat-label {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--color-ink-500);
+  min-width: 0;
+}
+.pp-stat-divider {
+  align-self: center;
+  width: 1px;
+  height: 34px;
+  background: var(--pp-border);
+}
+
+/* -- Ritmo da semana ------------------------------------------------------ */
+.pp-rhythm-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.pp-rhythm-head h2 {
+  font-size: 21px;
+  letter-spacing: -.028em;
+}
+.pp-rhythm-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.pp-rhythm-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 6px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--pp-border);
+  background: var(--pp-surface);
+  text-align: center;
+  transition: border-color var(--pp-dur) var(--pp-ease),
+    background-color var(--pp-dur) var(--pp-ease), transform var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-rhythm-day-name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--color-ink-500);
+}
+.pp-rhythm-day-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-cream-200);
+}
+.pp-rhythm-day[data-filled='true'] .pp-rhythm-day-dot { background: var(--color-sage-500); }
+.pp-rhythm-day[data-filled='true'] { border-color: var(--color-sage-200); }
+.pp-rhythm-day[data-today='true'] {
+  background: var(--pp-action);
+  border-color: var(--pp-action);
+}
+.pp-rhythm-day[data-today='true'] .pp-rhythm-day-name { color: var(--pp-on-action); }
+.pp-rhythm-day[data-today='true'] .pp-rhythm-day-dot { background: var(--pp-on-action); }
+.pp-rhythm-day-count {
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--color-ink-500);
+}
+.pp-rhythm-day[data-today='true'] .pp-rhythm-day-count { color: var(--pp-on-action); opacity: .85; }
+@media (hover: hover) {
+  .pp-rhythm-day:not([data-today='true']):hover {
+    border-color: var(--color-sage-300);
+    transform: translateY(-2px);
+  }
+}
+
+/* -- Apoio à rotina: três ações compactas --------------------------------- */
+.pp-support {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.pp-support-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--pp-border);
+  background: var(--pp-surface);
+  box-shadow: var(--pp-shadow-soft);
+  transition: border-color var(--pp-dur) var(--pp-ease),
+    transform var(--pp-dur) var(--pp-ease), box-shadow var(--pp-dur) var(--pp-ease);
+}
+@media (hover: hover) {
+  .pp-support-card:hover {
+    border-color: var(--color-sage-300);
+    transform: translateY(-2px);
+    box-shadow: var(--pp-shadow-lifted);
+  }
+}
+.pp-support-pantry { background: var(--pp-feature); border-color: var(--color-sage-100); }
+.pp-support-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 15px;
+  background: var(--color-sage-50);
+  color: var(--color-sage-700);
+}
+.pp-support-icon-rose { background: var(--color-terracotta-100); color: var(--color-terracotta-500); }
+.pp-support-copy { min-width: 0; flex: 1; }
+.pp-support-copy strong { display: block; font-size: 14px; font-weight: 600; }
+.pp-support-copy small { display: block; margin-top: 3px; font-size: 12px; line-height: 1.4; color: var(--color-ink-500); }
+.pp-support-arrow { flex-shrink: 0; color: var(--color-sage-700); }
+
+/* -- V3.1 responsivo ------------------------------------------------------ */
+@media (max-width: 1024px) {
+  .pp-hero {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  /* Volta ao fluxo do DOM: texto → foto → detalhe. A comida aparece antes dos
+     botões, e não depois. */
+  .pp-hero-copy,
+  .pp-hero-media,
+  .pp-hero-detail {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .pp-hero-copy .pp-page-title { max-width: 20ch; }
+  .pp-hero-photo .pp-photo-frame { aspect-ratio: 16 / 9; }
+  .pp-support { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .pp-home { gap: 24px; }
+  .pp-hero {
+    padding: 20px;
+    border-radius: 28px;
+  }
+  .pp-hero-meal { margin-top: 20px; }
+  .pp-hero-meal-title { font-size: 27px; }
+  /* No mobile a pílula do bebê é redundante: o nome já aparece no lead e o
+     acesso ao perfil está no avatar do cabeçalho. Removê-la libera ~70 px e
+     traz o botão principal para dentro da primeira dobra. */
+  .pp-hero-baby { display: none; }
+  .pp-hero-actions { margin-top: 18px; }
+  .pp-hero-actions .pp-btn { flex: 1; min-width: 0; }
+  .pp-hero-photo .pp-photo-frame { aspect-ratio: 4 / 3; }
+  .pp-hero-photo { border-radius: 22px; }
+  .pp-hero-search-tile { min-height: 120px; font-size: 18px; }
+
+  /* Barra de indicadores: empilhada, divisores viram filetes horizontais. */
+  .pp-stat-strip { flex-direction: column; gap: 0; padding: 4px; }
+  .pp-stat { padding: 10px 14px; }
+  .pp-stat-divider { width: auto; height: 1px; margin-inline: 14px; align-self: stretch; }
+  .pp-stat-value { font-size: 23px; }
+
+  /* Ritmo da semana: rolagem horizontal com toque confortável. */
+  .pp-rhythm-days {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-inline: -20px;
+    padding: 2px 20px 6px;
+    gap: 8px;
+  }
+  .pp-rhythm-days::-webkit-scrollbar { display: none; }
+  .pp-rhythm-days li { flex: 0 0 68px; }
+  .pp-rhythm-day-count { font-size: 9.5px; }
+
+  .pp-support-card { padding: 16px; }
+}
+/* Abaixo de 360px o padding do main é 16px: o scroller não pode sangrar 20px. */
+@media (max-width: 359px) {
+  .pp-rhythm-days {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+}
+
+/* ==========================================================================
+   V3.1 — Catálogo editorial
+   A grade deixa de ser um muro de cards idênticos: o primeiro resultado abre a
+   página como uma matéria (imagem larga, título maior) e os demais formam a
+   grade. Puro CSS, sem tocar na lógica de filtros.
+   ========================================================================== */
+.pp-recipe-grid > article:first-child {
+  grid-column: 1 / -1;
+}
+.pp-recipe-grid > article:first-child .pp-photo-frame {
+  aspect-ratio: 21 / 9;
+}
+.pp-recipe-grid > article:first-child h2 {
+  font-size: clamp(21px, 2.4vw, 28px);
+  max-width: 24ch;
+}
+.pp-recipe-grid > article:first-child .pp-recipe-description {
+  max-width: 68ch;
+  font-size: 15px;
+}
+@media (max-width: 600px) {
+  .pp-recipe-grid > article:first-child .pp-photo-frame {
+    aspect-ratio: 16 / 10;
+  }
+  .pp-recipe-grid > article:first-child h2 { font-size: 20px; }
+}
+
+/* Detalhe da receita: hero com mais presença, como uma capa. */
+.pp-detail .pp-photo-hero {
+  max-height: 520px;
+}
+.pp-detail h1 {
+  font-size: clamp(30px, 4vw, 44px);
+  letter-spacing: -.034em;
+}
+.pp-detail .pp-catalog-note {
+  border-radius: 18px;
+}
+
+/* ==========================================================================
+   V3.1 — Semana e Compras
+   ========================================================================== */
+
+/* Semana: a refeição em destaque vira uma capa com foto maior; as demais
+   refeições do dia ganham miniatura e hierarquia legíveis. */
+.pp-meal-plan .pp-week-days button {
+  min-height: 84px;
+}
+.pp-meal-plan .pp-photo-feature {
+  aspect-ratio: 4 / 3;
+}
+@media (min-width: 601px) {
+  .pp-meal-plan .pp-photo-feature {
+    aspect-ratio: 5 / 4;
+  }
+}
+.pp-meal-plan #featured-meal-title {
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -.032em;
+}
+/* Cartões do "resto do dia": miniatura maior, texto com mais respiro. */
+.pp-meal-plan .pp-card.pp-interactive .pp-photo-thumb {
+  width: 4.5rem;
+  border-radius: 18px;
+}
+.pp-meal-plan .pp-card.pp-interactive {
+  padding: 14px;
+  border-radius: 22px;
+}
+
+/* Compras: cabeçalho de categoria fixo ao rolar e linha marcada com leve tom,
+   para o progresso ser perceptível sem depender só da cor do texto. */
+.pp-shopping section.pp-panel > div:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+.pp-shopping li:has(button[aria-pressed='true']) {
+  background: color-mix(in srgb, var(--color-sage-50) 55%, transparent);
+}
+.pp-shopping-progress {
+  border-radius: 26px;
+}
+.pp-shopping-progress p {
+  font-size: clamp(20px, 2.4vw, 26px);
+}
+
+/* -- Preferência por movimento reduzido ----------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .pp-recipe-card,
+  .pp-recipe-card .pp-photo-frame img,
+  .pp-hero-photo .pp-photo-frame img,
+  .pp-btn,
+  .pp-icon-btn,
+  .pp-shortcut,
+  .pp-upcoming-card,
+  .pp-support-card,
+  .pp-rhythm-day,
+  .pp-stat,
+  .pp-shopping-progress progress::-webkit-progress-value,
+  .pp-step-check,
+  .pp-meal-plan .pp-week-days button {
+    transition: none;
+  }
+  .pp-favorite-btn[aria-pressed='true'] svg,
+  .pp-shopping [aria-pressed='true'] .pp-check-mark,
+  .pp-overlay,
+  .pp-modal {
+    animation: none;
+  }
+  .pp-skeleton {
+    animation: none;
+    background: var(--pp-skeleton);
+  }
+}

@@ -381,3 +381,140 @@ caso de reenvio de itens manuais em `shoppingListItems` (unitário).
   acima). A leitura tolerante mantém o app funcionando até lá.
 - **Revisão do catálogo** por nutricionista/pediatra continua pendente
   (`docs/catalogo-revisao-profissional.md`).
+
+---
+
+# V2.4 — Jornada completa do usuário
+
+Mesma branch `feat/pratinho-ux-polish-20261009`. Percorri a jornada de ponta a
+ponta (Home → Semana → Receitas → Despensa → Compras → Perfil → PDFs) no
+ambiente de QA e corrigi os pontos de fricção comprovados. Sem redesign e sem
+produção alterada.
+
+## Melhorias implementadas
+
+### Orientação e navegação
+- **Rótulo de retorno correto na receita.** Quem abria uma receita pela despensa
+  via "Voltar para receitas" apontando para `/app/pantry`. Agora o rótulo deriva
+  do destino real: minha semana, despensa, receitas ou início
+  (`src/lib/navigation/back-link.ts`).
+- **Ação principal sem duplicação.** Com cardápio mas sem lista, a tela de
+  compras mostrava dois botões idênticos "Gerar lista de compras". A ação do
+  topo só aparece quando já existe lista ("Atualizar com o cardápio"); o estado
+  vazio concentra a ação primária.
+- **Home orienta o próximo passo.** Depois de montar a semana, o resumo mostrava
+  "0/0 lista de compras". Agora convida a "Montar lista de compras".
+
+### Consistência de contexto
+- **Dia padrão do planejador.** Abrir "Colocar na minha semana" selecionava
+  sempre a segunda-feira, mesmo sendo quarta. Agora abre no dia de hoje quando a
+  semana de contexto é a atual — como a página Semana.
+- **Horários com mais de uma refeição.** O planejador dizia "Já existe X" e
+  "Usar no lugar desta refeição" mesmo com duas opções extras. Agora descreve
+  "Já existem 2 refeições" e "Substituir as refeições do horário".
+
+### Confirmações que descrevem a consequência
+- **Repetir na próxima semana** sobrescrevia um cardápio já existente sem aviso.
+  Agora confirma quando a semana de destino já tem refeições.
+- **Refazer esta semana** apagava opções extras, trocas e a ordem ajustada sem
+  aviso. Agora confirma, como a lista de compras já fazia.
+
+### Mensagens de erro acionáveis
+- Salvar item manual caía sempre em "Confira a conexão". Agora distingue nome
+  duplicado (índice único), item livre sem suporte no schema (coluna ausente) e
+  falha real de rede (`describeItemSaveError`).
+
+### Paridade mock ↔ banco
+- O mock passou a **recusar item manual duplicado** (mesmo nome e unidade),
+  espelhando o índice parcial único `shopping_list_items_manual_unique` — antes
+  o mock aceitava o que o banco recusaria.
+
+## Testes
+
+| Suíte | Resultado |
+|---|---|
+| `npm test` | 266/266 (era 250) |
+| `npm run lint` / `npm run build` | limpos |
+| `qa:flows` (chromium) | 24/24 |
+| `qa:audit` (chromium, **9 perfis** × 10 rotas) | 90/90 (0 axe, 0 clipping) |
+| `qa:dialogs` (chromium) | 18/18 |
+| `qa:regressions` | 0 falhas |
+| `qa:pwa` (chromium) | 18/18 |
+| Integração PostgreSQL local (WSL) | 13 migrações + seed; 57 verificações, 0 falhas |
+
+O `qa:audit` passou a cobrir também **360, 430 e 1024 px** (antes 320/390/768/1440),
+fechando a matriz de viewports usada no desenvolvimento.
+
+## Validação via Browser MCP
+
+- Jornada completa percorrida (Home, Semana, Receitas, Receita, Despensa,
+  Compras, Perfil).
+- Reordenação, itens manuais, recálculo preservando manuais, favoritos e estado
+  de revisão: comportamento confirmado.
+- Restrição "vegetariano" → regerar a semana → 28 refeições, **0 com carne**.
+- Confirmações de repetir/refazer: cancelar preserva, confirmar aplica.
+- Viewports 320/360/390/430/768/1024/1440: sem overflow horizontal e sem alvos
+  de toque abaixo de 24 px (fora dos checkboxes `sr-only`, cujo alvo é o label).
+- Console: 0 erros.
+
+## Limitações
+
+- Sem stack Supabase local (Docker ausente): validação em SQL direto + shim de
+  auth no PostgreSQL local e no backend simulado do QA.
+- As 4 migrações pendentes continuam **não aplicadas** em produção.
+
+---
+
+# Consolidação V2.4 + V3 + V3.1/V3.2
+
+Integração dos PRs #2, #3 e #4 em uma **branch de integração dedicada**, com
+validação completa antes do push.
+
+## Estratégia
+
+- Branch de integração: `integration/pratinho-v3-consolidated-20261016`,
+  criada a partir de `design/maternal-ui-refresh` (`ec12791`).
+- **A branch padrão não foi mergeada.** `design/maternal-ui-refresh` é a branch
+  padrão do GitHub e a candidata a produção na Vercel; não foi possível
+  confirmar (sem status de deploy no repositório e sem workflows) se um push
+  nela dispara publicação. Por isso a consolidação ocorreu em `integration/*`,
+  que não é a branch padrão. O merge de promoção fica pendente de decisão do
+  proprietário.
+- Método: **merge commit** em cada PR, preservando a ancestralidade dos commits
+  empilhados. Antes de cada merge, a base do PR foi retargetada para a branch de
+  integração, garantindo que o diff mostrasse apenas o trabalho próprio.
+
+## Ordem e resultado
+
+| Ordem | PR | Base retargetada | Merge commit | Diff próprio |
+|---|---|---|---|---|
+| 1 | #2 (V2.4) | → `integration/*` | `3d1c537` | 16 arquivos |
+| 2 | #3 (V3) | → `integration/*` | `dc1bc96` | 10 arquivos |
+| 3 | #4 (V3.1/V3.2) | → `integration/*` | `1d509f8` | 5 arquivos |
+
+## Verificação do conteúdo
+
+- A árvore de `integration/*` é **idêntica** ao head final da V3.1 (`5f9ff5f`):
+  `git diff` vazio entre as duas.
+- Diff consolidado contra a base anterior: **25 arquivos, +1574/−233**,
+  cobrindo V2.4 (docs, `lib/navigation`, `lib/shopping-list/manual`, Semana,
+  Compras, Receitas), V3 (tokens, `v3-refresh.css`, diálogos, cards) e
+  V3.1/V3.2 (Home, Perfil, `qa/audit`).
+- Nenhum `.env` real, segredo ou credencial versionado (apenas `.env.example`
+  com placeholders).
+
+## Testes na branch consolidada
+
+| Suíte | Resultado |
+|---|---|
+| `npm test` | 266/266 |
+| `npm run lint` / `build` / `design:lint` | limpos |
+| `qa:flows` | 24/24 |
+| `qa:audit` (9 perfis × 10 rotas) | 90/90 |
+| `qa:dialogs` | 18/18 |
+| `qa:regressions` | 0 falhas |
+| `qa:pwa` | 18/18 |
+
+## Fluxo permanente
+
+Documentado em `docs/DEVELOPMENT_WORKFLOW.md` e resumido em `AGENTS.md`.

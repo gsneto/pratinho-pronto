@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom'
 import { testBaby, testPlan, testRecipe } from '../../test/fixtures'
 import { MealPlanPage } from './MealPlanPage'
-import { duplicateMealPlan, replaceMealPlanItem, swapMealPlanItemPositions } from '../../services/mealPlans'
+import { duplicateMealPlan, getMealPlan, replaceMealPlanItem, swapMealPlanItemPositions } from '../../services/mealPlans'
 
 vi.mock('../../hooks/useBaby', () => ({ useBaby: () => ({ data: testBaby }) }))
 vi.mock('../../hooks/useRecipes', () => ({ useRecipes: () => ({ data: [testRecipe, { ...testRecipe, id: 'alternative', name: 'Outra receita de teste' }], isLoading: false }) }))
@@ -14,9 +14,10 @@ vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: planOver
 vi.mock('../../hooks/useMealPlanHistory', () => ({ useMealPlanHistory: () => ({ data: [] }), mealPlanHistoryQueryKey: (id: string) => ['history', id] }))
 vi.mock('../../components/pdf/PdfExportButton', () => ({ PdfExportButton: ({ label }: { label: string }) => <button>{label}</button> }))
 vi.mock('../../services/analytics', () => ({ analytics: { track: vi.fn() } }))
-vi.mock('../../services/mealPlans', () => ({ saveMealPlan: vi.fn(), duplicateMealPlan: vi.fn(), replaceMealPlanItem: vi.fn(), swapMealPlanItemPositions: vi.fn() }))
+vi.mock('../../services/mealPlans', () => ({ saveMealPlan: vi.fn(), duplicateMealPlan: vi.fn(), getMealPlan: vi.fn(), replaceMealPlanItem: vi.fn(), swapMealPlanItemPositions: vi.fn() }))
 afterEach(() => {
   cleanup()
+  vi.clearAllMocks()
   planOverride.current = null
 })
 
@@ -42,6 +43,36 @@ it('reports an offline duplication without discarding the current week', async (
   fireEvent.click(screen.getByRole('button', { name: 'Repetir na próxima semana' }))
   expect((await screen.findByRole('alert')).textContent).toMatch(/Não conseguimos repetir/)
   expect(screen.getByRole('link', { name: 'Gerar lista de compras' }).getAttribute('href')).toContain('week=2026-09-14')
+})
+
+it('confirma antes de refazer uma semana que já existe', async () => {
+  renderWeek()
+  screen.getByText('Ajustar meu planejamento').closest('details')!.open = true
+  fireEvent.click(screen.getByRole('button', { name: 'Refazer esta semana' }))
+  expect(await screen.findByRole('dialog')).toBeTruthy()
+  expect(screen.getByText(/substitui o que já está planejado/)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Refazer a semana' }))
+  await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+it('pede confirmação antes de substituir um cardápio já existente na próxima semana', async () => {
+  vi.mocked(getMealPlan).mockResolvedValueOnce({ ...testPlan, id: 'next-plan', week_start: '2026-09-21' })
+  renderWeek()
+  screen.getByText('Ajustar meu planejamento').closest('details')!.open = true
+  fireEvent.click(screen.getByRole('button', { name: 'Repetir na próxima semana' }))
+  expect(await screen.findByRole('dialog')).toBeTruthy()
+  expect(screen.getByText(/já tem um cardápio/)).toBeTruthy()
+  expect(duplicateMealPlan).not.toHaveBeenCalled()
+})
+
+it('confirma e substitui a próxima semana quando ela já tem cardápio', async () => {
+  vi.mocked(getMealPlan).mockResolvedValueOnce({ ...testPlan, id: 'next-plan', week_start: '2026-09-21' })
+  vi.mocked(duplicateMealPlan).mockResolvedValueOnce('next-plan')
+  renderWeek()
+  screen.getByText('Ajustar meu planejamento').closest('details')!.open = true
+  fireEvent.click(screen.getByRole('button', { name: 'Repetir na próxima semana' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Substituir e repetir' }))
+  await vi.waitFor(() => expect(duplicateMealPlan).toHaveBeenCalledWith(testBaby.id, '2026-09-14', '2026-09-21'))
 })
 
 it('returns to the exact replacement trigger after a non-focusing pointer click', () => {

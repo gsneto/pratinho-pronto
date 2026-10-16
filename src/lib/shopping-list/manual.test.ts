@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Ingredient, ShoppingListItem } from '../../types/domain'
 import {
+  describeItemSaveError,
   hasManualItemErrors,
   isManualItem,
   resolveIngredient,
@@ -90,5 +91,21 @@ describe('validateManualItem', () => {
   it('limita o tamanho do nome e da unidade', () => {
     expect(validateManualItem({ name: 'x'.repeat(81), quantity: 1, unit: 'unidade' }).name).toBeTruthy()
     expect(validateManualItem({ name: 'Banana', quantity: 1, unit: 'u'.repeat(31) }).unit).toBeTruthy()
+  })
+})
+
+describe('describeItemSaveError', () => {
+  it('explica duplicidade (índice único)', () => {
+    expect(describeItemSaveError({ code: '23505' })).toMatch(/Já existe um item com esse nome e unidade/)
+  })
+
+  it('explica item livre sem suporte no schema (coluna ausente)', () => {
+    expect(describeItemSaveError({ code: '42703' })).toMatch(/item livre/)
+    expect(describeItemSaveError({ code: 'PGRST204' })).toMatch(/item livre/)
+  })
+
+  it('cai em falha de conexão para erros desconhecidos', () => {
+    expect(describeItemSaveError(new Error('network'))).toMatch(/Confira a conexão/)
+    expect(describeItemSaveError(undefined)).toMatch(/Confira a conexão/)
   })
 })

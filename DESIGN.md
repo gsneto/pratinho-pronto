@@ -3,36 +3,36 @@ version: alpha
 name: Pratinho Pronto
 description: "Companheiro botânico para organizar a rotina alimentar, com temas claro e escuro."
 colors:
-  primary: "#235b50"
+  primary: "#2e5b4b"
   on-primary: "#ffffff"
-  canvas: "#f7f8f2"
+  canvas: "#fff9f2"
   surface: "#ffffff"
-  sunken: "#f0f4ed"
+  sunken: "#f6efe4"
   feature: "#e6efe7"
-  ink: "#223a31"
-  body: "#3e5148"
-  muted: "#61716a"
-  peach: "#f8e5d7"
-  on-peach: "#785239"
-  danger-surface: "#f7e6e4"
-  danger: "#83463f"
-  border: "#e0e8df"
-  photo-action: "#e7bb8b"
-  dark-primary: "#b1dfc8"
-  dark-on-primary: "#17382f"
-  dark-canvas: "#102c2c"
-  dark-surface: "#193a37"
-  dark-sunken: "#143330"
-  dark-feature: "#20473f"
-  dark-ink: "#f1f7ee"
-  dark-body: "#d8e7dc"
-  dark-muted: "#b2c7bd"
-  dark-peach: "#45362f"
-  dark-on-peach: "#f0c5aa"
-  dark-danger-surface: "#4a3534"
-  dark-danger: "#f4c8bd"
-  dark-border: "#2e4d43"
-  dark-photo-action: "#e9c097"
+  ink: "#27342e"
+  body: "#3e4a43"
+  muted: "#5c6961"
+  peach: "#f4b69d"
+  on-peach: "#6b3b28"
+  danger-surface: "#fbe9e3"
+  danger: "#9d4a36"
+  border: "#ece5d8"
+  photo-action: "#f4b69d"
+  dark-primary: "#c0e8d1"
+  dark-on-primary: "#173631"
+  dark-canvas: "#0f2a28"
+  dark-surface: "#173631"
+  dark-sunken: "#12302c"
+  dark-feature: "#22483f"
+  dark-ink: "#f2f7ef"
+  dark-body: "#d9e8dd"
+  dark-muted: "#b4c9bf"
+  dark-peach: "#f0bd9f"
+  dark-on-peach: "#4a3330"
+  dark-danger-surface: "#4a3330"
+  dark-danger: "#f0b8ac"
+  dark-border: "#2c4c42"
+  dark-photo-action: "#f0bd9f"
   on-photo-action: "#2a2a22"
 typography:
   page-title:
@@ -192,18 +192,18 @@ com `data-theme="dark"`, sem duplicar a árvore de componentes.
 
 | Papel | Claro | Escuro | Aplicação |
 |---|---|---|---|
-| Ação | `#235b50` | `#b1dfc8` | Botão principal, filtros e dia selecionado |
-| Texto sobre ação | `#ffffff` | `#17382f` | Rótulos e ícones da ação |
-| Página | `#f7f8f2` | `#102c2c` | Fundo geral |
-| Superfície | `#ffffff` | `#193a37` | Cartões, cabeçalho e campos |
-| Superfície recuada | `#f0f4ed` | `#143330` | Agrupamentos discretos |
-| Destaque botânico | `#e6efe7` | `#20473f` | Despensa, perfil e progresso |
-| Títulos | `#223a31` | `#f1f7ee` | Ink 900 |
-| Corpo | `#3e5148` | `#d8e7dc` | Ink 700 |
-| Auxiliar | `#61716a` | `#b2c7bd` | Ink 500 sobre fundo adequado |
-| Pêssego | `#f8e5d7` | `#45362f` | Identificação da refeição |
-| Texto sobre pêssego | `#785239` | `#f0c5aa` | Rótulos de refeição |
-| Borda | `#e0e8df` | `#2e4d43` | Separação de superfícies |
+| Ação | `#2e5b4b` | `#c0e8d1` | Botão principal, filtros e dia selecionado |
+| Texto sobre ação | `#ffffff` | `#173631` | Rótulos e ícones da ação |
+| Página | `#fff9f2` | `#0f2a28` | Fundo geral (creme quente) |
+| Superfície | `#ffffff` | `#173631` | Cartões, cabeçalho e campos |
+| Superfície recuada | `#f6efe4` | `#12302c` | Agrupamentos discretos |
+| Destaque botânico | `#e6efe7` | `#22483f` | Despensa, perfil e progresso |
+| Títulos | `#27342e` | `#f2f7ef` | Ink 900 |
+| Corpo | `#3e4a43` | `#d9e8dd` | Ink 700 |
+| Auxiliar | `#5c6961` | `#b4c9bf` | Ink 500; escurecido na V3 para manter 4,5:1 sobre `sage-50` |
+| Pêssego | `#f4b69d` | `#f0bd9f` | Identificação da refeição e acentos |
+| Texto sobre pêssego | `#6b3b28` | `#4a3330` | Rótulos de refeição |
+| Borda | `#ece5d8` | `#2c4c42` | Separação de superfícies |
 
 - O **CTA principal é verde**, não laranja. `--pp-action` e
   `--pp-on-action` controlam o par nos dois temas.
@@ -254,7 +254,40 @@ texto necessário ao preparo para esconder um problema de layout.
   `env(safe-area-inset-bottom)`; nenhum CTA final pode ficar atrás dela.
 - Em 320 px, a marca reduz para 105 px para preservar os três controles.
 
-### Organização por tela
+## Organização por tela
+
+### V3.1 — "Editorial Living UI": a composição da Home mudou
+
+A Home deixou de ser uma pilha de nove blocos de largura total (título grande →
+busca → três cartões de números → dois painéis grandes). A decisão tomada:
+
+1. **Capa assimétrica.** Um único `pp-hero` em duas colunas: à esquerda o
+   contexto (semana, título, refeição de hoje com CTA); à direita a fotografia
+   da refeição ocupando a coluna inteira. Antes a foto era uma miniatura de
+   250×312 dentro de um painel; agora ocupa ~421×337 numa coluna própria. A
+   comida passa a ser o primeiro foco visual.
+2. **Resumo integrado.** Os três cartões idênticos viraram **uma barra
+   segmentada** (`pp-stat-strip`), com divisores, dentro do fluxo da capa.
+3. **Ritmo da semana.** Nova faixa de sete dias (`pp-rhythm`) que mostra, sem
+   virar grade de caixas, quais dias têm refeição e qual é hoje.
+4. **Apoio compacto.** O painel grande de despensa e os atalhos empilhados
+   viraram três cartões baixos (`pp-support`, 96 px) que não disputam o foco.
+
+No catálogo, a grade deixou de ser um muro de cards idênticos: **o primeiro
+resultado abre a página como matéria** (`grid-column: 1/-1`, imagem 21:9, título
+maior) e os demais formam a grade. O hero do detalhe da receita cresceu para
+~503 px de altura com título de 44 px.
+
+Na Semana, a refeição em destaque ganhou foto maior e as linhas do "resto do
+dia" miniaturas de 4,5 rem. Nas Compras, o cabeçalho de categoria fica fixo ao
+rolar e a linha marcada recebe leve tom — o progresso deixa de depender só do
+texto riscado.
+
+Tudo isso é composição e CSS: nenhuma rota, contrato, consulta ou regra de
+negócio foi alterada. Evidências antes/depois em
+`entregaveis/capturas/v3.1/` (pasta ignorada pelo Git).
+
+### Organização geral
 
 | Tela | Ordem e comportamento |
 |---|---|
@@ -286,11 +319,11 @@ funcional usada para validar todas as telas.
 
 ## Elevation & Depth
 
-- Cartões e painéis comuns são definidos por borda, sem sombra na camada
-  atual `.pp-card, .pp-panel`.
-- `--pp-shadow-soft` permanece disponível para componentes de base.
-- `--pp-shadow-lifted` é reservado a destaques; `--pp-shadow-modal` separa
-  diálogos do backdrop.
+- **V3:** cartões e painéis principais usam borda **e** sombra quente discreta
+  (`--pp-shadow-soft`), dando profundidade sem ruído. A camada anterior era
+  "borda apenas".
+- `--pp-shadow-lifted` é reservado a destaques e ao hover dos cards;
+  `--pp-shadow-modal` separa diálogos do backdrop.
 - Fundos escuros são verde-petróleo; sombra não substitui borda.
 
 ## Shapes
@@ -356,9 +389,20 @@ não deixar a caixa da imagem sobrepor o texto adjacente no login.
 
 A preferência usa `pratinho-pronto-theme` no armazenamento local e
 `data-theme` no HTML. Alternar e recarregar deve conservar a escolha.
-Botões usam transições de 160 ms; cards de receita, 180 ms e elevação de
-3 px no hover em dispositivos com hover. `prefers-reduced-motion` reduz
-transições/animações a 0,001 ms na base. Nenhuma ação depende de animação.
+
+**V3 — movimento (`src/v3-refresh.css`).** A escala é curta e consistente:
+`--pp-dur-fast` 120 ms, `--pp-dur` 180 ms, `--pp-dur-slow` 240 ms, com
+`--pp-ease` e `--pp-ease-spring`. Interações com feedback: botões (afundam
+1 px ao pressionar), cartões de receita (elevam 4 px e aproximam a foto no
+hover), favoritar (coração pulsa), marcar item da lista (o visto entra com
+mola), progresso (largura animada), diálogos (entrada por transform) e
+esqueletos (brilho deslizante).
+
+Regra de ouro: **nenhuma animação altera opacidade de texto**. O painel do
+diálogo é filho do backdrop; animar opacidade deixaria o texto em contraste
+parcial durante a transição — por isso a entrada do diálogo anima apenas
+`transform`. `prefers-reduced-motion` reduz transições/animações a zero e o
+esqueleto volta ao fundo sólido. Nenhuma ação depende de animação.
 
 ### PDFs
 

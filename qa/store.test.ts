@@ -69,6 +69,20 @@ it('rejects shopping items without a valid origin, mirroring the database check'
   expect(bothOrigins.status).toBe(400)
 })
 
+it('recusa item manual duplicado, espelhando o índice único do banco', () => {
+  const store = createFixtureStore()
+  const list = store.request('GET', 'shopping_lists', new URLSearchParams()).body[0]
+  const first = store.request('POST', 'shopping_list_items', new URLSearchParams(), {
+    shopping_list_id: list.id, ingredient_id: null, custom_name: 'Fraldas', quantity: 1, unit: 'pacote',
+  })
+  expect(first.status).toBe(200)
+  const duplicate = store.request('POST', 'shopping_list_items', new URLSearchParams(), {
+    shopping_list_id: list.id, ingredient_id: null, custom_name: 'fraldas', quantity: 1, unit: 'Pacote',
+  })
+  expect(duplicate.status).toBe(409)
+  expect(duplicate.body.code).toBe('23505')
+})
+
 it('swaps two meal positions atomically and refuses mismatched slots', () => {
   const store = createFixtureStore()
   const plan = store.request('GET', 'meal_plans', new URLSearchParams({ week_start: 'eq.2026-09-14' })).body[0]

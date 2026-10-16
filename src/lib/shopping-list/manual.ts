@@ -67,3 +67,21 @@ export function validateManualItem(input: ManualItemInput): ManualItemErrors {
 export function hasManualItemErrors(errors: ManualItemErrors): boolean {
   return Object.values(errors).some(Boolean)
 }
+
+/**
+ * Traduz o erro do banco ao salvar um item em uma mensagem acionável.
+ *
+ * Antes, qualquer falha virava "Confira a conexão", o que confundia três casos
+ * bem diferentes: nome duplicado (índice único), item livre sem suporte no
+ * schema (coluna ausente) e falha real de rede.
+ */
+export function describeItemSaveError(error: unknown): string {
+  const code = (error as { code?: string } | null | undefined)?.code
+  if (code === '23505') {
+    return 'Já existe um item com esse nome e unidade nesta lista. Ajuste o nome ou a unidade.'
+  }
+  if (code === '42703' || code === 'PGRST204') {
+    return 'Não foi possível salvar um item livre aqui. Escolha um nome do catálogo (a lista sugere enquanto você digita).'
+  }
+  return 'Não conseguimos salvar este item. Confira a conexão e tente novamente.'
+}

@@ -8,7 +8,7 @@ const label = process.argv[2] ?? `audit-${Date.now()}`
 const output = resolve('output/ui-qa', label)
 mkdirSync(resolve(output, 'screenshots'), { recursive: true })
 const routes = [
-  ['home', '/app', '.pp-feature-meal'],
+  ['home', '/app', '.pp-hero'],
   ['landing', '/', '.lp-offer-price'],
   ['recipes', '/app/recipes', '.pp-recipe-card'],
   ['recipe', '/app/recipes/qa-recipe-mingau-de-banana-e-aveia', '.pp-detail'],
@@ -19,10 +19,14 @@ const routes = [
   ['login', '/login', '#email'],
   ['onboarding', '/onboarding', '#baby-name'],
 ]
+// Cobre os viewports usados no desenvolvimento mobile-first: 320, 360, 390,
+// 430 (celulares), 768/1024 (tablet e limiar do layout lateral) e 1440.
 const profiles = [
   ['desktop-light', 1440, 1000, 'light'], ['desktop-dark', 1440, 1000, 'dark'],
   ['mobile-light', 390, 844, 'light'], ['mobile-dark', 390, 844, 'dark'],
-  ['narrow-light', 320, 740, 'light'], ['tablet-dark', 768, 1024, 'dark'],
+  ['narrow-light', 320, 740, 'light'], ['compact-light', 360, 800, 'light'],
+  ['wide-mobile-dark', 430, 900, 'dark'], ['tablet-dark', 768, 1024, 'dark'],
+  ['tablet-light', 1024, 900, 'light'],
 ].filter(([name]) => !process.env.QA_PROFILE || name === process.env.QA_PROFILE)
 const selectedRoutes = routes.filter(([name]) => !process.env.QA_PAGE || name === process.env.QA_PAGE)
 const browserName = process.env.QA_BROWSER ?? 'chromium'
