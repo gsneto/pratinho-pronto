@@ -68,6 +68,12 @@ export interface Recipe {
   image_url: string | null
   is_active: boolean
   is_demo: boolean
+  /**
+   * Status de revisão profissional do conteúdo editorial. Opcional: a coluna
+   * pode não existir no schema atual (migração pendente) e o catálogo funciona
+   * sem ela. Nunca é usada como prova de validação clínica.
+   */
+  content_review_status?: string | null
   recipe_ingredients: RecipeIngredient[]
   recipe_allergens: RecipeAllergen[]
 }
@@ -103,11 +109,17 @@ export interface GeneratedMealPlanItem {
 export interface ShoppingListItem {
   id: string
   shopping_list_id: string
-  ingredient_id: string
+  /**
+   * Ingrediente do catálogo. Nulo em itens livres ("adicionar item pelo nome"
+   * sem correspondência no catálogo), que usam `custom_name`.
+   */
+  ingredient_id: string | null
+  /** Rótulo de um item livre. Nulo em itens derivados do catálogo/cardápio. */
+  custom_name: string | null
   quantity: number
   unit: string
   checked: boolean
-  ingredient: Ingredient
+  ingredient: Ingredient | null
 }
 
 export interface ShoppingList {

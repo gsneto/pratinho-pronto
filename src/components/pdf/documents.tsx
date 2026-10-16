@@ -8,6 +8,7 @@ import {
 import type { Baby, IngredientCategory, MealPlan, Recipe, ShoppingList } from '../../types/domain'
 import { addDays, calculateAgeMonths, formatShortDate, parseIsoDate } from '../../utils/dates'
 import { mealCellItems } from '../../lib/meal-plan/week-print'
+import { shoppingItemCategory, shoppingItemLabel } from '../../lib/shopping-list/manual'
 import { splitInstructions } from '../../utils/instructions'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 import {
@@ -261,7 +262,7 @@ export function ShoppingListDocument({
   weekStart?: string
 }) {
   const groups = shoppingList.shopping_list_items.reduce((result, item) => {
-    const category = item.ingredient.category
+    const category = shoppingItemCategory(item)
     result.set(category, [...(result.get(category) ?? []), item])
     return result
   }, new Map<IngredientCategory, typeof shoppingList.shopping_list_items>())
@@ -291,7 +292,7 @@ export function ShoppingListDocument({
           const renderRow = (item: (typeof items)[number]) => (
             <View key={item.id} style={styles.shoppingRow} wrap={false}>
               <View style={styles.checkbox} />
-              <Text style={styles.shoppingName}>{item.ingredient.name}</Text>
+              <Text style={styles.shoppingName}>{shoppingItemLabel(item)}</Text>
               <Text style={styles.quantity}>
                 {formatQuantityWithUnit(item.quantity, item.unit)}
               </Text>

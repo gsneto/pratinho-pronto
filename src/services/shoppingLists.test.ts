@@ -51,9 +51,13 @@ function queueTables(byTable: Record<string, ReturnType<typeof makeQueryBuilder>
 }
 
 const {
+  addShoppingListItem,
   appendShoppingListItems,
   generateShoppingList,
+  getShoppingList,
+  removeShoppingListItem,
   setShoppingItemChecked,
+  updateShoppingListItem,
 } = await import('./shoppingLists')
 
 beforeEach(() => {
@@ -245,5 +249,178 @@ describe('appendShoppingListItems', () => {
     await expect(
       appendShoppingListItems('plan-1', [{ ingredient_id: 'ing-1', quantity: 1, unit: 'un' }]),
     ).rejects.toThrow('boom')
+  })
+})
+
+describe('getShoppingList', () => {
+  it('lê o formato com item livre quando a coluna opcional existe', async () => {
+    const query = makeQueryBuilder({
+      data: { id: 'list-1', shopping_list_items: [] },
+      error: null,
+    })
+    queueTables({ shopping_lists: [query] })
+
+    const list = await getShoppingList('plan-1')
+
+    expect(list?.id).toBe('list-1')
+    expect(supabaseMock.from).toHaveBeenCalledTimes(1)
+  })
+
+  it('cai para o formato base quando a coluna opcional não existe', async () => {
+    const manual = makeQueryBuilder({ data: null, error: new Error('column does not exist') })
+    const base = makeQueryBuilder({
+      data: {
+        id: 'list-1',
+        shopping_list_items: [
+          { id: 'i1', ingredient_id: 'ing-1', quantity: 1, unit: 'un', checked: false, ingredient: null },
+        ],
+      },
+      error: null,
+    })
+    queueTables({ shopping_lists: [manual, base] })
+
+    const list = await getShoppingList('plan-1')
+
+    expect(supabaseMock.from).toHaveBeenCalledTimes(2)
+    expect(list?.shopping_list_items[0]?.custom_name).toBeNull()
+  })
+})
+
+describe('addShoppingListItem', () => {
+  it('insere um ingrediente do catálogo quando não existe na lista', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({ data: [], error: null })
+    const insert = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_lists: [listUpsert], shopping_list_items: [readItems, insert] })
+
+    const listId = await addShoppingListItem('plan-1', {
+      ingredientId: 'ing-1',
+      name: 'Banana',
+      quantity: 2,
+      unit: 'unidade',
+    })
+
+    expect(listId).toBe('list-1')
+    expect(insert.insert).toHaveBeenCalledWith({
+      shopping_list_id: 'list-1',
+      ingredient_id: 'ing-1',
+      custom_name: null,
+      quantity: 2,
+      unit: 'unidade',
+      checked: false,
+    })
+  })
+
+  it('soma a quantidade quando o mesmo ingrediente e unidade já existem', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({
+      data: [{ id: 'i1', ingredient_id: 'ing-1', custom_name: null, quantity: 3, unit: 'unidade' }],
+      error: null,
+    })
+    const update = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_lists: [listUpsert], shopping_list_items: [readItems, update] })
+
+    await addShoppingListItem('plan-1', {
+      ingredientId: 'ing-1',
+      name: 'Banana',
+      quantity: 2,
+      unit: 'unidade',
+    })
+
+    expect(update.update).toHaveBeenCalledWith({ quantity: 5 })
+    expect(update.eq).toHaveBeenCalledWith('id', 'i1')
+  })
+
+  it('grava um item livre com o rótulo escrito', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({ data: [], error: null })
+    const insert = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_lists: [listUpsert], shopping_list_items: [readItems, insert] })
+
+    await addShoppingListItem('plan-1', {
+      ingredientId: null,
+      name: 'Fraldas',
+      quantity: 1,
+      unit: 'unidade',
+    })
+
+    expect(insert.insert).toHaveBeenCalledWith({
+      shopping_list_id: 'list-1',
+      ingredient_id: null,
+      custom_name: 'Fraldas',
+      quantity: 1,
+      unit: 'unidade',
+      checked: false,
+    })
+  })
+
+  it('soma itens livres quando o nome e a unidade coincidem', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({
+      data: [{ id: 'i1', ingredient_id: null, custom_name: 'papel toalha', quantity: 1, unit: 'unidade' }],
+      error: null,
+    })
+    const update = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_lists: [listUpsert], shopping_list_items: [readItems, update] })
+
+    await addShoppingListItem('plan-1', {
+      ingredientId: null,
+      name: 'Papel Toalha',
+      quantity: 2,
+      unit: 'Unidade',
+    })
+
+    expect(update.update).toHaveBeenCalledWith({ quantity: 3 })
+  })
+
+  it('propaga erro ao salvar (item livre sem suporte no schema)', async () => {
+    const listUpsert = makeQueryBuilder({ data: { id: 'list-1' }, error: null })
+    const readItems = makeQueryBuilder({ data: [], error: null })
+    const insert = makeQueryBuilder({ data: null, error: new Error('null value in column') })
+    queueTables({ shopping_lists: [listUpsert], shopping_list_items: [readItems, insert] })
+
+    await expect(
+      addShoppingListItem('plan-1', { ingredientId: null, name: 'Fraldas', quantity: 1, unit: 'un' }),
+    ).rejects.toThrow('null value in column')
+  })
+})
+
+describe('updateShoppingListItem', () => {
+  it('atualiza quantidade e unidade', async () => {
+    const update = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_list_items: [update] })
+
+    await updateShoppingListItem('item-1', { quantity: 4, unit: 'g' })
+
+    expect(update.update).toHaveBeenCalledWith({ quantity: 4, unit: 'g' })
+    expect(update.eq).toHaveBeenCalledWith('id', 'item-1')
+  })
+
+  it('reescreve o rótulo de um item livre', async () => {
+    const update = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_list_items: [update] })
+
+    await updateShoppingListItem('item-1', { quantity: 1, unit: 'un', name: 'Guardanapos' })
+
+    expect(update.update).toHaveBeenCalledWith({ quantity: 1, unit: 'un', custom_name: 'Guardanapos' })
+  })
+
+  it('propaga erro do banco', async () => {
+    const update = makeQueryBuilder({ data: null, error: new Error('nope') })
+    queueTables({ shopping_list_items: [update] })
+
+    await expect(updateShoppingListItem('item-1', { quantity: 1, unit: 'un' })).rejects.toThrow('nope')
+  })
+})
+
+describe('removeShoppingListItem', () => {
+  it('remove pelo id do item', async () => {
+    const remove = makeQueryBuilder({ data: null, error: null })
+    queueTables({ shopping_list_items: [remove] })
+
+    await removeShoppingListItem('item-1')
+
+    expect(remove.delete).toHaveBeenCalled()
+    expect(remove.eq).toHaveBeenCalledWith('id', 'item-1')
   })
 })

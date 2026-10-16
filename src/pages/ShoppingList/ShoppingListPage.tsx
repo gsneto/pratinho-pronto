@@ -1,26 +1,43 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, ListChecks, ShoppingCart } from 'lucide-react'
+import { Check, ListChecks, Pencil, Plus, ShoppingCart } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
+import {
+  ShoppingItemDialog,
+  type ShoppingItemSubmit,
+} from '../../components/shopping-list/ShoppingItemDialog'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
 import { useMealPlan } from '../../hooks/useMealPlan'
+import { useIngredients } from '../../hooks/useRecipes'
 import { shoppingListQueryKey, useShoppingList } from '../../hooks/useShoppingList'
 import { analytics } from '../../services/analytics'
 import {
+  addShoppingListItem,
   generateShoppingList,
+  removeShoppingListItem,
   setShoppingItemChecked,
+  updateShoppingListItem,
+  type ShoppingListItemPatch,
 } from '../../services/shoppingLists'
+import {
+  isManualItem,
+  shoppingItemCategory,
+  shoppingItemLabel,
+} from '../../lib/shopping-list/manual'
 import type { IngredientCategory, ShoppingListItem } from '../../types/domain'
 import { addDays, formatShortDate, getWeekStart, normalizeWeekStart } from '../../utils/dates'
 import { compareIngredientCategories, ingredientCategoryLabels } from '../../utils/labels'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 
+type ItemDialogState = { mode: 'add' } | { mode: 'edit'; item: ShoppingListItem }
+
 export function ShoppingListPage() {
   const queryClient = useQueryClient()
   const { data: baby } = useBaby()
+  const { data: ingredients = [] } = useIngredients()
   const [searchParams] = useSearchParams()
   const weekStart = normalizeWeekStart(searchParams.get('week'))
   const weekRangeLabel = `${formatShortDate(weekStart)} a ${formatShortDate(addDays(weekStart, 6))}`
@@ -36,15 +53,19 @@ export function ShoppingListPage() {
   const [generationError, setGenerationError] = useState<string | null>(null)
   const [itemError, setItemError] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [itemDialog, setItemDialog] = useState<ItemDialogState | null>(null)
+  const [isSavingItem, setIsSavingItem] = useState(false)
+  const [itemDialogError, setItemDialogError] = useState<string | null>(null)
   const confirmTriggerRef = useRef<HTMLButtonElement>(null)
+  const itemDialogTriggerRef = useRef<HTMLButtonElement>(null)
 
   const groupedItems = useMemo(() => {
     const groups = new Map<IngredientCategory, ShoppingListItem[]>()
     shoppingList?.shopping_list_items
       .slice()
-      .sort((a, b) => a.ingredient.name.localeCompare(b.ingredient.name, 'pt-BR'))
+      .sort((a, b) => shoppingItemLabel(a).localeCompare(shoppingItemLabel(b), 'pt-BR'))
       .forEach((item) => {
-        const category = item.ingredient.category
+        const category = shoppingItemCategory(item)
         groups.set(category, [...(groups.get(category) ?? []), item])
       })
     return [...groups.entries()].sort(([a], [b]) => compareIngredientCategories(a, b))
@@ -118,6 +139,60 @@ export function ShoppingListPage() {
     }
   }
 
+  function closeItemDialog() {
+    setItemDialog(null)
+    setItemDialogError(null)
+  }
+
+  async function handleSubmitItem(values: ShoppingItemSubmit) {
+    if (!plan) return
+    setIsSavingItem(true)
+    setItemDialogError(null)
+    try {
+      if (itemDialog?.mode === 'edit') {
+        const patch: ShoppingListItemPatch = {
+          quantity: values.quantity,
+          unit: values.unit,
+        }
+        if (isManualItem(itemDialog.item)) patch.name = values.name
+        await updateShoppingListItem(itemDialog.item.id, patch)
+      } else {
+        await addShoppingListItem(plan.id, {
+          ingredientId: values.ingredientId,
+          name: values.name,
+          quantity: values.quantity,
+          unit: values.unit,
+        })
+        analytics.track('shopping_list_generated', { meal_plan_id: plan.id, source: 'manual_item' })
+      }
+      await queryClient.invalidateQueries({ queryKey: shoppingListQueryKey(plan.id) })
+      closeItemDialog()
+    } catch {
+      setItemDialogError(
+        values.ingredientId === null
+          ? 'Não conseguimos salvar este item livre. Escolha um nome do catálogo (a lista sugere enquanto você digita) ou tente novamente.'
+          : 'Não conseguimos salvar este item. Confira a conexão e tente novamente.',
+      )
+    } finally {
+      setIsSavingItem(false)
+    }
+  }
+
+  async function handleRemoveItem() {
+    if (!plan || itemDialog?.mode !== 'edit') return
+    setIsSavingItem(true)
+    setItemDialogError(null)
+    try {
+      await removeShoppingListItem(itemDialog.item.id)
+      await queryClient.invalidateQueries({ queryKey: shoppingListQueryKey(plan.id) })
+      closeItemDialog()
+    } catch {
+      setItemDialogError('Não conseguimos remover este item. Confira a conexão e tente novamente.')
+    } finally {
+      setIsSavingItem(false)
+    }
+  }
+
   if (!plan) {
     return (
       <div className="mx-auto max-w-3xl">
@@ -173,22 +248,35 @@ export function ShoppingListPage() {
             </Link>
           )}
         </div>
-        <button
-          className={`pp-btn w-full sm:w-auto ${shoppingList ? 'pp-btn-secondary' : 'pp-btn-primary'}`}
-          disabled={isGenerating}
-          onClick={(event) => {
-            if (shoppingList) {
-              confirmTriggerRef.current = event.currentTarget
-              setShowConfirm(true)
-            } else {
-              void handleGenerate()
-            }
-          }}
-          type="button"
-        >
-          <ShoppingCart aria-hidden="true" size={18} />
-          {isGenerating ? 'Gerando…' : shoppingList ? 'Atualizar com o cardápio' : 'Gerar lista de compras'}
-        </button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button
+            className="pp-btn pp-btn-secondary w-full sm:w-auto"
+            onClick={(event) => {
+              itemDialogTriggerRef.current = event.currentTarget
+              setItemDialog({ mode: 'add' })
+            }}
+            type="button"
+          >
+            <Plus aria-hidden="true" size={18} />
+            Adicionar item
+          </button>
+          <button
+            className={`pp-btn w-full sm:w-auto ${shoppingList ? 'pp-btn-secondary' : 'pp-btn-primary'}`}
+            disabled={isGenerating}
+            onClick={(event) => {
+              if (shoppingList) {
+                confirmTriggerRef.current = event.currentTarget
+                setShowConfirm(true)
+              } else {
+                void handleGenerate()
+              }
+            }}
+            type="button"
+          >
+            <ShoppingCart aria-hidden="true" size={18} />
+            {isGenerating ? 'Gerando…' : shoppingList ? 'Atualizar com o cardápio' : 'Gerar lista de compras'}
+          </button>
+        </div>
       </header>
 
       {itemError && <p className="pp-feedback-error" role="alert">{itemError}</p>}
@@ -244,10 +332,10 @@ export function ShoppingListPage() {
               </div>
               <ul className="divide-y divide-cream-100">
                 {items.map((item) => (
-                  <li key={item.id}>
+                  <li className="flex items-stretch" key={item.id}>
                     <button
                       aria-pressed={item.checked}
-                      className="flex min-h-16 w-full items-center gap-3 px-5 text-left transition-colors hover:bg-cream-50 disabled:opacity-60"
+                      className="flex min-h-16 flex-1 items-center gap-3 px-5 text-left transition-colors hover:bg-cream-50 disabled:opacity-60"
                       disabled={changingItemId === item.id}
                       onClick={() => toggleItem(item)}
                       type="button"
@@ -262,19 +350,37 @@ export function ShoppingListPage() {
                       >
                         {item.checked && <Check size={16} strokeWidth={2.6} />}
                       </span>
-                      <span
-                        className={`flex-1 text-[15px] ${
-                          item.checked
-                            ? 'text-ink-500 line-through'
-                            : 'font-medium text-ink-700'
-                        }`}
-                      >
-                        {item.ingredient.name}
+                      <span className="min-w-0 flex-1">
+                        <span
+                          className={`block text-[15px] break-words ${
+                            item.checked
+                              ? 'text-ink-500 line-through'
+                              : 'font-medium text-ink-700'
+                          }`}
+                        >
+                          {shoppingItemLabel(item)}
+                        </span>
+                        {isManualItem(item) && (
+                          <span className="mt-0.5 block text-[11px] text-ink-500">Item livre</span>
+                        )}
                       </span>
                       <span className="shrink-0 text-xs tabular-nums text-ink-500">
                         {formatQuantityWithUnit(item.quantity, item.unit)}
                       </span>
                     </button>
+                    <div className="flex items-center pr-2">
+                      <button
+                        aria-label={`Editar ${shoppingItemLabel(item)}`}
+                        className="pp-icon-btn size-11"
+                        onClick={(event) => {
+                          itemDialogTriggerRef.current = event.currentTarget
+                          setItemDialog({ mode: 'edit', item })
+                        }}
+                        type="button"
+                      >
+                        <Pencil aria-hidden="true" size={16} />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -305,7 +411,7 @@ export function ShoppingListPage() {
           description="A lista será recalculada a partir das refeições do cardápio desta semana."
           details={[
             'As quantidades são recalculadas conforme o cardápio atual.',
-            'Itens adicionados manualmente (pela despensa) saem da lista.',
+            'Itens adicionados manualmente (pela despensa ou por aqui) saem da lista.',
             'As marcações de "comprado" são zeradas.',
           ]}
           isConfirming={isGenerating}
@@ -316,6 +422,20 @@ export function ShoppingListPage() {
           }}
           returnFocusRef={confirmTriggerRef}
           title="Atualizar a lista de compras?"
+        />
+      )}
+
+      {itemDialog && (
+        <ShoppingItemDialog
+          error={itemDialogError}
+          ingredients={ingredients}
+          isSaving={isSavingItem}
+          item={itemDialog.mode === 'edit' ? itemDialog.item : undefined}
+          mode={itemDialog.mode}
+          onClose={closeItemDialog}
+          onRemove={itemDialog.mode === 'edit' ? handleRemoveItem : undefined}
+          onSubmit={handleSubmitItem}
+          returnFocusRef={itemDialogTriggerRef}
         />
       )}
     </div>
