@@ -254,7 +254,40 @@ texto necessário ao preparo para esconder um problema de layout.
   `env(safe-area-inset-bottom)`; nenhum CTA final pode ficar atrás dela.
 - Em 320 px, a marca reduz para 105 px para preservar os três controles.
 
-### Organização por tela
+## Organização por tela
+
+### V3.1 — "Editorial Living UI": a composição da Home mudou
+
+A Home deixou de ser uma pilha de nove blocos de largura total (título grande →
+busca → três cartões de números → dois painéis grandes). A decisão tomada:
+
+1. **Capa assimétrica.** Um único `pp-hero` em duas colunas: à esquerda o
+   contexto (semana, título, refeição de hoje com CTA); à direita a fotografia
+   da refeição ocupando a coluna inteira. Antes a foto era uma miniatura de
+   250×312 dentro de um painel; agora ocupa ~421×337 numa coluna própria. A
+   comida passa a ser o primeiro foco visual.
+2. **Resumo integrado.** Os três cartões idênticos viraram **uma barra
+   segmentada** (`pp-stat-strip`), com divisores, dentro do fluxo da capa.
+3. **Ritmo da semana.** Nova faixa de sete dias (`pp-rhythm`) que mostra, sem
+   virar grade de caixas, quais dias têm refeição e qual é hoje.
+4. **Apoio compacto.** O painel grande de despensa e os atalhos empilhados
+   viraram três cartões baixos (`pp-support`, 96 px) que não disputam o foco.
+
+No catálogo, a grade deixou de ser um muro de cards idênticos: **o primeiro
+resultado abre a página como matéria** (`grid-column: 1/-1`, imagem 21:9, título
+maior) e os demais formam a grade. O hero do detalhe da receita cresceu para
+~503 px de altura com título de 44 px.
+
+Na Semana, a refeição em destaque ganhou foto maior e as linhas do "resto do
+dia" miniaturas de 4,5 rem. Nas Compras, o cabeçalho de categoria fica fixo ao
+rolar e a linha marcada recebe leve tom — o progresso deixa de depender só do
+texto riscado.
+
+Tudo isso é composição e CSS: nenhuma rota, contrato, consulta ou regra de
+negócio foi alterada. Evidências antes/depois em
+`entregaveis/capturas/v3.1/` (pasta ignorada pelo Git).
+
+### Organização geral
 
 | Tela | Ordem e comportamento |
 |---|---|

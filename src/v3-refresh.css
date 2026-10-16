@@ -669,6 +669,55 @@
   border-radius: 18px;
 }
 
+/* ==========================================================================
+   V3.1 — Semana e Compras
+   ========================================================================== */
+
+/* Semana: a refeição em destaque vira uma capa com foto maior; as demais
+   refeições do dia ganham miniatura e hierarquia legíveis. */
+.pp-meal-plan .pp-week-days button {
+  min-height: 84px;
+}
+.pp-meal-plan .pp-photo-feature {
+  aspect-ratio: 4 / 3;
+}
+@media (min-width: 601px) {
+  .pp-meal-plan .pp-photo-feature {
+    aspect-ratio: 5 / 4;
+  }
+}
+.pp-meal-plan #featured-meal-title {
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -.032em;
+}
+/* Cartões do "resto do dia": miniatura maior, texto com mais respiro. */
+.pp-meal-plan .pp-card.pp-interactive .pp-photo-thumb {
+  width: 4.5rem;
+  border-radius: 18px;
+}
+.pp-meal-plan .pp-card.pp-interactive {
+  padding: 14px;
+  border-radius: 22px;
+}
+
+/* Compras: cabeçalho de categoria fixo ao rolar e linha marcada com leve tom,
+   para o progresso ser perceptível sem depender só da cor do texto. */
+.pp-shopping section.pp-panel > div:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+.pp-shopping li:has(button[aria-pressed='true']) {
+  background: color-mix(in srgb, var(--color-sage-50) 55%, transparent);
+}
+.pp-shopping-progress {
+  border-radius: 26px;
+}
+.pp-shopping-progress p {
+  font-size: clamp(20px, 2.4vw, 26px);
+}
+
 /* -- Preferência por movimento reduzido ----------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .pp-recipe-card,
