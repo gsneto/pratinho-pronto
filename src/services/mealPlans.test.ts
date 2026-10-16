@@ -7,7 +7,7 @@ vi.mock('./supabase/auth-user', () => ({
   getAuthenticatedUserId: vi.fn(async () => 'user-1'),
 }))
 
-const supabaseMock = vi.hoisted(() => ({ from: vi.fn() }))
+const supabaseMock = vi.hoisted(() => ({ from: vi.fn(), rpc: vi.fn() }))
 
 vi.mock('./supabase/client', () => ({
   getSupabaseClient: () => supabaseMock,
@@ -74,6 +74,7 @@ const {
 
 beforeEach(() => {
   supabaseMock.from.mockReset()
+  supabaseMock.rpc.mockReset()
 })
 
 const sampleItems: GeneratedMealPlanItem[] = [
@@ -347,28 +348,22 @@ describe('swapMealPlanItemPositions', () => {
   const first = { id: 'item-a', position: 0 } as MealPlanItem
   const second = { id: 'item-b', position: 1 } as MealPlanItem
 
-  it('troca as posições passando por uma posição livre temporária', async () => {
-    const step1 = makeQueryBuilder({ data: null, error: null })
-    const step2 = makeQueryBuilder({ data: null, error: null })
-    const step3 = makeQueryBuilder({ data: null, error: null })
-    queueTables({ meal_plan_items: [step1, step2, step3] })
+  it('troca as posições por RPC atômica no banco', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: null })
 
     await swapMealPlanItemPositions(first, second)
 
-    expect(step1.update).toHaveBeenCalledWith({ position: 2 })
-    expect(step1.eq).toHaveBeenCalledWith('id', 'item-a')
-    expect(step2.update).toHaveBeenCalledWith({ position: 0 })
-    expect(step2.eq).toHaveBeenCalledWith('id', 'item-b')
-    expect(step3.update).toHaveBeenCalledWith({ position: 1 })
-    expect(step3.eq).toHaveBeenCalledWith('id', 'item-a')
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('swap_meal_plan_item_positions', {
+      p_first: 'item-a',
+      p_second: 'item-b',
+    })
+    // A troca é resolvida no banco; nenhum update é feito pelo cliente.
+    expect(supabaseMock.from).not.toHaveBeenCalled()
   })
 
-  it('propaga erro no meio da troca', async () => {
-    const step1 = makeQueryBuilder({ data: null, error: null })
-    const step2 = makeQueryBuilder({ data: null, error: new Error('unique violation') })
-    queueTables({ meal_plan_items: [step1, step2] })
+  it('propaga erro da RPC', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: new Error('items_not_in_same_slot') })
 
-    await expect(swapMealPlanItemPositions(first, second)).rejects.toThrow('unique violation')
-    expect(supabaseMock.from).toHaveBeenCalledTimes(2)
+    await expect(swapMealPlanItemPositions(first, second)).rejects.toThrow('items_not_in_same_slot')
   })
 })

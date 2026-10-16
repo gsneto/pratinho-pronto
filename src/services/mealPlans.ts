@@ -82,33 +82,23 @@ export async function replaceMealPlanItem(
 
 /**
  * Troca a `position` de duas refeições do mesmo dia/tipo, preservando a
- * identidade de cada uma (só a posição muda). Passa por uma posição livre
- * temporária para não colidir com o índice único
- * (meal_plan_id, date, meal_type, position) durante a troca.
+ * identidade de cada uma (só a posição muda).
+ *
+ * Feito por RPC no banco para ser atômico e livre de colisão: com três ou mais
+ * refeições do mesmo tipo, uma posição temporária calculada no cliente podia
+ * coincidir com a de outra refeição (índice único), e uma falha no meio dos
+ * updates deixava a ordem inconsistente. A função resolve os dois casos.
  */
 export async function swapMealPlanItemPositions(
   first: MealPlanItem,
   second: MealPlanItem,
 ): Promise<void> {
   await getAuthenticatedUserId()
-  const client = getSupabaseClient()
-  const temporary = Math.max(first.position, second.position) + 1
-
-  // Sequência de updates aplicada passo a passo (lazy): assim uma falha no meio
-  // interrompe a troca sem disparar chamadas extras.
-  const updates = [
-    { id: first.id, position: temporary },
-    { id: second.id, position: first.position },
-    { id: first.id, position: second.position },
-  ]
-
-  for (const update of updates) {
-    const { error } = await client
-      .from('meal_plan_items')
-      .update({ position: update.position })
-      .eq('id', update.id)
-    if (error) throw error
-  }
+  const { error } = await getSupabaseClient().rpc('swap_meal_plan_item_positions', {
+    p_first: first.id,
+    p_second: second.id,
+  })
+  if (error) throw error
 }
 
 export async function listMealPlanHistory(babyId: string): Promise<Array<{ id: string; week_start: string; created_at: string }>> {
