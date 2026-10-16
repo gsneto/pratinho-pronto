@@ -23,7 +23,6 @@
   --color-beet: #9d4a36;
   --color-pumpkin: #f4b69d;
   --color-pumpkin-deep: #8a5334;
-  --color-coral: #e98d76;
   /* Tinta: hierarquia de texto. `ink-500` escurecido para manter 4,5:1 sobre
      `sage-50` (usado em notas de catálogo e listas). */
   --color-ink-500: #5c6961;
@@ -83,7 +82,6 @@
   --color-beet: #f0b8ac;
   --color-pumpkin: #f0bd9f;
   --color-pumpkin-deep: #f2c7a2;
-  --color-coral: #f2a48c;
   --color-ink-500: #b4c9bf;
   --color-ink-700: #d9e8dd;
   --color-ink-900: #f2f7ef;
