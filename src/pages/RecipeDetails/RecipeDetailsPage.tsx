@@ -27,13 +27,14 @@ import { mealPlanHistoryQueryKey } from '../../hooks/useMealPlanHistory'
 import { useRecipe, useRecipeReviewStatuses } from '../../hooks/useRecipes'
 import { addRecipeToMealPlan } from '../../services/mealPlans'
 import type { MealType } from '../../types/domain'
-import { addDays, formatShortDate, normalizeWeekStart } from '../../utils/dates'
+import { addDays, formatShortDate, normalizeWeekStart, toIsoDate } from '../../utils/dates'
 import { mealTypeLabels, weekDayLabels } from '../../utils/labels'
 import { publicRecipeText } from '../../utils/text'
 import { splitInstructions } from '../../utils/instructions'
 import { formatQuantityWithUnit } from '../../utils/quantity'
 import { shouldShowDemoBadge } from '../../lib/recipes/content-status'
 import { reviewStatusDetail, reviewStatusLabel } from '../../lib/recipes/review'
+import { recipeBackLinkLabel } from '../../lib/navigation/back-link'
 import { parseDietaryRestrictions, recipeViolatesDiet } from '../../lib/diet/classification'
 
 export function RecipeDetailsPage() {
@@ -60,13 +61,18 @@ export function RecipeDetailsPage() {
       ? new URLSearchParams(returnTo.split('?')[1] ?? '').get('week')
       : null,
   )
+  const todayIso = toIsoDate(new Date())
   const { data: plan } = useMealPlan(baby?.id, contextWeekStart)
   const [showPlanner, setShowPlanner] = useState(false)
   // O dia escolhido acompanha a semana de contexto sem precisar de efeito:
-  // se a semana muda, a seleção anterior deixa de valer.
+  // se a semana muda, a seleção anterior deixa de valer. Quando a semana de
+  // contexto contém hoje, o dia padrão é hoje — como na página Semana — para
+  // não exigir que a mãe troque o dia manualmente ao planejar a refeição de hoje.
   const [dateSelection, setDateSelection] = useState<{ date: string; week: string } | null>(null)
+  const plannerWeekDates = weekDayLabels.map((_, index) => addDays(contextWeekStart, index))
+  const plannerDefaultDate = plannerWeekDates.includes(todayIso) ? todayIso : contextWeekStart
   const selectedDate =
-    dateSelection && dateSelection.week === contextWeekStart ? dateSelection.date : contextWeekStart
+    dateSelection && dateSelection.week === contextWeekStart ? dateSelection.date : plannerDefaultDate
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [savedMessage, setSavedMessage] = useState<string | null>(null)
@@ -90,7 +96,7 @@ export function RecipeDetailsPage() {
       <PageState
         action={
           <Link className="pp-btn pp-btn-primary" to={returnTo}>
-            {returnTo.startsWith('/app/week') ? 'Voltar para minha semana' : 'Voltar para receitas'}
+            {recipeBackLinkLabel(returnTo)}
           </Link>
         }
         description="Esta receita pode ter saído do catálogo. Você pode voltar e escolher outra."
@@ -170,7 +176,7 @@ export function RecipeDetailsPage() {
     <div className="pp-detail mx-auto max-w-4xl">
       <Link className="pp-link inline-flex items-center gap-2 text-sm" to={returnTo}>
         <ArrowLeft aria-hidden="true" size={18} />
-        {returnTo.startsWith('/app/week') ? 'Voltar para minha semana' : 'Voltar para receitas'}
+        {recipeBackLinkLabel(returnTo)}
       </Link>
 
       <article className="pp-panel pp-lifted mt-5 overflow-hidden">

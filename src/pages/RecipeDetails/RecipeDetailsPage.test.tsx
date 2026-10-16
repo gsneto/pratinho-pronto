@@ -13,7 +13,10 @@ vi.mock('../../hooks/useRecipes', () => ({ useRecipe: () => ({ data: testRecipe,
 vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: null }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
 vi.mock('../../hooks/useFavorites', () => ({ useFavoriteRecipe: () => ({ isFavorite: false, isSaving: false, toggle: vi.fn() }) }))
 vi.mock('../../services/mealPlans', () => ({ addRecipeToMealPlan: vi.fn() }))
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 beforeEach(() => vi.clearAllMocks())
 
 function renderRecipe() {
@@ -86,4 +89,38 @@ it('traps keyboard focus in the planner and restores the trigger after closing',
   await user.keyboard('{Escape}')
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(document.activeElement).toBe(trigger)
+})
+
+it('rotula o retorno conforme a origem da receita', () => {
+  render(
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <MemoryRouter initialEntries={[{ pathname: '/app/recipes/test-recipe', state: { returnTo: '/app/pantry' } }]}>
+        <Routes><Route path="/app/recipes/:recipeId" element={<RecipeDetailsPage />} /></Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+  const back = screen.getByRole('link', { name: 'Voltar para a despensa' })
+  expect(back.getAttribute('href')).toBe('/app/pantry')
+})
+
+it('abre o planejador no dia de hoje quando a semana de contexto é a atual', () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(2026, 8, 16, 12, 0, 0))
+  renderRecipe()
+  fireEvent.click(screen.getByRole('button', { name: 'Colocar na minha semana' }))
+  expect((screen.getByLabelText('Dia') as HTMLSelectElement).value).toBe('2026-09-16')
+})
+
+it('abre o planejador no início da semana quando hoje não está nela', () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(2026, 8, 16, 12, 0, 0))
+  render(
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <MemoryRouter initialEntries={[{ pathname: '/app/recipes/test-recipe', state: { returnTo: '/app/week?week=2026-08-31' } }]}>
+        <Routes><Route path="/app/recipes/:recipeId" element={<RecipeDetailsPage />} /></Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Colocar na minha semana' }))
+  expect((screen.getByLabelText('Dia') as HTMLSelectElement).value).toBe('2026-08-31')
 })
