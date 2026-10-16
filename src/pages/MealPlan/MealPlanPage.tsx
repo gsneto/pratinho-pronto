@@ -17,6 +17,7 @@ import { ReplaceMealDialog } from '../../components/meal-plan/ReplaceMealDialog'
 import { BabyAvatar } from '../../components/baby/BabyAvatar'
 import { PdfExportButton } from '../../components/pdf/PdfExportButton'
 import { RecipeVisual } from '../../components/recipes/RecipeVisual'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { PageState } from '../../components/ui/PageState'
 import { useBaby } from '../../hooks/useBaby'
 import { mealPlanQueryKey, useMealPlan } from '../../hooks/useMealPlan'
@@ -34,6 +35,7 @@ import {
 import { analytics } from '../../services/analytics'
 import {
   duplicateMealPlan,
+  getMealPlan,
   replaceMealPlanItem,
   saveMealPlan,
   swapMealPlanItemPositions,
@@ -67,6 +69,8 @@ export function MealPlanPage() {
   const [isReplacing, setIsReplacing] = useState(false)
   const [replacementError, setReplacementError] = useState<string | null>(null)
   const [isDuplicating, setIsDuplicating] = useState(false)
+  const [showRepeatConfirm, setShowRepeatConfirm] = useState(false)
+  const repeatTriggerRef = useRef<HTMLButtonElement>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   // Dia aberto no destaque. Acompanha a semana exibida: se a semana muda, a
@@ -249,22 +253,47 @@ export function MealPlanPage() {
     }
   }
 
+  async function performRepeatNextWeek(nextWeek: string) {
+    setStatusMessage(null)
+    await duplicateMealPlan(currentBaby.id, weekStart, nextWeek)
+    await queryClient.invalidateQueries({ queryKey: mealPlanHistoryQueryKey(currentBaby.id) })
+    await queryClient.invalidateQueries({ queryKey: mealPlanQueryKey(currentBaby.id, nextWeek) })
+    goToWeek(nextWeek)
+    setStatusMessage(`Cardápio copiado para a semana de ${formatShortDate(nextWeek)}`)
+  }
+
   async function handleRepeatNextWeek() {
-    if (!plan) return
+    if (!plan || isDuplicating) return
     const nextWeek = addDays(weekStart, 7)
     setIsDuplicating(true)
     setActionError(null)
-    setStatusMessage(null)
     try {
-      await duplicateMealPlan(currentBaby.id, weekStart, nextWeek)
-      await queryClient.invalidateQueries({ queryKey: mealPlanHistoryQueryKey(currentBaby.id) })
-      await queryClient.invalidateQueries({ queryKey: mealPlanQueryKey(currentBaby.id, nextWeek) })
-      goToWeek(nextWeek)
-      setStatusMessage(`Cardápio copiado para a semana de ${formatShortDate(nextWeek)}`)
+      // Copiar substitui o cardápio inteiro da semana de destino. Se já houver
+      // um planejamento lá, confirmamos antes de sobrescrevê-lo.
+      const target = await getMealPlan(currentBaby.id, nextWeek)
+      if (target && target.meal_plan_items.length > 0) {
+        setShowRepeatConfirm(true)
+        return
+      }
+      await performRepeatNextWeek(nextWeek)
     } catch {
       setActionError('Não conseguimos repetir esta semana. Confira a conexão e tente novamente.')
     } finally {
       setIsDuplicating(false)
+    }
+  }
+
+  async function confirmRepeatNextWeek() {
+    const nextWeek = addDays(weekStart, 7)
+    setIsDuplicating(true)
+    setActionError(null)
+    try {
+      await performRepeatNextWeek(nextWeek)
+    } catch {
+      setActionError('Não conseguimos repetir esta semana. Confira a conexão e tente novamente.')
+    } finally {
+      setIsDuplicating(false)
+      setShowRepeatConfirm(false)
     }
   }
 
@@ -680,7 +709,7 @@ export function MealPlanPage() {
             <button
               className="pp-btn pp-btn-quiet w-full sm:w-auto"
               disabled={isDuplicating}
-              onClick={handleRepeatNextWeek}
+              onClick={(event) => { repeatTriggerRef.current = event.currentTarget; void handleRepeatNextWeek() }}
               type="button"
             >
               {isDuplicating ? 'Duplicando…' : 'Repetir na próxima semana'}
@@ -727,6 +756,23 @@ export function MealPlanPage() {
           onChoose={handleReplace}
           onClose={() => { setReplacingItem(null); setReplacementError(null) }}
           returnFocusRef={replacementTriggerRef}
+        />
+      )}
+
+      {showRepeatConfirm && (
+        <ConfirmDialog
+          confirmLabel="Substituir e repetir"
+          description={`A semana de ${formatShortDate(addDays(weekStart, 7))} já tem um cardápio. Repetir esta semana substitui o que está lá.`}
+          details={[
+            'As refeições da próxima semana são trocadas pelas desta semana.',
+            'As opções extras e a ordem das refeições também são copiadas.',
+            'Esta ação não afeta a semana que você está vendo agora.',
+          ]}
+          isConfirming={isDuplicating}
+          onClose={() => setShowRepeatConfirm(false)}
+          onConfirm={() => { void confirmRepeatNextWeek() }}
+          returnFocusRef={repeatTriggerRef}
+          title="Substituir o cardápio da próxima semana?"
         />
       )}
     </div>
