@@ -9,7 +9,7 @@ import { RecipeDetailsPage } from './RecipeDetailsPage'
 import { addRecipeToMealPlan } from '../../services/mealPlans'
 
 vi.mock('../../hooks/useBaby', () => ({ useBaby: () => ({ data: testBaby }) }))
-vi.mock('../../hooks/useRecipes', () => ({ useRecipe: () => ({ data: testRecipe, isLoading: false }) }))
+vi.mock('../../hooks/useRecipes', () => ({ useRecipe: () => ({ data: testRecipe, isLoading: false }), useRecipeReviewStatuses: () => ({ data: null }) }))
 vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: null }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
 vi.mock('../../hooks/useFavorites', () => ({ useFavoriteRecipe: () => ({ isFavorite: false, isSaving: false, toggle: vi.fn() }) }))
 vi.mock('../../services/mealPlans', () => ({ addRecipeToMealPlan: vi.fn() }))
@@ -31,7 +31,8 @@ it('preserves the source guidance without inferring texture or freezing permissi
   expect(screen.getByText(testRecipe.storage_notes!)).toBeTruthy()
   expect(screen.queryByText('Sim, em porções')).toBeNull()
   expect(screen.queryByText('Textura sugerida')).toBeNull()
-  expect(screen.getByText('Demonstrativa')).toBeTruthy()
+  expect(screen.queryByText('Demonstrativa')).toBeNull()
+  expect(screen.getByText(/Conteúdo educativo do catálogo/)).toBeTruthy()
 })
 
 it('lets the cook check and restart steps without changing their instructions', () => {

@@ -91,17 +91,16 @@
   }
 
   html {
-    min-width: 320px;
     min-height: 100%;
     background: var(--color-cream-50);
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    /* Evita rolagem horizontal acidental em carrosséis e nomes longos. */
+    /* Rede de segurança para carrosséis; a largura não é forçada para que a
+       página acompanhe o viewport real (sem rolagem horizontal a 320 px). */
     overflow-x: hidden;
   }
 
@@ -119,9 +118,11 @@
     letter-spacing: -0.035em;
   }
 
+  h1,
   h2,
   h3 {
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   p {
@@ -131,6 +132,7 @@
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   button:focus-visible,

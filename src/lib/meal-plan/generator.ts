@@ -4,6 +4,7 @@ import type {
   MealType,
   Recipe,
 } from '../../types/domain'
+import { parseDietaryRestrictions, recipeViolatesDiet } from '../diet/classification'
 import { addDays, calculateAgeMonths, parseIsoDate } from '../../utils/dates'
 import { normalizeTerm } from '../../utils/text'
 
@@ -40,11 +41,24 @@ export function isRecipeCompatible(
   const blocked = babyBlockedTerms(baby)
   const terms = recipeTerms(recipe)
 
-  return !blocked.some((blockedTerm) =>
-    terms.some(
-      (term) => term.includes(blockedTerm) || blockedTerm.includes(term),
-    ),
-  )
+  if (
+    blocked.some((blockedTerm) =>
+      terms.some(
+        (term) => term.includes(blockedTerm) || blockedTerm.includes(term),
+      ),
+    )
+  ) {
+    return false
+  }
+
+  // Restrições dietéticas suportadas (ex.: vegetariano/vegano), aplicadas pela
+  // classificação real dos ingredientes — não por correspondência de palavras.
+  const dietRule = parseDietaryRestrictions(baby.restrictions)
+  if (dietRule && recipeViolatesDiet(recipe, dietRule)) {
+    return false
+  }
+
+  return true
 }
 
 export function getCompatibleRecipes(

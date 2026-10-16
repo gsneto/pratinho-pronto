@@ -6,7 +6,8 @@ planejamento semanal prático. React + TypeScript + Vite no frontend, Supabase
 
 ## Funcionalidades
 
-- Autenticação por magic link (Supabase Auth).
+- Autenticação por e-mail e senha (Supabase Auth). O primeiro acesso de um
+  cliente cria a senha usando o e-mail da compra.
 - Onboarding do bebê com validação de idade e restrições alimentares.
 - Catálogo editorial de receitas de introdução alimentar com filtros por fase,
   refeição, alergênicos e tempo de preparo.
@@ -19,7 +20,7 @@ planejamento semanal prático. React + TypeScript + Vite no frontend, Supabase
 
 ## Stack
 
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, React Router.
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, React Router.
 - **Backend:** Supabase (Postgres, Auth, Row Level Security, Storage).
 - **Testes:** Vitest, Testing Library, axe-core.
 - **Build/QA:** oxlint, matriz própria de UI QA (`qa/`).
@@ -35,15 +36,18 @@ npm run dev
 Para autenticar e acessar a home protegida, preencha `VITE_SUPABASE_URL` e
 `VITE_SUPABASE_ANON_KEY`. Nunca exponha uma service role key no frontend.
 
-Para o magic link funcionar, habilite o provedor de e-mail no Supabase e inclua
-o callback local na lista de redirecionamentos permitidos do projeto:
+O cadastro de um novo acesso é liberado pelo webhook de pagamento (tabela
+`access_grants`): só é possível criar a conta com o e-mail de uma compra
+aprovada. Em desenvolvimento local, insira o e-mail em `access_grants` antes de
+testar o primeiro acesso. Inclua o callback local na lista de redirecionamentos
+permitidos do projeto Supabase:
 
 ```text
 http://localhost:5173/auth/callback
 ```
 
 Sem as variáveis públicas, `/login` continua disponível para inspeção, mas o
-envio do link fica bloqueado com uma mensagem explícita.
+acesso fica bloqueado com uma mensagem explícita.
 
 ## Banco de dados
 
@@ -112,7 +116,6 @@ src/
 │   ├── baby/
 │   ├── recipes/
 │   ├── meal-plan/
-│   ├── shopping-list/
 │   └── pdf/
 ├── pages/
 │   ├── Login/
@@ -123,11 +126,10 @@ src/
 │   ├── RecipeDetails/
 │   ├── Pantry/
 │   ├── ShoppingList/
-│   ├── Profile/
-│   └── Subscription/
+│   └── Profile/
 ├── hooks/
 ├── services/            # auth e acesso ao Supabase separados por domínio
-├── lib/
+├── lib/                 # regras puras (cardápio, despensa, dieta, favoritos)
 ├── types/
 ├── utils/
 └── routes/
@@ -135,3 +137,17 @@ src/
 
 Os acessos ao Supabase ficam nos serviços de domínio; componentes não executam
 queries diretas.
+
+## Banco de dados, testes de integração e migrações
+
+- `npm run db:test` — sobe um PostgreSQL 17 descartável (Docker), aplica o shim
+  local de auth, as migrações e o seed, e roda os testes SQL de integração
+  (`supabase/tests/`). Não toca produção.
+- `npm run db:e2e` — teste end-to-end contra o stack Supabase local
+  (`npx supabase start` + `npx supabase db reset`): signup via GoTrue, RPC via
+  PostgREST e verificação de RLS/anon.
+
+A migração de expansão do catálogo é autossuficiente (define os 36
+ingredientes); a validação final do catálogo (≥72 receitas, sem duplicatas, sem
+receita sem ingrediente) roda no fim do `seed.sql`, depois de todas as
+migrações.

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { GeneratedMealPlanItem, MealPlan } from '../types/domain'
+import type { GeneratedMealPlanItem, MealPlan, MealPlanItem } from '../types/domain'
 
 // A camada de escrita nunca foi testada; qualquer regressão no payload,
 // tratamento de erro do Supabase ou lógica de posicionamento aparece aqui.
@@ -7,7 +7,7 @@ vi.mock('./supabase/auth-user', () => ({
   getAuthenticatedUserId: vi.fn(async () => 'user-1'),
 }))
 
-const supabaseMock = vi.hoisted(() => ({ from: vi.fn() }))
+const supabaseMock = vi.hoisted(() => ({ from: vi.fn(), rpc: vi.fn() }))
 
 vi.mock('./supabase/client', () => ({
   getSupabaseClient: () => supabaseMock,
@@ -69,10 +69,12 @@ const {
   duplicateMealPlan,
   replaceMealPlanItem,
   saveMealPlan,
+  swapMealPlanItemPositions,
 } = await import('./mealPlans')
 
 beforeEach(() => {
   supabaseMock.from.mockReset()
+  supabaseMock.rpc.mockReset()
 })
 
 const sampleItems: GeneratedMealPlanItem[] = [
@@ -339,5 +341,29 @@ describe('duplicateMealPlan', () => {
     await expect(
       duplicateMealPlan('baby-1', '2026-08-24', '2026-08-31'),
     ).rejects.toThrow('Semana de origem não encontrada')
+  })
+})
+
+describe('swapMealPlanItemPositions', () => {
+  const first = { id: 'item-a', position: 0 } as MealPlanItem
+  const second = { id: 'item-b', position: 1 } as MealPlanItem
+
+  it('troca as posições por RPC atômica no banco', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: null })
+
+    await swapMealPlanItemPositions(first, second)
+
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('swap_meal_plan_item_positions', {
+      p_first: 'item-a',
+      p_second: 'item-b',
+    })
+    // A troca é resolvida no banco; nenhum update é feito pelo cliente.
+    expect(supabaseMock.from).not.toHaveBeenCalled()
+  })
+
+  it('propaga erro da RPC', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: new Error('items_not_in_same_slot') })
+
+    await expect(swapMealPlanItemPositions(first, second)).rejects.toThrow('items_not_in_same_slot')
   })
 })

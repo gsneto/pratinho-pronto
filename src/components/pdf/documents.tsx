@@ -7,7 +7,10 @@ import {
 } from '@react-pdf/renderer'
 import type { Baby, IngredientCategory, MealPlan, Recipe, ShoppingList } from '../../types/domain'
 import { addDays, calculateAgeMonths, formatShortDate, parseIsoDate } from '../../utils/dates'
+import { mealCellItems } from '../../lib/meal-plan/week-print'
+import { shoppingItemCategory, shoppingItemLabel } from '../../lib/shopping-list/manual'
 import { splitInstructions } from '../../utils/instructions'
+import { formatQuantityWithUnit } from '../../utils/quantity'
 import {
   compareIngredientCategories,
   ingredientCategoryLabels,
@@ -225,14 +228,16 @@ export function WeekPlanDocument({ baby, plan }: { baby: Baby; plan: MealPlan })
               </View>
               <View style={styles.mealsGrid}>
                 {mealTypeOrder.map((mealType) => {
-                  const item = items.find((candidate) => candidate.meal_type === mealType)
+                  const cellItems = mealCellItems(items, date, mealType)
                   return (
                     <View key={mealType} style={styles.mealCell}>
                       <Text style={styles.mealLabel}>{mealTypeLabels[mealType]}</Text>
-                      {item ? (
-                        <Text style={styles.mealName}>{item.recipe.name}</Text>
-                      ) : (
+                      {cellItems.length === 0 ? (
                         <Text style={styles.mealNameEmpty}>A combinar</Text>
+                      ) : (
+                        cellItems.map((item) => (
+                          <Text key={item.id} style={styles.mealName}>{item.recipe.name}</Text>
+                        ))
                       )}
                     </View>
                   )
@@ -257,7 +262,7 @@ export function ShoppingListDocument({
   weekStart?: string
 }) {
   const groups = shoppingList.shopping_list_items.reduce((result, item) => {
-    const category = item.ingredient.category
+    const category = shoppingItemCategory(item)
     result.set(category, [...(result.get(category) ?? []), item])
     return result
   }, new Map<IngredientCategory, typeof shoppingList.shopping_list_items>())
@@ -277,21 +282,36 @@ export function ShoppingListDocument({
         </Text>
         <View style={styles.rule} />
 
-        {orderedGroups.map(([category, items]) => (
-          <View key={category} minPresenceAhead={64} style={styles.category}>
-            <Text style={styles.categoryTitle}>{ingredientCategoryLabels[category]}</Text>
-            <View style={styles.categoryRule} />
-            {items.map((item) => (
-              <View key={item.id} style={styles.shoppingRow} wrap={false}>
-                <View style={styles.checkbox} />
-                <Text style={styles.shoppingName}>{item.ingredient.name}</Text>
-                <Text style={styles.quantity}>
-                  {Number(item.quantity).toLocaleString('pt-BR')} {item.unit}
-                </Text>
+        <Text style={styles.subtitle}>
+          Quantidades somadas das receitas da semana, na medida usada no preparo.
+        </Text>
+        <View style={styles.sectionRule} />
+
+        {orderedGroups.map(([category, items]) => {
+          const [firstItem, ...restItems] = items
+          const renderRow = (item: (typeof items)[number]) => (
+            <View key={item.id} style={styles.shoppingRow} wrap={false}>
+              <View style={styles.checkbox} />
+              <Text style={styles.shoppingName}>{shoppingItemLabel(item)}</Text>
+              <Text style={styles.quantity}>
+                {formatQuantityWithUnit(item.quantity, item.unit)}
+              </Text>
+            </View>
+          )
+          return (
+            <View key={category} style={styles.category}>
+              {/* Título + primeira linha ficam juntos: a categoria nunca abre
+                  com o título órfão no fim da página, e as linhas seguintes
+                  podem fluir normalmente para economizar papel. */}
+              <View wrap={false}>
+                <Text style={styles.categoryTitle}>{ingredientCategoryLabels[category]}</Text>
+                <View style={styles.categoryRule} />
+                {firstItem && renderRow(firstItem)}
               </View>
-            ))}
-          </View>
-        ))}
+              {restItems.map(renderRow)}
+            </View>
+          )
+        })}
         <PdfFooter />
       </Page>
     </Document>
@@ -330,7 +350,7 @@ export function WeeklyRecipesDocument({
                 <Text style={styles.sectionLabel}>Ingredientes</Text>
                 {recipe.recipe_ingredients.map((item) => (
                   <Text key={item.id} style={styles.ingredientLine}>
-                    {Number(item.quantity).toLocaleString('pt-BR')} {item.unit} de {item.ingredient.name}
+                    {formatQuantityWithUnit(item.quantity, item.unit)} de {item.ingredient.name}
                   </Text>
                 ))}
               </View>

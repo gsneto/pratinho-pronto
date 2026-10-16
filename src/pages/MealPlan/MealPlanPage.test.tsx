@@ -5,16 +5,20 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom'
 import { testBaby, testPlan, testRecipe } from '../../test/fixtures'
 import { MealPlanPage } from './MealPlanPage'
-import { duplicateMealPlan, replaceMealPlanItem } from '../../services/mealPlans'
+import { duplicateMealPlan, replaceMealPlanItem, swapMealPlanItemPositions } from '../../services/mealPlans'
 
 vi.mock('../../hooks/useBaby', () => ({ useBaby: () => ({ data: testBaby }) }))
 vi.mock('../../hooks/useRecipes', () => ({ useRecipes: () => ({ data: [testRecipe, { ...testRecipe, id: 'alternative', name: 'Outra receita de teste' }], isLoading: false }) }))
-vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: testPlan }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
+const planOverride = vi.hoisted(() => ({ current: null as unknown }))
+vi.mock('../../hooks/useMealPlan', () => ({ useMealPlan: () => ({ data: planOverride.current ?? testPlan }), mealPlanQueryKey: (id: string, week: string) => ['plan', id, week] }))
 vi.mock('../../hooks/useMealPlanHistory', () => ({ useMealPlanHistory: () => ({ data: [] }), mealPlanHistoryQueryKey: (id: string) => ['history', id] }))
 vi.mock('../../components/pdf/PdfExportButton', () => ({ PdfExportButton: ({ label }: { label: string }) => <button>{label}</button> }))
 vi.mock('../../services/analytics', () => ({ analytics: { track: vi.fn() } }))
-vi.mock('../../services/mealPlans', () => ({ saveMealPlan: vi.fn(), duplicateMealPlan: vi.fn(), replaceMealPlanItem: vi.fn() }))
-afterEach(cleanup)
+vi.mock('../../services/mealPlans', () => ({ saveMealPlan: vi.fn(), duplicateMealPlan: vi.fn(), replaceMealPlanItem: vi.fn(), swapMealPlanItemPositions: vi.fn() }))
+afterEach(() => {
+  cleanup()
+  planOverride.current = null
+})
 
 function renderWeek() {
   render(<QueryClientProvider client={new QueryClient()}><MemoryRouter initialEntries={['/app/week?week=2026-09-14']}><MealPlanPage /></MemoryRouter></QueryClientProvider>)
@@ -58,4 +62,55 @@ it('keeps a failed replacement in the dialog with a retryable error', async () =
   fireEvent.click(screen.getByRole('button', { name: `Trocar ${testRecipe.name}` }))
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Outra receita de teste/ }))
   expect((await within(screen.getByRole('dialog')).findByRole('alert')).textContent).toMatch(/Não conseguimos trocar/)
+})
+
+it('marca a segunda refeição do mesmo tipo como opção extra', () => {
+  const base = testPlan.meal_plan_items[0]
+  planOverride.current = {
+    ...testPlan,
+    meal_plan_items: [
+      base,
+      { ...base, id: 'extra-meal', position: 1, recipe: { ...testRecipe, id: 'extra-recipe', name: 'Omelete extra' } },
+    ],
+  }
+  renderWeek()
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Dias da semana' })).getAllByRole('button')[0])
+  expect(screen.getByText('Opção extra')).toBeTruthy()
+  expect(screen.getByText('Omelete extra')).toBeTruthy()
+})
+
+function renderTwoBreakfasts() {
+  const base = testPlan.meal_plan_items[0]
+  planOverride.current = {
+    ...testPlan,
+    meal_plan_items: [
+      base,
+      { ...base, id: 'extra-meal', position: 1, recipe: { ...testRecipe, id: 'extra-recipe', name: 'Omelete extra' } },
+    ],
+  }
+  renderWeek()
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Dias da semana' })).getAllByRole('button')[0])
+}
+
+it('reordena refeições do mesmo tipo dentro do dia', async () => {
+  vi.mocked(swapMealPlanItemPositions).mockResolvedValueOnce(undefined)
+  renderTwoBreakfasts()
+  fireEvent.click(screen.getByRole('button', { name: 'Mover Omelete extra para cima' }))
+  await vi.waitFor(() => expect(swapMealPlanItemPositions).toHaveBeenCalledTimes(1))
+  const [first, second] = vi.mocked(swapMealPlanItemPositions).mock.calls[0]
+  expect([first.id, second.id].sort()).toEqual(['extra-meal', 'test-meal'])
+})
+
+it('não oferece reordenação entre tipos de refeição diferentes', () => {
+  renderWeek()
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Dias da semana' })).getAllByRole('button')[0])
+  // O cardápio de teste tem só um café da manhã: nada a reordenar.
+  expect(screen.queryByRole('button', { name: /^Mover / })).toBeNull()
+})
+
+it('informa quando a reordenação falha e não promete sucesso', async () => {
+  vi.mocked(swapMealPlanItemPositions).mockRejectedValueOnce(new Error('offline'))
+  renderTwoBreakfasts()
+  fireEvent.click(screen.getByRole('button', { name: 'Mover Omelete extra para cima' }))
+  expect((await screen.findByRole('alert')).textContent).toMatch(/Não conseguimos reordenar/)
 })

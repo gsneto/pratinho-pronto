@@ -82,4 +82,49 @@ describe('weekly meal plan generator', () => {
     const values = Object.values(usage)
     expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1)
   })
+
+  it('vegetariano exclui receitas com carne, mas mantém opções sem carne', () => {
+    const vegetarian = { ...baby, restrictions: ['vegetariano'] } as Baby
+    const reference = new Date(2026, 7, 24)
+    const withMeat = {
+      ...recipe('meat', 'lunch'),
+      recipe_ingredients: [
+        { id: 'ri', ingredient_id: 'i', ingredient: { id: 'i', name: 'Carne bovina' } },
+      ],
+    } as unknown as Recipe
+    const plantBased = {
+      ...recipe('plant', 'lunch'),
+      recipe_ingredients: [
+        { id: 'ri', ingredient_id: 'i', ingredient: { id: 'i', name: 'Lentilha' } },
+      ],
+    } as unknown as Recipe
+
+    expect(isRecipeCompatible(vegetarian, withMeat, reference)).toBe(false)
+    expect(isRecipeCompatible(vegetarian, plantBased, reference)).toBe(true)
+  })
+
+  it('geração com restrição vegetariana não inclui receitas com carne', () => {
+    const vegetarian = { ...baby, restrictions: ['vegetariano'] } as Baby
+    const withMeat = {
+      ...recipe('meat', 'lunch'),
+      recipe_ingredients: [
+        { id: 'ri', ingredient_id: 'i', ingredient: { id: 'i', name: 'Frango' } },
+      ],
+    } as unknown as Recipe
+    const plantBased = {
+      ...recipe('plant', 'lunch'),
+      recipe_ingredients: [
+        { id: 'ri', ingredient_id: 'i', ingredient: { id: 'i', name: 'Lentilha' } },
+      ],
+    } as unknown as Recipe
+
+    const result = generateWeeklyMealPlan({
+      baby: vegetarian,
+      recipes: [withMeat, plantBased],
+      selectedMealTypes: ['lunch'],
+      weekStart: '2026-08-24',
+    })
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((item) => item.recipe_id === 'plant')).toBe(true)
+  })
 })

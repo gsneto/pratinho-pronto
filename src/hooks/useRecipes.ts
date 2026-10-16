@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { getRecipe, listIngredients, listRecipes } from '../services/recipes'
+import { getRecipe, listIngredients, listRecipes, listRecipeReviewStatuses } from '../services/recipes'
 
 export const recipesQueryKey = ['recipes'] as const
 export const ingredientsQueryKey = ['ingredients'] as const
+export const recipeReviewQueryKey = ['recipes', 'review-status'] as const
 
 export function useRecipes() {
   return useQuery({
@@ -25,6 +26,18 @@ export function useIngredients() {
   return useQuery({
     queryFn: listIngredients,
     queryKey: ingredientsQueryKey,
+    staleTime: 10 * 60_000,
+  })
+}
+
+/**
+ * Status de revisão do catálogo. `data` é `null` quando o schema atual não
+ * expõe a coluna — nesse caso a interface simplesmente não mostra indicador.
+ */
+export function useRecipeReviewStatuses() {
+  return useQuery({
+    queryFn: listRecipeReviewStatuses,
+    queryKey: recipeReviewQueryKey,
     staleTime: 10 * 60_000,
   })
 }

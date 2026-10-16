@@ -107,3 +107,62 @@ select r.id, a.allergen
 from allergen_data a
 join public.recipes r on r.name = a.recipe_name
 on conflict (recipe_id, allergen) do nothing;
+
+-- Validação final do catálogo. Roda depois de todas as migrações e de todo o
+-- seed (migrações inserem 48 receitas; este seed, 24), então encontra o estado
+-- completo. Antes, a mesma checagem vivia na migração de expansão e abortava a
+-- reconstrução limpa encontrando apenas 48 receitas.
+do $$
+declare
+  catalog_total integer;
+  missing_required integer;
+  unbalanced_types integer;
+  duplicate_names integer;
+begin
+  select count(*) into catalog_total
+  from public.recipes
+  where is_demo and is_active;
+
+  if catalog_total < 72 then
+    raise exception 'Catálogo incompleto: esperadas ao menos 72 receitas, encontradas %', catalog_total;
+  end if;
+
+  select count(*) into missing_required
+  from public.recipes r
+  where r.is_demo
+    and r.is_active
+    and not exists (
+      select 1 from public.recipe_ingredients ri
+      where ri.recipe_id = r.id and not ri.is_optional
+    );
+
+  if missing_required > 0 then
+    raise exception 'Catálogo inválido: % receitas sem ingrediente obrigatório', missing_required;
+  end if;
+
+  select count(*) into unbalanced_types
+  from (
+    select meal_type
+    from public.recipes
+    where is_demo and is_active
+    group by meal_type
+    having count(*) < 18
+  ) insufficient;
+
+  if unbalanced_types > 0 then
+    raise exception 'Catálogo desequilibrado: há tipos de refeição com menos de 18 receitas';
+  end if;
+
+  select count(*) into duplicate_names
+  from (
+    select name
+    from public.recipes
+    group by name
+    having count(*) > 1
+  ) duplicated;
+
+  if duplicate_names > 0 then
+    raise exception 'Catálogo com nomes duplicados: %', duplicate_names;
+  end if;
+end
+$$;

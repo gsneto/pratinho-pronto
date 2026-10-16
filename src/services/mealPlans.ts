@@ -1,4 +1,4 @@
-import type { GeneratedMealPlanItem, MealPlan, MealType } from '../types/domain'
+import type { GeneratedMealPlanItem, MealPlan, MealPlanItem, MealType } from '../types/domain'
 import { shiftIsoDate } from '../utils/dates'
 import { recipeFields } from './recipes'
 import { getAuthenticatedUserId } from './supabase/auth-user'
@@ -77,6 +77,27 @@ export async function replaceMealPlanItem(
     .update({ recipe_id: recipeId })
     .eq('id', itemId)
 
+  if (error) throw error
+}
+
+/**
+ * Troca a `position` de duas refeições do mesmo dia/tipo, preservando a
+ * identidade de cada uma (só a posição muda).
+ *
+ * Feito por RPC no banco para ser atômico e livre de colisão: com três ou mais
+ * refeições do mesmo tipo, uma posição temporária calculada no cliente podia
+ * coincidir com a de outra refeição (índice único), e uma falha no meio dos
+ * updates deixava a ordem inconsistente. A função resolve os dois casos.
+ */
+export async function swapMealPlanItemPositions(
+  first: MealPlanItem,
+  second: MealPlanItem,
+): Promise<void> {
+  await getAuthenticatedUserId()
+  const { error } = await getSupabaseClient().rpc('swap_meal_plan_item_positions', {
+    p_first: first.id,
+    p_second: second.id,
+  })
   if (error) throw error
 }
 

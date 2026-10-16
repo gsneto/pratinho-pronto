@@ -29,6 +29,6 @@ export const testPlan: MealPlan = {
 export const testShoppingList: ShoppingList = {
   id: 'test-list', user_id: testBaby.user_id, meal_plan_id: testPlan.id, created_at: '2026-09-14',
   shopping_list_items: [{ id: 'test-shopping-item', shopping_list_id: 'test-list',
-    ingredient_id: testIngredient.id, quantity: 2, unit: 'unidades', checked: false,
+    ingredient_id: testIngredient.id, custom_name: null, quantity: 2, unit: 'unidades', checked: false,
     ingredient: testIngredient }],
 }
