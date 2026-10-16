@@ -92,9 +92,10 @@ export function HomePage() {
 
   return (
     <div className="pp-home">
-      {/* HERO editorial: composição assimétrica com a comida em primeiro plano.
-          A fotografia ocupa uma coluna inteira (não uma miniatura dentro de um
-          painel), e a chamada principal fica ao lado, como uma capa de revista. */}
+      {/* HERO editorial. No desktop, composição assimétrica: texto + detalhe à
+          esquerda, fotografia à direita. No mobile, a ordem é texto → FOTO →
+          detalhe, para a comida aparecer na primeira dobra em vez de ficar
+          abaixo de título, botões e meta. */}
       <section aria-labelledby="home-title" className="pp-hero">
         <div className="pp-hero-copy">
           <p className="pp-eyebrow">Sua semana · {weekRangeLabel}</p>
@@ -109,7 +110,29 @@ export function HomePage() {
               <ChevronRight aria-hidden="true" size={16} />
             </Link>
           )}
+        </div>
 
+        <div className="pp-hero-media">
+          {nextMeal ? (
+            <Link aria-label={`Preparar ${nextMeal.recipe.name}`} className="pp-hero-photo" state={{ returnTo: '/app' }} to={`/app/recipes/${nextMeal.recipe.id}`}>
+              <RecipeVisual imageUrl={nextMeal.recipe.image_url} name={nextMeal.recipe.name} priority size="hero" />
+              {/* Legenda só com o contexto do horário: o nome do prato aparece
+                  uma única vez, no bloco de detalhe, para não repetir. */}
+              <span className="pp-hero-photo-caption">
+                <span className="pp-hero-photo-label">{mealTypeLabels[nextMeal.meal_type]}</span>
+                <span className="pp-hero-photo-when">{nextMeal.date === todayIso ? 'No cardápio de hoje' : formatShortDate(nextMeal.date)}</span>
+              </span>
+            </Link>
+          ) : (
+            <Link className="pp-hero-search-tile" to="/app/recipes">
+              <Search aria-hidden="true" size={22} />
+              <span>O que vamos preparar hoje?</span>
+              <ArrowRight aria-hidden="true" size={18} />
+            </Link>
+          )}
+        </div>
+
+        <div className="pp-hero-detail">
           {planLoading ? (
             <div className="pp-hero-meal pp-loading-meal" role="status" aria-busy="true">
               <div className="pp-skeleton h-24" />
@@ -157,24 +180,6 @@ export function HomePage() {
                 </Link>
               </div>
             </div>
-          )}
-        </div>
-
-        <div className="pp-hero-media">
-          {nextMeal ? (
-            <Link aria-label={`Preparar ${nextMeal.recipe.name}`} className="pp-hero-photo" state={{ returnTo: '/app' }} to={`/app/recipes/${nextMeal.recipe.id}`}>
-              <RecipeVisual imageUrl={nextMeal.recipe.image_url} name={nextMeal.recipe.name} priority size="hero" />
-              <span className="pp-hero-photo-caption">
-                <span className="pp-hero-photo-label">{mealTypeLabels[nextMeal.meal_type]}</span>
-                <strong>{nextMeal.recipe.name}</strong>
-              </span>
-            </Link>
-          ) : (
-            <Link className="pp-hero-search-tile" to="/app/recipes">
-              <Search aria-hidden="true" size={22} />
-              <span>O que vamos preparar hoje?</span>
-              <ArrowRight aria-hidden="true" size={18} />
-            </Link>
           )}
         </div>
       </section>

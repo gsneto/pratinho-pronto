@@ -282,11 +282,15 @@
 }
 
 /* -- Hero editorial ------------------------------------------------------- */
+/* Desktop: três áreas em duas colunas — texto e detalhe empilhados à esquerda,
+   fotografia ocupando a direita. Mobile: uma coluna na ordem do DOM
+   (texto → foto → detalhe), para a comida entrar na primeira dobra. */
 .pp-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
-  gap: clamp(24px, 3vw, 44px);
-  align-items: center;
+  column-gap: clamp(24px, 3vw, 44px);
+  row-gap: 22px;
+  align-items: start;
   padding: clamp(22px, 2.6vw, 36px);
   border-radius: 34px;
   background:
@@ -296,10 +300,23 @@
   box-shadow: var(--pp-shadow-soft);
 }
 .pp-hero-copy {
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+.pp-hero-detail {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+.pp-hero-media {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  min-width: 0;
 }
 .pp-hero-copy .pp-page-title {
   margin-top: 10px;
@@ -376,9 +393,9 @@
   position: absolute;
   inset: auto 0 0 0;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 44px 20px 18px;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 18px 16px;
   color: #fff;
   background: linear-gradient(180deg, transparent, rgba(16, 34, 27, .78));
 }
@@ -387,14 +404,11 @@
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  opacity: .9;
 }
-.pp-hero-photo-caption strong {
-  font-family: var(--font-serif);
-  font-size: clamp(19px, 2vw, 25px);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -.025em;
+.pp-hero-photo-when {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: .9;
 }
 .pp-hero-search-tile {
   display: flex;
@@ -580,7 +594,15 @@
 @media (max-width: 1024px) {
   .pp-hero {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 22px;
+  }
+  /* Volta ao fluxo do DOM: texto → foto → detalhe. A comida aparece antes dos
+     botões, e não depois. */
+  .pp-hero-copy,
+  .pp-hero-media,
+  .pp-hero-detail {
+    grid-column: 1;
+    grid-row: auto;
   }
   .pp-hero-copy .pp-page-title { max-width: 20ch; }
   .pp-hero-photo .pp-photo-frame { aspect-ratio: 16 / 9; }
@@ -594,6 +616,10 @@
   }
   .pp-hero-meal { margin-top: 20px; }
   .pp-hero-meal-title { font-size: 27px; }
+  /* No mobile a pílula do bebê é redundante: o nome já aparece no lead e o
+     acesso ao perfil está no avatar do cabeçalho. Removê-la libera ~70 px e
+     traz o botão principal para dentro da primeira dobra. */
+  .pp-hero-baby { display: none; }
   .pp-hero-actions { margin-top: 18px; }
   .pp-hero-actions .pp-btn { flex: 1; min-width: 0; }
   .pp-hero-photo .pp-photo-frame { aspect-ratio: 4 / 3; }
