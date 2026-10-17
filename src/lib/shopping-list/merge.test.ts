@@ -56,4 +56,20 @@ describe('mergeShoppingListItems', () => {
     )
     expect(formatQuantityWithUnit(merged[0]!.quantity, merged[0]!.unit)).toBe('4 unidades')
   })
+
+  it('soma aliases da mesma unidade preservando a string existente', () => {
+    const merged = mergeShoppingListItems(
+      [{ ingredient_id: 'ovo', quantity: 1, unit: 'Unidade' }],
+      [{ ingredient_id: 'ovo', quantity: 2, unit: 'un' }],
+    )
+    expect(merged).toEqual([{ ingredient_id: 'ovo', quantity: 3, unit: 'Unidade' }])
+  })
+
+  it('soma unidades convertíveis (500 ml + 1 l = 1500 ml)', () => {
+    const merged = mergeShoppingListItems(
+      [{ ingredient_id: 'leite', quantity: 500, unit: 'ml' }],
+      [{ ingredient_id: 'leite', quantity: 1, unit: 'l' }],
+    )
+    expect(merged).toEqual([{ ingredient_id: 'leite', quantity: 1500, unit: 'ml' }])
+  })
 })

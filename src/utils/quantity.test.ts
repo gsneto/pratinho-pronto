@@ -34,4 +34,10 @@ describe('formatQuantityWithUnit', () => {
   it('normalizes case and spacing for known units', () => {
     expect(formatQuantityWithUnit(2, ' Unidade ')).toBe('2 unidades')
   })
+
+  it('resolves unit aliases before pluralizing', () => {
+    expect(formatQuantityWithUnit(3, 'un')).toBe('3 unidades')
+    expect(formatQuantityWithUnit(1, 'unidades')).toBe('1 unidade')
+    expect(formatQuantityWithUnit(2, 'colheres de sopa')).toBe('2 colheres de sopa')
+  })
 })
